@@ -5,4 +5,13 @@ Ce dépôt contient le code de l'application web que nous développons dans le c
 ## Membres du groupe :
 - Maël ADVISSE @maeladv
 - Louison BEDNAROWICZ @BillyTheSecond
-- CLément Cano @Ipios02D
+- Clément Cano @Ipios02D
+
+
+
+
+### Ressources Typst
+Le modèle Typst utilisé pour rédiger ce rapport est disponible ici :
+- [shafoin-typst-template](https://github.com/Shafoin/shafoin-typst-template) @SHAfoin
+
+Pour utiliser ce modèle, il suffit de clone le repository dans le dossier `rapports/` de ce repo.
