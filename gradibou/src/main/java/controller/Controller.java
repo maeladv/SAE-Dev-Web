@@ -1,15 +1,16 @@
 package controller;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import util.DatabaseManager;
-import java.io.IOException;
-import java.sql.SQLException;
 
-@WebServlet("/")
+@WebServlet("/app/*")
 public class Controller extends HttpServlet {
     
     @Override
@@ -38,6 +39,9 @@ public class Controller extends HttpServlet {
         switch (path) {
             case "/":
                 view = "/WEB-INF/views/index.jsp";
+                break;
+            case "/test":
+                view = "/WEB-INF/views/test.jsp";
                 break;
                 
             default:

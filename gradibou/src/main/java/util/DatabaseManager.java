@@ -1,10 +1,10 @@
 package util;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
+
+import io.github.cdimascio.dotenv.Dotenv;
 
 public class DatabaseManager {
     private static final Dotenv dotenv;
@@ -12,23 +12,16 @@ public class DatabaseManager {
     static {
         String catalinaBase = System.getProperty("catalina.base");
         
-        Dotenv tempDotenv = null;
-        
-        // Cherche d'abord dans catalinaBase/gradibou
         if (catalinaBase != null) {
-            try {
-                String envPath = catalinaBase + "/gradibou";
-                System.out.println("Recherche .env dans: " + envPath);
-                tempDotenv = Dotenv.configure()
-                    .directory(envPath)
-                    .ignoreIfMissing()
-                    .load();
-            } catch (Exception e) {
-                System.out.println("Erreur lors du chargement du .env: " + e.getMessage());
-            }
+            String envPath = catalinaBase + "/gradibou";
+            System.out.println("Recherche .env dans: " + envPath);
+            dotenv = Dotenv.configure()
+                .directory(envPath)
+                .ignoreIfMissing()
+                .load();
+        } else {
+            throw new RuntimeException("Impossible de trouver catalina.base");
         }
-        
-        dotenv = (tempDotenv != null) ? tempDotenv : Dotenv.configure().ignoreIfMissing().load();
     }
     
     private static final String DB_HOST = dotenv.get("DB_HOST", "localhost");
