@@ -92,6 +92,7 @@ public class DatabaseManager {
             "id_etudiant INT NOT NULL," +
             "id_matiere INT NOT NULL," +
             "note INT NOT NULL," +
+            "date TIMESTAMP DEFAULT NOW()," +
             "FOREIGN KEY (id_etudiant) REFERENCES etudiant(id_utilisateur)," +
             "FOREIGN KEY (id_matiere) REFERENCES matiere(id)" +
             ")",
