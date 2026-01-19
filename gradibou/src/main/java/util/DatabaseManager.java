@@ -3,6 +3,7 @@ package util;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -53,19 +54,72 @@ public class DatabaseManager {
     }
 
     // Créer les tables
-    // public static void createTables() throws SQLException {
-    //     String sql = "CREATE TABLE IF NOT EXISTS users (" +
-    //             "id SERIAL PRIMARY KEY," +
-    //             "name VARCHAR(255) NOT NULL," +
-    //             "email VARCHAR(255) NOT NULL UNIQUE," +
-    //             "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
-    //             ")";
-        
-    //     try (Statement stmt = connection.createStatement()) {
-    //         stmt.execute(sql);
-    //         System.out.println("Tables créées");
-    //     }
-    // }
+    public static void createTables() throws SQLException {
+    String[] sqlStatements = {
+        "CREATE TABLE IF NOT EXISTS utilisateur (" +
+            "id SERIAL PRIMARY KEY," +
+            "nom VARCHAR(50) NOT NULL," +
+            "prenom VARCHAR(50) NOT NULL," +
+            "mail VARCHAR(100) NOT NULL UNIQUE," +
+            "date_naissance DATE," +
+            "mot_de_passe VARCHAR(255) NOT NULL," +
+            "role VARCHAR(50) NOT NULL" +
+            ")",
+        "CREATE TABLE IF NOT EXISTS specialite (" +
+            "id SERIAL PRIMARY KEY," +
+            "nom VARCHAR(100) NOT NULL" +
+            ")",
+        "CREATE TABLE IF NOT EXISTS etudiant (" +
+            "id_utilisateur INT PRIMARY KEY," +
+            "nom VARCHAR(100) NOT NULL," +
+            "id_specialite INT NOT NULL," +
+            "FOREIGN KEY (id_utilisateur) REFERENCES utilisateur(id)," +
+            "FOREIGN KEY (id_specialite) REFERENCES specialite(id)" +
+            ")",
+        "CREATE TABLE IF NOT EXISTS matiere (" +
+            "id SERIAL PRIMARY KEY," +
+            "nom VARCHAR(100) NOT NULL," +
+            "semestre INT NOT NULL," +
+            "coefficient INT NOT NULL," +
+            "id_specialite INT NOT NULL," +
+            "id_prof INT NOT NULL," +
+            "FOREIGN KEY (id_specialite) REFERENCES specialite(id)," +
+            "FOREIGN KEY (id_prof) REFERENCES utilisateur(id)" +
+            ")",
+        "CREATE TABLE IF NOT EXISTS note (" +
+            "id SERIAL PRIMARY KEY," +
+            "id_etudiant INT NOT NULL," +
+            "id_matiere INT NOT NULL," +
+            "note INT NOT NULL," +
+            "FOREIGN KEY (id_etudiant) REFERENCES etudiant(id_utilisateur)," +
+            "FOREIGN KEY (id_matiere) REFERENCES matiere(id)" +
+            ")",
+        "CREATE TABLE IF NOT EXISTS evaluation (" +
+            "id SERIAL PRIMARY KEY," +
+            "note INT NOT NULL," +
+            "commentaires TEXT," +
+            "date_expiration DATE," +
+            "id_matiere INT NOT NULL," +
+            "FOREIGN KEY (id_matiere) REFERENCES matiere(id)" +
+            ")",
+        "CREATE TABLE IF NOT EXISTS lien (" +
+            "id SERIAL PRIMARY KEY," +
+            "token_hash VARCHAR(255) NOT NULL," +
+            "date_utilisation DATE," +
+            "date_expiration DATE," +
+            "id_utilisateur INT NOT NULL," +
+            "FOREIGN KEY (id_utilisateur) REFERENCES utilisateur(id)" +
+            ")",
+    };
+    
+    try (Statement stmt = connection.createStatement()) {
+        for (String sql : sqlStatements) {
+            stmt.execute(sql);
+            System.out.println("Table créée: " + sql.substring(0, 50) + "...");
+        }
+        System.out.println("Toutes les tables ont été créées");
+    }
+}
 
     // Fermer la connexion
     public static void close() throws SQLException {
