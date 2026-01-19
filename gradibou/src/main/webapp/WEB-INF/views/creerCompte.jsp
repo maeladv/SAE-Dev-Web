@@ -40,6 +40,7 @@
             <% } %>
         <% } %>
 
+        <% if (request.getAttribute("activationLink") == null) { %>
         <form method="post" action="<%= request.getContextPath() %>/app/admin/creer-utilisateur">
             <input type="text" name="nom" placeholder="Nom" required>
             <input type="text" name="prenom" placeholder="Prénom" required>
@@ -57,6 +58,7 @@
             
             <button type="submit">Créer l'utilisateur</button>
         </form>
+        <% } %>
     </div>
 
     <script>

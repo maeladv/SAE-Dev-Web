@@ -67,7 +67,8 @@ public class DatabaseManager {
             ")",
         "CREATE TABLE IF NOT EXISTS specialite (" +
             "id SERIAL PRIMARY KEY," +
-            "nom VARCHAR(100) NOT NULL" +
+            "nom VARCHAR(100) NOT NULL," +
+            "abbreviation VARCHAR(100) NOT NULL" +
             ")",
         "CREATE TABLE IF NOT EXISTS etudiant (" +
             "id_utilisateur INT PRIMARY KEY," +
