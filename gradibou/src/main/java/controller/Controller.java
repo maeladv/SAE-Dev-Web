@@ -2,12 +2,15 @@ package controller;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDate;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import model.Utilisateur;
 import util.DatabaseManager;
 
 @WebServlet("/app/*")
@@ -17,7 +20,7 @@ public class Controller extends HttpServlet {
     public void init() throws ServletException {
         try {
             DatabaseManager.init();
-            DatabaseManager.createTables();
+            DatabaseManager.creerTables();
             System.out.println("Base de données initialisée");
         } catch (SQLException | ClassNotFoundException e) {
             throw new ServletException("Erreur d'initialisation BD", e);
@@ -40,17 +43,232 @@ public class Controller extends HttpServlet {
             case "/":
                 view = "/WEB-INF/views/index.jsp";
                 break;
-            case "/test":
-                view = "/WEB-INF/views/test.jsp";
+            case "/login":
+                view = "/WEB-INF/views/login.jsp";
                 break;
-                
+            case "/admin":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = "/WEB-INF/views/admin.jsp";
+                break;
+            case "/complete-profil":
+                String token = request.getParameter("token");
+                if (token == null || token.isEmpty()) {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                    return;
+                }
+                try {
+                    int userId = model.Lien.validerLien(token);
+                    if (userId == -1) {
+                        request.setAttribute("error", "Lien invalide ou expiré");
+                        view = "/WEB-INF/views/error.jsp";
+                    } else {
+                        request.setAttribute("token", token);
+                        request.setAttribute("userId", userId);
+                        view = "/WEB-INF/views/complete-profil.jsp";
+                    }
+                } catch (Exception e) {
+                    request.setAttribute("error", "Erreur: " + e.getMessage());
+                    view = "/WEB-INF/views/error.jsp";
+                }
+                break;
+            case "/admin/creer-compte":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = "/WEB-INF/views/creerCompte.jsp";
+                break;
+            case "/logout":
+                request.getSession().invalidate();
+                try {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return;
             default:
-                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                try {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 return;
         }
-        
-        if (view != null) {
+
+        try {
             request.getRequestDispatcher(view).forward(request, response);
+        } catch (ServletException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean estAdmin(HttpSession session) {
+        if (session == null) {
+            return false;
+        }
+        Object userObj = session.getAttribute("user");
+        if (userObj instanceof Utilisateur) {
+            Utilisateur utilisateur = (Utilisateur) userObj;
+            return "admin".equalsIgnoreCase(utilisateur.getRole());
+        }
+        return false;
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        String path = request.getPathInfo();
+        
+        try {
+            switch (path) {
+                case "/login":
+                    gererConnexion(request, response);
+                    break;
+                case "/admin/creer-utilisateur":
+                    creationUtilisateurParAdmin(request, response);
+                    break;
+                case "/complete-profil":
+                    completerProfil(request, response);
+                    break;
+                default:
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    break;
+            }
+        } catch (Exception e) {
+            throw new ServletException(e);
+        }
+    }
+
+    private void gererConnexion(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException, Exception {
+        String email = request.getParameter("email");
+        String motDePasse = request.getParameter("motDePasse");
+
+        if (email == null || email.isEmpty() || motDePasse == null || motDePasse.isEmpty()) {
+            request.setAttribute("error", "Email et mot de passe requis");
+            request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
+            return;
+        }
+
+        Utilisateur utilisateur = Utilisateur.trouverParEmailEtMotDePasse(email, motDePasse);
+        if (utilisateur != null) {
+            request.getSession().setAttribute("user", utilisateur);
+            response.sendRedirect(request.getContextPath() + "/app/" + utilisateur.getRole());
+        } else {
+            request.setAttribute("error", "Email ou mot de passe incorrect");
+            request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
+        }
+    }
+
+    private void creationUtilisateurParAdmin(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        if (!estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        String nom = request.getParameter("nom");
+        String prenom = request.getParameter("prenom");
+        String email = request.getParameter("email");
+        String dateNaissance = request.getParameter("dateNaissance");
+        String role = request.getParameter("role");
+        String ine = request.getParameter("ine");
+
+        if (nom == null || nom.isEmpty() || prenom == null || prenom.isEmpty() || 
+            email == null || email.isEmpty() || dateNaissance == null || dateNaissance.isEmpty() ||
+            role == null || role.isEmpty()) {
+            request.setAttribute("error", "Nom, prénom, email, date de naissance et rôle requis");
+            request.getRequestDispatcher("/WEB-INF/views/creerCompte.jsp").forward(request, response);
+            return;
+        }
+
+        if ("etudiant".equalsIgnoreCase(role) && (ine == null || ine.isEmpty())) {
+            request.setAttribute("error", "L'INE est obligatoire pour les étudiants");
+            request.getRequestDispatcher("/WEB-INF/views/creerCompte.jsp").forward(request, response);
+            return;
+        }
+
+        try {
+            if (Utilisateur.emailExiste(email)) {
+                request.setAttribute("error", "Cet email est déjà utilisé");
+                request.getRequestDispatcher("/WEB-INF/views/creerCompte.jsp").forward(request, response);
+                return;
+            }
+
+            Utilisateur newUser = Utilisateur.creerEnAttente(nom, prenom, email, LocalDate.parse(dateNaissance), role, ine);
+            if (newUser != null) {
+                // Créer un lien d'activation (7 jours de validité)
+                String token = model.Lien.creerLien(newUser.getId(), 7);
+                String activationLink = request.getContextPath() + "/app/complete-profil?token=" + token;
+                
+                request.setAttribute("success", "Utilisateur créé ! Lien d'activation: " + activationLink);
+                request.setAttribute("activationLink", activationLink);
+                request.getRequestDispatcher("/WEB-INF/views/creerCompte.jsp").forward(request, response);
+            } else {
+                request.setAttribute("error", "Erreur lors de la création de l'utilisateur");
+                request.getRequestDispatcher("/WEB-INF/views/creerCompte.jsp").forward(request, response);
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur: " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/creerCompte.jsp").forward(request, response);
+        }
+    }
+
+    private void completerProfil(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        String token = request.getParameter("token");
+        String motDePasse = request.getParameter("motDePasse");
+        String confirmPassword = request.getParameter("confirmPassword");
+
+        if (token == null || token.isEmpty()) {
+            request.setAttribute("error", "Token manquant");
+            request.getRequestDispatcher("/WEB-INF/views/indedx.jsp").forward(request, response);
+            return;
+        }
+
+        try {
+            int userId = model.Lien.validerLien(token);
+            if (userId == -1) {
+                request.setAttribute("error", "Lien invalide ou expiré");
+                request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+                return;
+            }
+
+            if (motDePasse == null || motDePasse.isEmpty()) {
+                request.setAttribute("error", "Le mot de passe est obligatoire");
+                request.setAttribute("token", token);
+                request.setAttribute("userId", userId);
+                request.getRequestDispatcher("/WEB-INF/views/complete-profil.jsp").forward(request, response);
+                return;
+            }
+
+            if (!motDePasse.equals(confirmPassword)) {
+                request.setAttribute("error", "Les mots de passe ne correspondent pas");
+                request.setAttribute("token", token);
+                request.setAttribute("userId", userId);
+                request.getRequestDispatcher("/WEB-INF/views/complete-profil.jsp").forward(request, response);
+                return;
+            }
+
+            Utilisateur utilisateur = Utilisateur.trouverParId(userId);
+            if (utilisateur != null) {
+                if (utilisateur.completerProfil(motDePasse)) {
+                    model.Lien.marquerCommeUtilise(token);
+                    request.setAttribute("success", "Profil complété avec succès ! Vous pouvez maintenant vous connecter.");
+                    request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
+                } else {
+                    request.setAttribute("error", "Erreur lors de la mise à jour du profil");
+                    request.setAttribute("token", token);
+                    request.setAttribute("userId", userId);
+                    request.getRequestDispatcher("/WEB-INF/views/complete-profil.jsp").forward(request, response);
+                }
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur: " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
         }
     }
 }

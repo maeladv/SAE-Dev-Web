@@ -42,7 +42,7 @@ public class DatabaseManager {
     }
 
     // Obtenir la connexion
-    public static Connection getConnection() throws SQLException {
+    public static Connection obtenirConnexion() throws SQLException {
         if (connection == null || connection.isClosed()) {
             try {
                 init();
@@ -54,7 +54,7 @@ public class DatabaseManager {
     }
 
     // Créer les tables
-    public static void createTables() throws SQLException {
+    public static void creerTables() throws SQLException {
     String[] sqlStatements = {
         "CREATE TABLE IF NOT EXISTS utilisateur (" +
             "id SERIAL PRIMARY KEY," +
@@ -71,8 +71,8 @@ public class DatabaseManager {
             ")",
         "CREATE TABLE IF NOT EXISTS etudiant (" +
             "id_utilisateur INT PRIMARY KEY," +
-            "nom VARCHAR(100) NOT NULL," +
-            "id_specialite INT NOT NULL," +
+            "ine VARCHAR(50) NOT NULL," +
+            "id_specialite INT," +
             "FOREIGN KEY (id_utilisateur) REFERENCES utilisateur(id)," +
             "FOREIGN KEY (id_specialite) REFERENCES specialite(id)" +
             ")",
@@ -122,7 +122,7 @@ public class DatabaseManager {
 }
 
     // Fermer la connexion
-    public static void close() throws SQLException {
+    public static void fermer() throws SQLException {
         if (connection != null && !connection.isClosed()) {
             connection.close();
             System.out.println("Connexion fermée");
