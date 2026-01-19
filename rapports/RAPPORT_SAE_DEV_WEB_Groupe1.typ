@@ -24,6 +24,7 @@
 
 L’objectif de ce projet est de réaliser une application web permettant la gestion des notes des étudiants au sein d’un service de scolarité, la visualisation de ces notes par les enseignants et les étudiants, ainsi que l’évaluation des modules suivis.
 
+== Rôles
 Cette application devra permettre *trois types d’accès* :
 - Étudiant
 - Professeur
@@ -31,8 +32,12 @@ Cette application devra permettre *trois types d’accès* :
 
 #text("Ces 3 rôles auront des droits et des fonctionnalités différents au sein de l’application qui sont précisés dans le sujet et seront plus détaillés dans le cahier des charges.")
 
+== Outils et suivi de projet
 
 Afin de réaliser cette application, vous devez dans un premier temps créer un espace collaboratif Git afin d’assurer le partage du code, le suivi des versions, la gestion des contributions de l’équipe et la traçabilité des évolutions tout au long du développement. Vous pouvez dans ce cas utiliser Gitlab UPHF.
+
+== Attentes et étapes de réalisation
+
 
 Ensuite, vous devrez mener une phase de conception et de modélisation consistant principalement à analyser les besoins du système de gestion des notes, à identifier les acteurs et les fonctionnalités, puis à modéliser la structure, les comportements et les interactions de l’application à l’aide des principaux diagrammes UML (cas d’utilisation, classes, séquences et activités).
 Une fois la structure des données nécessaire à l’application définie et les relations ainsi que les contraintes modélisées, vous devrez concevoir le schéma de la base de données correspondant.
