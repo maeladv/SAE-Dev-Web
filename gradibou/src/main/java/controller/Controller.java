@@ -17,7 +17,7 @@ public class Controller extends HttpServlet {
     public void init() throws ServletException {
         try {
             DatabaseManager.init();
-            // DatabaseManager.createTables();
+            DatabaseManager.createTables();
             System.out.println("Base de données initialisée");
         } catch (SQLException | ClassNotFoundException e) {
             throw new ServletException("Erreur d'initialisation BD", e);
