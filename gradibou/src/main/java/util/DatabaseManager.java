@@ -66,10 +66,11 @@ public class DatabaseManager {
             "role VARCHAR(50) NOT NULL" +
             ")",
         "CREATE TABLE IF NOT EXISTS specialite (" +
+            "id SERIAL PRIMARY KEY," +
             "tag VARCHAR(100) NOT NULL," +
             "annee INT NOT NULL," +
             "nom VARCHAR(100) NOT NULL," +
-            "PRIMARY KEY (tag, annee)" +
+            "UNIQUE (tag, annee)" +
             ")",
         "CREATE TABLE IF NOT EXISTS etudiant (" +
             "id_utilisateur INT PRIMARY KEY," +
@@ -82,20 +83,26 @@ public class DatabaseManager {
             "id SERIAL PRIMARY KEY," +
             "nom VARCHAR(100) NOT NULL," +
             "semestre INT NOT NULL," +
-            "coefficient INT NOT NULL," +
             "id_specialite INT NOT NULL," +
             "id_prof INT NOT NULL," +
             "FOREIGN KEY (id_specialite) REFERENCES specialite(id)," +
             "FOREIGN KEY (id_prof) REFERENCES utilisateur(id)" +
             ")",
+        "CREATE TABLE IF NOT EXISTS examen (" +
+            "id SERIAL PRIMARY KEY," +
+            "nom VARCHAR(100) NOT NULL," +
+            "coefficient INT NOT NULL," +
+            "id_matiere INT NOT NULL," +
+            "FOREIGN KEY (id_matiere) REFERENCES matiere(id)" +
+            ")",
         "CREATE TABLE IF NOT EXISTS note (" +
             "id SERIAL PRIMARY KEY," +
             "id_etudiant INT NOT NULL," +
-            "id_matiere INT NOT NULL," +
+            "id_examen INT NOT NULL," +
             "note INT NOT NULL," +
             "date TIMESTAMP DEFAULT NOW()," +
             "FOREIGN KEY (id_etudiant) REFERENCES etudiant(id_utilisateur)," +
-            "FOREIGN KEY (id_matiere) REFERENCES matiere(id)" +
+            "FOREIGN KEY (id_examen) REFERENCES examen(id)" +
             ")",
         "CREATE TABLE IF NOT EXISTS evaluation (" +
             "id SERIAL PRIMARY KEY," +
