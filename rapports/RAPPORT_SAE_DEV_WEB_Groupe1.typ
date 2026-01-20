@@ -25,25 +25,32 @@
 
 
 == Contexte & objectif
-Dans le cadre de la SAE développement d'application intéractive il est demandé aux étudiants de developpé une application web à destination d'un service de scolarité.
+Dans le cadre de la SAE développement d'application interactive il est demandé aux étudiants de développer une application web à destination d'un service de scolarité.
 
-L'objectif de cet application est de dematérialisé la gestion des notes, le suivi des étudiants et l'évaluation des modules d'enseignements (EVE).
+L'objectif de cette application est de dématérialiser la gestion des notes, le suivi des étudiants et l'évaluation des modules d'enseignement (EVE).
 
-== Perimètre technique
+== Périmètre technique
 
 === Architecture : Modèle MCV2
-- Controleur : servlet java
+
+- Controleur : serveur Java
+
 - Vues : JSP, HTML, CSS
+
 - Modèle : JavaBeans
 
 === Persistance des données
+
 - Design pattern : Design Record
+
 - SGBD : PostgreSQL
+
 === Serveur d'application
 - apache-tomcat-10.1.0
 
 === Gestion de version et collaboration :
 - Git (Flow avec protection des branches)
+
 - Hébergement : GitHub
 
 === Outils de conception 
@@ -56,22 +63,22 @@ L'objectif de cet application est de dematérialisé la gestion des notes, le su
 Cette application devra permettre *trois types d’accès* :
 
 - *Étudiant* : 
-Consulte ses résultats académiques et renseigne les EVE qui le concerne.
+Consulte ses résultats académiques et renseigne les EVE qui le concernent.
 
 - *Professeur* :
-Consulte les données relatives à ses cours (notes, listes étudiants et EVE).
+Consulte les données relatives à ses cours (notes, listes étudiantes et EVE).
 
 - *Administrateur* :
-Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE, saisie des notes...).
+Possède des droits globaux sur l'application (gestion des utilisateurs, lance EVE, saisie des notes...).
 
 #linebreak()
 #text("Ces 3 rôles auront des droits et des fonctionnalités différents au sein de l’application qui sont précisés dans le sujet et seront détaillés dans la partie spécificités fonctionnelles.")
 
 == Spécificités fonctionnelles.
 
-=== Création mot de passe et Authentification
+=== Création mot de passe et authentification
 
-*Authentification :* Page de login commune. Redirection contextuelle selon le rôle.
+*Authentification : * Page de login commune. Redirection contextuelle selon le rôle.
 
 *Création mot de passe*
 - L'admin crée une fiche utilisateur (Nom, Prénom, Rôle, date de naissance et si étudiant INE). -> voir section ci-dessous
@@ -95,21 +102,21 @@ Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE,
 ==== Gestion des utilisateurs
 
 - Gestion des comptes (Créer, Modifier, Supprimer)
-- Liste filtrable(par rôles, spécialités, matières) des utilisateurs
+- Liste filtrable (par rôles, spécialités, matières) des utilisateurs
 
 ==== Gestion des Notes
 
-- Saisie des notes d'une matière pour une liste d'étudiant
+- Saisie des notes d'une matière pour une liste d'étudiants
 
 - Modifications des notes existantes
 
 ==== Gestion des Évaluations (EVE)
 
-- Lancement des EVE avec renseignement de la date de cloture.
+- Lancement des EVE avec renseignement de la date de clôture.
 
-- Consultation des statistiques liés aux EVE.
+- Consultation des statistiques liées aux EVE.
 
-=== Fonctionnalités Etudiant
+=== Fonctionnalités Étudiant
 
 - Consultation des notes
 
@@ -132,51 +139,51 @@ Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE,
 
 ==== Page de login (tous les rôles)
 - Permet de se connecter avec son mail comme identifiants et son mot de passe.
-- Si le mot de passe ou l'identifians n'est pas valide cela affiche un texte d'erreur.
-- Permet de reinitialiser son mot de passe.
-- Si la connection est valide le sytème fourni un token temporaire donnat l'accès à certaines pages selon son rôle.
+- Si le mot de passe ou l'identifiant n'est pas valide, cela affiche un texte d'erreur.
+- Permet de réinitialiser son mot de passe.
+- Si la connexion est valide, le système fournit un token temporaire donnant l'accès à certaines pages selon son rôle.
 
-==== Page de réinitialisation de mot de passe (tout les rôles)
+==== Page de réinitialisation de mot de passe (tous les rôles)
 
- - Deux champs permettent de mettre le nouveaux mot de passe puis de le confirmer.
+ - Deux champs permettent de mettre le nouveau mot de passe, puis de le confirmer.
 
 ==== Page liste des comptes utilisateurs (admin)
 - Page qui liste tous les comptes des utilisateurs
 
-- Permettre à l'aministrateur de visualiser facilement les rôles (étudiants, professeurs, administrateurs...) et les spécialités des étudiants avec un badge coloré 
+- Permettre à l'administrateur de visualiser facilement les rôles (étudiants, professeurs, administrateurs...) et les spécialités des étudiants avec un badge coloré 
 
-- Interface sous forme de tableau (lignes) qui contiennent les informations principales (INE, nom, prenom) et un bouton qui permet d'accéder à la page de gestion de l'étudiant en question.
+- Interface sous forme de tableau (lignes) qui contient les informations principales (INE, nom, prénom) et un bouton qui permet d'accéder à la page de gestion de l'étudiant en question.
 
 - Permet à l'administrateur d'ajouter un utilisateur avec un bouton en haut de la page
 
-- Lors de la création d'un compte, on génère un lien d'activation de compte destiné à l'utilisateur, un pop-up s'ouvre. Il faut saisir le mail, le nom, le prenom, spé de l'utilisateur, INE et son rôle.
+- Lors de la création d'un compte, on génère un lien d'activation de compte destiné à l'utilisateur, un pop-up s'ouvre. Il faut saisir le mail, le nom, le prénom, spé de l'utilisateur, INE et son rôle.
 
-- Sur la ligne d'un utilisateur il y a 3 boutons :
+- Sur la ligne d'un utilisateur, il y a 3 boutons :
   - Consulter le profil
-  - Reinitialiser le mot de passe
+  - Réinitialiser le mot de passe
   - Supprimer l'utilisateur
 
-- En cas de suppression une pop-up de confirmation s'affiche
+- En cas de suppression, des pop-up de confirmation s'affiche
 
 ==== Page de compte utilisateur (admin)
 
-- Tout les champs mise à part le mot de passe sont apparents et modifiables
+- Tous les champs mis à part le mot de passe sont apparents et modifiables
 
-- Un bouton de reinitialisation de mot de passe est présent
+- Un bouton de réinitialisation de mot de passe est présent
 
 - Toutes les notes de l'utilisateur sont présentes s'il s'agit d'un étudiant
 
-- Si il s'agit d'un prof on voit la liste de ses matières
+- S'il s'agit d'un prof, on voit la liste de ses matières
 
 ==== Page liste des spécialités (Admin)
 
 - Page qui liste toutes les spécialités
 
-- Quand on clique sur une spécialités on ouvre la page de spécialité
+- Quand on clique sur une spécialité, on ouvre la page de spécialité
 
-- Au bout de la ligne d'une spécialité il y a un bouton de suppression
+- Au bout de la ligne d'une spécialité, il y a un bouton de suppression
 
-- En cas de suppression une pop-up de confirmation s'affiche
+- En cas de suppression, des pop-up de confirmation s'affiche
 
 - Permet à l'administrateur d'ajouter une spécialité avec un bouton en haut de la page
 
@@ -188,11 +195,11 @@ Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE,
 
 - Possibilité d’affecter des profs à une matière en modifiant le champ dédié
 
-- en cliquant sur la ligne d'une matière on ouvre la page de la matière
+- en cliquant sur la ligne d'une matière, on ouvre la page de la matière
 
-- Possibilité de rajouter/supprimer/modifier des matières par le biès de boutons
+- Possibilité de rajouter/supprimer/modifier des matières par le biais de boutons
 
-- Les lignes d'étudiants comporte un bouton pour regarder leurs profils
+- Les lignes d'étudiants comportent un bouton pour regarder leurs profils
 
 ==== Page de matière (admin)
 
@@ -200,27 +207,27 @@ Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE,
 
 - Un bouton permet la saisie des notes
 
-- Une liste des notes est affiché avec l'étudiant associé
+- Une liste des notes est affichée avec l'étudiant associé
 
 ==== Page liste des EVE (admin)
 
-- La liste des spécialités est affiché, l'on clique sur une ligne on va sur la page d'EVE de la spécialité
+- La liste des spécialités est affichée, lorsque l'on clique sur une ligne, on va sur la page d'EVE de la spécialité
 
-- Sur la page principale, on peut “lancer les EVE” pour tout les étudiants qui ouvre une pop-up où l'admin renseignela date début et la date fin)
+- Sur la page principale, on peut “lancer les EVE” pour tous les étudiants qui ouvrent des pop-up où l'admin renseigne la date de début et la date de fin
 
 - Si un EVE est en cours, pas possible d’en lancer un nouveau et cela affiche un message d'erreur en rouge
 
 ==== Page d'EVE d'une spécialité (admin)
 
-- La liste des matières de la spécialité est affiché avec un bouton au bout qui permet de voir les réusltats d'EVE de la spécialité
+- La liste des matières de la spécialité est affichée avec un bouton au bout qui permet de voir les résultats d'EVE de la spécialité
 
 ==== Page liste des EVE (prof)
 
-- La liste des matières du prof est affiché
+- La liste des matières du prof est affichée
 
-- Quand  on clique sur une matière cela affiche la page de l'EVE de la matière
+- Quand  on clique sur une matière, cela affiche la page de l'EVE de la matière
 
-==== page afichage d’un EVE (prof/admin)
+==== page d'affichage d'un EVE (prof/admin)
 
 - Visualiser le formulaire EVE avec toutes les réponses ou télécharger le .csv
 
@@ -228,39 +235,39 @@ Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE,
 
 - Graphiques
 
-==== Page liste des matières enseignée (prof)
+==== Page liste des matières enseignées (prof)
 
 - le prof peut voir la liste des matières qu'il enseigne
 
-- Quand il clique sur une matière il ouvre la page de la matière
+- Quand il clique sur une matière, il ouvre la page de la matière
 
 ==== Page de matière (prof)
 
 - Les champs nom, profs, semestre et coefficient sont apparents
 
-- Une liste des notes est affiché avec l'étudiant associé
+- Une liste des notes est affichée avec l'étudiant associé
 
 ==== Page liste des étudiants (prof)
 
-- Le prof peut voir la liste de ses étudiants avec la matière associé à coté
+- Le prof peut voir la liste de ses étudiants avec la matière associée à côté
 
 ==== Page mes notes (étudiant)
 
-- L'étudiant peut voir la liste de ses notes avec la matière associé
+- L'étudiant peut voir la liste de ses notes avec la matière associée
 
 ==== Page liste d'EVE (étudiant)
 
 - Un tableau avec les EVE de chaque matière de la spé de l'étudiant à remplir
 
-- En cliquand sur un des EVE on va sur la page de remplissage d'EVE
+- En cliquant sur un des EVE, on va sur la page de remplissage d'EVE
 
 ==== Page de remplissage d'EVE (étudiant)
 
-- Une série de bouton pour mettre une note chiffré à la matière
+- Une série de boutons pour mettre une note chiffrée à la matière
 
 - Un encadré pour mettre un commentaire sur la matière
 
-=== Controleur
+=== Contrôleur
 
 ==== Servlet
 
@@ -310,7 +317,7 @@ Date : 23/01
 
 = Amélioration prévue
 
-- Envoie des lien de validation de compte et de réinitialisation de mot de passe par mail
+- Envoie des liens de validation de compte et de réinitialisation de mot de passe par mail
 - Barre de recherche dans la page d'EVE admin
 
 
