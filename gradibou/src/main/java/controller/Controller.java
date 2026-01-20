@@ -130,6 +130,9 @@ public class Controller extends HttpServlet {
                 case "/admin/creer-utilisateur":
                     creationUtilisateurParAdmin(request, response);
                     break;
+                case "/admin/maj-mdp":
+                    creerLienPourMAJMotDePasse(request, response);
+                    break;
                 case "/complete-profil":
                     completerProfil(request, response);
                     break;
@@ -202,10 +205,10 @@ public class Controller extends HttpServlet {
             if (newUser != null) {
                 // Créer un lien d'activation (7 jours de validité)
                 String token = model.Lien.creerLien(newUser.getId(), 7);
-                String activationLink = request.getContextPath() + "/app/complete-profil?token=" + token;
+                String lienMDP = request.getContextPath() + "/app/complete-profil?token=" + token;
                 
-                request.setAttribute("success", "Utilisateur créé ! Lien d'activation: " + activationLink);
-                request.setAttribute("activationLink", activationLink);
+                request.setAttribute("success", "Utilisateur créé ! Lien d'activation: " + lienMDP);
+                request.setAttribute("lienMDP", lienMDP);
                 request.getRequestDispatcher("/WEB-INF/views/creerCompte.jsp").forward(request, response);
             } else {
                 request.setAttribute("error", "Erreur lors de la création de l'utilisateur");
@@ -269,6 +272,45 @@ public class Controller extends HttpServlet {
         } catch (Exception e) {
             request.setAttribute("error", "Erreur: " + e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    public void creerLienPourMAJMotDePasse(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        if (!estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        String idUtilisateur = request.getParameter("idUtilisateur");
+
+        if (idUtilisateur == null || idUtilisateur.isEmpty()) {
+            request.setAttribute("error", "ID utilisateur requis");
+            request.getRequestDispatcher("/WEB-INF/views/admin.jsp").forward(request, response);
+            return;
+        }
+
+        try {
+            int userId = Integer.parseInt(idUtilisateur);
+            Utilisateur utilisateur = Utilisateur.trouverParId(userId);
+            if (utilisateur == null) {
+                request.setAttribute("error", "Utilisateur non trouvé");
+                request.getRequestDispatcher("/WEB-INF/views/admin.jsp").forward(request, response);
+                return;
+            }
+
+            String token = model.Lien.creerLien(userId, 1); // Lien valide 1 jour
+            String lienMDP = request.getContextPath() + "/app/complete-profil?token=" + token;
+
+            request.setAttribute("success", "Lien de mise à jour du mot de passe créé : " + lienMDP);
+            request.setAttribute("lienMDP", lienMDP);
+            request.getRequestDispatcher("/WEB-INF/views/creerCompte.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "ID utilisateur invalide");
+            request.getRequestDispatcher("/WEB-INF/views/admin.jsp").forward(request, response);
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur: " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/admin.jsp").forward(request, response);
         }
     }
 }

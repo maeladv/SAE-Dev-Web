@@ -29,18 +29,18 @@
         <% } %>
         <% if (request.getAttribute("success") != null) { %>
             <p class="success"><%= request.getAttribute("success") %></p>
-            <% if (request.getAttribute("activationLink") != null) { %>
+            <% if (request.getAttribute("lienMDP") != null) { %>
                 <p><strong>Lien d'activation :</strong></p>
                 <div class="link-box">
-                    <a href="<%= request.getAttribute("activationLink") %>" target="_blank">
-                        <%= request.getAttribute("activationLink") %>
+                    <a href="<%= request.getAttribute("lienMDP") %>" target="_blank">
+                        <%= request.getAttribute("lienMDP") %>
                     </a>
                 </div>
                 <p><small>Ce lien expire dans 7 jours. Envoyez-le à l'utilisateur.</small></p>
             <% } %>
         <% } %>
 
-        <% if (request.getAttribute("activationLink") == null) { %>
+        <% if (request.getAttribute("lienMDP") == null) { %>
         <form method="post" action="<%= request.getContextPath() %>/app/admin/creer-utilisateur">
             <input type="text" name="nom" placeholder="Nom" required>
             <input type="text" name="prenom" placeholder="Prénom" required>
