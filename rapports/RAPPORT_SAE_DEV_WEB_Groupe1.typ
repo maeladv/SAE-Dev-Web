@@ -81,7 +81,7 @@ Possède des droits globaux sur l'application (gestion des utilisateurs, lance E
 *Authentification : * Page de login commune. Redirection contextuelle selon le rôle.
 
 *Création mot de passe*
-- L'admin crée une fiche utilisateur (Nom, Prénom, Rôle, date de naissance et si étudiant INE). -> voir section ci-dessous
+- L'admin crée une fiche utilisateur (Nom, Prénom, Rôle, date de naissance et si étudiant INE). -> voir section ci-dessous.
 
 - Le système génère un lien d'activation unique (durée de validité limitée).
 
@@ -93,22 +93,23 @@ Possède des droits globaux sur l'application (gestion des utilisateurs, lance E
 
 ==== Gestion de la scolarité
 
-- Gestion des *Spécialités* (Créer, Modifier, Supprimer)
+- Gestion des *Spécialités* (Créer, Modifier, Supprimer).
 
-- Gestion des *Matières* (Semestre, Coefficient)
+- Gestion des *Matières* (Semestre, Coefficient).
 
-- Affectation de *professeurs* aux matières
+- Affectation de *professeurs* aux matières.
 
 ==== Gestion des utilisateurs
 
-- Gestion des comptes (Créer, Modifier, Supprimer)
-- Liste filtrable (par rôles, spécialités, matières) des utilisateurs
+- Gestion des comptes (Créer, Modifier, Supprimer).
+
+- Liste filtrable (par rôles, spécialités, matières) des utilisateurs.
 
 ==== Gestion des Notes
 
-- Saisie des notes d'une matière pour une liste d'étudiants
+- Saisie des notes d'une matière pour une liste d'étudiants.
 
-- Modifications des notes existantes
+- Modifications des notes existantes.
 
 ==== Gestion des Évaluations (EVE)
 
@@ -118,29 +119,34 @@ Possède des droits globaux sur l'application (gestion des utilisateurs, lance E
 
 === Fonctionnalités Étudiant
 
-- Consultation des notes
+- Consultation des notes.
 
-- Remplissage des EVE
+- Remplissage des EVE.
 
 === Fonctionnalités Professeur
 
-- Consultation des listes d'étudiants et notes par matières
+- Consultation des listes d'étudiants et notes par matières.
 
-- Visualisation des résultats des EVE avec restitution graphique
+- Visualisation des résultats des EVE avec restitution graphique.
 
 == Spécificités techniques
 
 === Vues
 
 ==== Page d'activation de compte (tous les rôles)
-- Permet à un utilisateur d'activer son compte via le lien reçu
-- L'utilisateur peut saisir son mot de passe
-- La validité du lien est temporaire
+- Permet à un utilisateur d'activer son compte via le lien reçu.
+
+- L'utilisateur peut saisir son mot de passe.
+
+- La validité du lien est temporaire.
 
 ==== Page de login (tous les rôles)
 - Permet de se connecter avec son mail comme identifiants et son mot de passe.
+
 - Si le mot de passe ou l'identifiant n'est pas valide, cela affiche un texte d'erreur.
+
 - Permet de réinitialiser son mot de passe.
+
 - Si la connexion est valide, le système fournit un token temporaire donnant l'accès à certaines pages selon son rôle.
 
 ==== Page de réinitialisation de mot de passe (tous les rôles)
@@ -148,136 +154,149 @@ Possède des droits globaux sur l'application (gestion des utilisateurs, lance E
  - Deux champs permettent de mettre le nouveau mot de passe, puis de le confirmer.
 
 ==== Page liste des comptes utilisateurs (admin)
-- Page qui liste tous les comptes des utilisateurs
 
-- Permettre à l'administrateur de visualiser facilement les rôles (étudiants, professeurs, administrateurs...) et les spécialités des étudiants avec un badge coloré 
+- Page qui liste tous les comptes des utilisateurs.
+
+- Permettre à l'administrateur de visualiser facilement les rôles (étudiants, professeurs, administrateurs...) et les spécialités des étudiants avec un badge coloré.
 
 - Interface sous forme de tableau (lignes) qui contient les informations principales (INE, nom, prénom) et un bouton qui permet d'accéder à la page de gestion de l'étudiant en question.
 
-- Permet à l'administrateur d'ajouter un utilisateur avec un bouton en haut de la page
+- Permet à l'administrateur d'ajouter un utilisateur avec un bouton en haut de la page.
 
 - Lors de la création d'un compte, on génère un lien d'activation de compte destiné à l'utilisateur, un pop-up s'ouvre. Il faut saisir le mail, le nom, le prénom, spé de l'utilisateur, INE et son rôle.
 
 - Sur la ligne d'un utilisateur, il y a 3 boutons :
-  - Consulter le profil
-  - Réinitialiser le mot de passe
-  - Supprimer l'utilisateur
+  - Consulter le profil,
+  - Réinitialiser le mot de passe,
+  - Supprimer l'utilisateur.
 
-- En cas de suppression, des pop-up de confirmation s'affiche
+- En cas de suppression, des pop-up de confirmation s'affiche.
 
 ==== Page de compte utilisateur (admin)
 
-- Tous les champs mis à part le mot de passe sont apparents et modifiables
+- Tous les champs mis à part le mot de passe sont apparents et modifiables.
 
-- Un bouton de réinitialisation de mot de passe est présent
+- Un bouton de réinitialisation de mot de passe est présent.
 
-- Toutes les notes de l'utilisateur sont présentes s'il s'agit d'un étudiant
+- Toutes les notes de l'utilisateur sont présentes s'il s'agit d'un étudiant.
 
-- S'il s'agit d'un prof, on voit la liste de ses matières
+- S'il s'agit d'un prof, on voit la liste de ses matières.
 
 ==== Page liste des spécialités (Admin)
 
-- Page qui liste toutes les spécialités
+- Page qui liste toutes les spécialités.
 
-- Quand on clique sur une spécialité, on ouvre la page de spécialité
+- Quand on clique sur une spécialité, on ouvre la page de spécialité.
 
-- Au bout de la ligne d'une spécialité, il y a un bouton de suppression
+- Au bout de la ligne d'une spécialité, il y a un bouton de suppression.
 
-- En cas de suppression, des pop-up de confirmation s'affiche
+- En cas de suppression, des pop-up de confirmation s'affiche.
 
-- Permet à l'administrateur d'ajouter une spécialité avec un bouton en haut de la page
+- Permet à l'administrateur d'ajouter une spécialité avec un bouton en haut de la page.
 
 ==== Page de Spécialité (admin)
 
-- Dashboard avec liste des matières et des étudiants
+- Dashboard avec liste des matières et des étudiants.
 
-- Possibilité d’ajouter/supprimer les membres de la spé
+- Possibilité d’ajouter/supprimer les membres de la spé.
 
-- Possibilité d’affecter des profs à une matière en modifiant le champ dédié
+- Possibilité d’affecter des profs à une matière en modifiant le champ dédié.
 
-- en cliquant sur la ligne d'une matière, on ouvre la page de la matière
+- en cliquant sur la ligne d'une matière, on ouvre la page de la matière.
 
-- Possibilité de rajouter/supprimer/modifier des matières par le biais de boutons
+- Possibilité de rajouter/supprimer/modifier des matières par le biais de boutons.
 
-- Les lignes d'étudiants comportent un bouton pour regarder leurs profils
+- Les lignes d'étudiants comportent un bouton pour regarder leurs profils.
 
 ==== Page de matière (admin)
 
-- Les champs nom, profs, semestre et coefficient sont apparents et modifiables
+- Les champs nom, profs, semestre et coefficient sont apparents et modifiables.
 
-- Un bouton permet la saisie des notes
+- Un bouton permet la saisie des notes.
 
-- Une liste des notes est affichée avec l'étudiant associé
+- Une liste des notes est affichée avec l'étudiant associé.
 
 ==== Page liste des EVE (admin)
 
-- La liste des spécialités est affichée, lorsque l'on clique sur une ligne, on va sur la page d'EVE de la spécialité
+- La liste des spécialités est affichée, lorsque l'on clique sur une ligne, on va sur la page d'EVE de la spécialité.
 
-- Sur la page principale, on peut “lancer les EVE” pour tous les étudiants qui ouvrent des pop-up où l'admin renseigne la date de début et la date de fin
+- Sur la page principale, on peut “lancer les EVE” pour tous les étudiants qui ouvrent des pop-up où l'admin renseigne la date de début et la date de fin.
 
-- Si un EVE est en cours, pas possible d’en lancer un nouveau et cela affiche un message d'erreur en rouge
+- Si un EVE est en cours, pas possible d’en lancer un nouveau et cela affiche un message d'erreur en rouge.
 
 ==== Page d'EVE d'une spécialité (admin)
 
-- La liste des matières de la spécialité est affichée avec un bouton au bout qui permet de voir les résultats d'EVE de la spécialité
+- La liste des matières de la spécialité est affichée avec un bouton au bout qui permet de voir les résultats d'EVE de la spécialité.
 
 ==== Page liste des EVE (prof)
 
-- La liste des matières du prof est affichée
+- La liste des matières du prof est affichée.
 
-- Quand  on clique sur une matière, cela affiche la page de l'EVE de la matière
+- Quand  on clique sur une matière, cela affiche la page de l'EVE de la matière.
 
 ==== page d'affichage d'un EVE (prof/admin)
 
-- Visualiser le formulaire EVE avec toutes les réponses ou télécharger le .csv
+- On peut visualiser le formulaire EVE avec toutes les réponses ou télécharger le .csv .
 
-- tableau classique avec toutes les réponses
+- Tableau classique avec toutes les réponses.
 
-- Graphiques
+- Graphiques des résultats.
 
 ==== Page liste des matières enseignées (prof)
 
-- le prof peut voir la liste des matières qu'il enseigne
+- Le prof peut voir la liste des matières qu'il enseigne.
 
-- Quand il clique sur une matière, il ouvre la page de la matière
+- Quand il clique sur une matière, il ouvre la page de la matière.
 
 ==== Page de matière (prof)
 
-- Les champs nom, profs, semestre et coefficient sont apparents
+- Les champs nom, profs, semestre et coefficient sont apparents.
 
-- Une liste des notes est affichée avec l'étudiant associé
+- Une liste des notes est affichée avec l'étudiant associé.
 
 ==== Page liste des étudiants (prof)
 
-- Le prof peut voir la liste de ses étudiants avec la matière associée à côté
+- Le prof peut voir la liste de ses étudiants avec la matière associée à côté.
 
 ==== Page mes notes (étudiant)
 
-- L'étudiant peut voir la liste de ses notes avec la matière associée
+- L'étudiant peut voir la liste de ses notes avec la matière associée.
 
 ==== Page liste d'EVE (étudiant)
 
-- Un tableau avec les EVE de chaque matière de la spé de l'étudiant à remplir
+- Un tableau avec les EVE de chaque matière de la spé de l'étudiant à remplir.
 
-- En cliquant sur un des EVE, on va sur la page de remplissage d'EVE
+- En cliquant sur un des EVE, on va sur la page de remplissage d'EVE.
 
 ==== Page de remplissage d'EVE (étudiant)
 
-- Une série de boutons pour mettre une note chiffrée à la matière
+- Une série de boutons pour mettre une note chiffrée à la matière.
 
-- Un encadré pour mettre un commentaire sur la matière
+- Un encadré pour mettre un commentaire sur la matière.
 
 === Contrôleur
 
 ==== Servlet
 
-- gère les fonctions DoPost et DoGet permettant la redirection des pages
+- Gère les fonctions DoPost et DoGet permettant la redirection des pages.
+
+=== Sécurité
+
+- Protection de toutes les routes en fonction du rôle de l'utilisateur.
+
+- Droits différents selon les utilisateurs.
+
+- Protection de l'accès à la db avec un mot de passe stocké dans un .env .
+
+- Hash du mdp dans la db en cas de fuite de données.
+
+- Protection contre les XSS et injection SQL.
 
 == Planification et Livrables
 
 === Phase 1 : Conception
 
-- Livrables : Diagrammes UML, Maquettes Figma, Schéma BDD
+- Livrables : Diagrammes UML, Maquettes Figma, Schéma BDD.
 
 - Date : 20/01
 
@@ -303,11 +322,43 @@ Date : 23/01
 
 === Diagramme de cas d'utilisation
 
+#figure(
+    caption: [Diagramme de cas d'utilisation.], 
+    image("/rapports/assets/diagrammes/version_png/diagramme_cas_utilisation.png", width: 100%)
+  )<cas_utilisation>
+
 === Diagramme de classes
+
+#figure(
+    caption: [Diagramme de classes.], 
+    image("/rapports/assets/diagrammes/version_png/diagramme_classe.png", width: 100%)
+  )<classe>
 
 === Diagramme de séquences
 
+#figure(
+    caption: [Diagramme de séquences.], 
+    image("/rapports/assets/diagrammes/version_png/Diagramme sequence icy sae.png", width: 100%)
+  )<sequence>
+
 === Diagramme d'activités
+
+#figure(
+    caption: [Diagramme d'activités.], 
+    image("/rapports/assets/diagrammes/version_png/diagramme_activité.png", width: 100%)
+  )<activite>
+
+#figure(
+  caption: [Diagramme d'activités de la création de compte.], 
+  image("/rapports/assets/diagrammes/version_png/diagramme_activité_creation_compte.png", width: 100%)
+)<activite_crea_compte>
+
+== Schéma de la base de données
+
+#figure(
+  caption: [Schéma de la BDD.], 
+  image("/rapports/assets/diagrammes/version_png/Diagramme_db.png", width: 100%)
+)<db>
 
 = Interface UI/UX
 
@@ -317,8 +368,8 @@ Date : 23/01
 
 = Amélioration prévue
 
-- Envoie des liens de validation de compte et de réinitialisation de mot de passe par mail
-- Barre de recherche dans la page d'EVE admin
+- Envoie des liens de validation de compte et de réinitialisation de mot de passe par mail.
+- Barre de recherche dans la page d'EVE admin.
 
 
 
