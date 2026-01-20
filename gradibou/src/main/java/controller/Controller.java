@@ -282,35 +282,47 @@ public class Controller extends HttpServlet {
             return;
         }
 
-        String idUtilisateur = request.getParameter("idUtilisateur");
+        String mailUtilisateur = request.getParameter("mailUtilisateur");
+        if (mailUtilisateur == null || mailUtilisateur.isEmpty()) {
+            envoyerJsonError(response, "Email utilisateur requis", 400);
+            return;
+        }
 
-        if (idUtilisateur == null || idUtilisateur.isEmpty()) {
-            request.setAttribute("error", "ID utilisateur requis");
-            request.getRequestDispatcher("/WEB-INF/views/admin.jsp").forward(request, response);
+        Utilisateur utilisateur = Utilisateur.trouverParEmail(mailUtilisateur);
+        if (utilisateur == null) {
+            envoyerJsonError(response, "Utilisateur non trouvé", 404);
             return;
         }
 
         try {
-            int userId = Integer.parseInt(idUtilisateur);
-            Utilisateur utilisateur = Utilisateur.trouverParId(userId);
-            if (utilisateur == null) {
-                request.setAttribute("error", "Utilisateur non trouvé");
-                request.getRequestDispatcher("/WEB-INF/views/admin.jsp").forward(request, response);
-                return;
-            }
+            int userId = utilisateur.getId();
 
             String token = model.Lien.creerLien(userId, 1); // Lien valide 1 jour
             String lienMDP = request.getContextPath() + "/app/complete-profil?token=" + token;
 
-            request.setAttribute("success", "Lien de mise à jour du mot de passe créé : " + lienMDP);
-            request.setAttribute("lienMDP", lienMDP);
-            request.getRequestDispatcher("/WEB-INF/views/creerCompte.jsp").forward(request, response);
+            envoyerJsonSuccess(response, "Lien créé avec succès", lienMDP);
         } catch (NumberFormatException e) {
-            request.setAttribute("error", "ID utilisateur invalide");
-            request.getRequestDispatcher("/WEB-INF/views/admin.jsp").forward(request, response);
+            envoyerJsonError(response, "ID utilisateur invalide", 400);
         } catch (Exception e) {
-            request.setAttribute("error", "Erreur: " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/admin.jsp").forward(request, response);
+            envoyerJsonError(response, "Erreur: " + e.getMessage(), 500);
         }
+    }
+
+    private void envoyerJsonSuccess(HttpServletResponse response, String message, String lien) throws IOException {
+        response.setContentType("application/json");
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.getWriter().write(String.format(
+            "{\"success\": true, \"message\": \"%s\", \"lien\": \"%s\"}", 
+            message, lien
+        ));
+    }
+
+    private void envoyerJsonError(HttpServletResponse response, String message, int statusCode) throws IOException {
+        response.setContentType("application/json");
+        response.setStatus(statusCode);
+        response.getWriter().write(String.format(
+            "{\"success\": false, \"message\": \"%s\"}", 
+            message
+        ));
     }
 }

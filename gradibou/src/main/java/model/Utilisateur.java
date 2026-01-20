@@ -17,7 +17,7 @@ public class Utilisateur {
     private LocalDate dateNaissance;
     private String motDePasse;
     private String role;
-    private boolean persisted = false; // Track if the record exists in DB
+    private boolean persisted = false; 
 
     public Utilisateur() {}
 
