@@ -22,12 +22,12 @@
 
 = Cahier des charges
 
-L’objectif de ce projet est de réaliser une application web permettant la gestion des notes des étudiants au sein d’un service de scolarité, la visualisation de ces notes par les enseignants et les étudiants, ainsi que l’évaluation des modules suivis.
+
 
 == Contexte & objectif
 Dans le cadre de la SAE développement d'application intéractive il est demandé aux étudiants de developpé une application web à destination d'un service de scolarité.
 
-L'objectif de cet application est de dematérialisé la gestion des notes, le suivi des étudiants et l'évaluation des modules d'enseignements(EVE).
+L'objectif de cet application est de dematérialisé la gestion des notes, le suivi des étudiants et l'évaluation des modules d'enseignements (EVE).
 
 == Perimètre technique
 
@@ -39,7 +39,8 @@ L'objectif de cet application est de dematérialisé la gestion des notes, le su
 === Persistance des données
 - Design pattern : Design Record
 - SGBD : PostgreSQL
-=== Serveur d'application : apache-tomcat-10.1.0
+=== Serveur d'application
+- apache-tomcat-10.1.0
 
 === Gestion de version et collaboration :
 - Git (Flow avec protection des branches)
@@ -61,7 +62,7 @@ Consulte ses résultats académiques et renseigne les EVE qui le concerne.
 Consulte les données relatives à ses cours (notes, listes étudiants et EVE).
 
 - *Administrateur* :
-Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE, saisie des notes...)
+Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE, saisie des notes...).
 
 #linebreak()
 #text("Ces 3 rôles auront des droits et des fonctionnalités différents au sein de l’application qui sont précisés dans le sujet et seront détaillés dans la partie spécificités fonctionnelles.")
@@ -122,20 +123,24 @@ Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE,
 
 == Spécificités techniques
 
-== Vues
+=== Vues
 
-=== Page d'activation de compte (tous les rôles)
+==== Page d'activation de compte (tous les rôles)
 - Permet à un utilisateur d'activer son compte via le lien reçu
 - L'utilisateur peut saisir son mot de passe
 - La validité du lien est temporaire
 
-=== Page de login (tous les rôles)
+==== Page de login (tous les rôles)
 - Permet de se connecter avec son mail comme identifiants et son mot de passe.
 - Si le mot de passe ou l'identifians n'est pas valide cela affiche un texte d'erreur.
 - Permet de reinitialiser son mot de passe.
 - Si la connection est valide le sytème fourni un token temporaire donnat l'accès à certaines pages selon son rôle.
 
-=== Page liste des comptes utilisateurs (admin)
+==== Page de réinitialisation de mot de passe (tout les rôles)
+
+ - Deux champs permettent de mettre le nouveaux mot de passe puis de le confirmer.
+
+==== Page liste des comptes utilisateurs (admin)
 - Page qui liste tous les comptes des utilisateurs
 
 - Permettre à l'aministrateur de visualiser facilement les rôles (étudiants, professeurs, administrateurs...) et les spécialités des étudiants avec un badge coloré 
@@ -153,7 +158,7 @@ Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE,
 
 - En cas de suppression une pop-up de confirmation s'affiche
 
-=== Page de compte utilisateur (admin)
+==== Page de compte utilisateur (admin)
 
 - Tout les champs mise à part le mot de passe sont apparents et modifiables
 
@@ -163,7 +168,7 @@ Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE,
 
 - Si il s'agit d'un prof on voit la liste de ses matières
 
-=== Page liste des spécialités
+==== Page liste des spécialités (Admin)
 
 - Page qui liste toutes les spécialités
 
@@ -175,7 +180,7 @@ Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE,
 
 - Permet à l'administrateur d'ajouter une spécialité avec un bouton en haut de la page
 
-=== Page de Spécialité (admin)
+==== Page de Spécialité (admin)
 
 - Dashboard avec liste des matières et des étudiants
 
@@ -189,15 +194,15 @@ Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE,
 
 - Les lignes d'étudiants comporte un bouton pour regarder leurs profils
 
-=== Page de matière
+==== Page de matière (admin)
 
 - Les champs nom, profs, semestre et coefficient sont apparents et modifiables
 
 - Un bouton permet la saisie des notes
 
-- Une liste des notes est affiché
+- Une liste des notes est affiché avec l'étudiant associé
 
-=== Page d’EVE (admin)
+==== Page liste des EVE (admin)
 
 - La liste des spécialités est affiché, l'on clique sur une ligne on va sur la page d'EVE de la spécialité
 
@@ -205,11 +210,17 @@ Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE,
 
 - Si un EVE est en cours, pas possible d’en lancer un nouveau et cela affiche un message d'erreur en rouge
 
-=== Page d'EVE d'une spécialité (admin)
+==== Page d'EVE d'une spécialité (admin)
 
 - La liste des matières de la spécialité est affiché avec un bouton au bout qui permet de voir les réusltats d'EVE de la spécialité
 
-=== Affichage d’un EVE (prof/admin)
+==== Page liste des EVE (prof)
+
+- La liste des matières du prof est affiché
+
+- Quand  on clique sur une matière cela affiche la page de l'EVE de la matière
+
+==== page afichage d’un EVE (prof/admin)
 
 - Visualiser le formulaire EVE avec toutes les réponses ou télécharger le .csv
 
@@ -217,6 +228,69 @@ Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE,
 
 - Graphiques
 
+==== Page liste des matières enseignée (prof)
+
+- le prof peut voir la liste des matières qu'il enseigne
+
+- Quand il clique sur une matière il ouvre la page de la matière
+
+==== Page de matière (prof)
+
+- Les champs nom, profs, semestre et coefficient sont apparents
+
+- Une liste des notes est affiché avec l'étudiant associé
+
+==== Page liste des étudiants (prof)
+
+- Le prof peut voir la liste de ses étudiants avec la matière associé à coté
+
+==== Page mes notes (étudiant)
+
+- L'étudiant peut voir la liste de ses notes avec la matière associé
+
+==== Page liste d'EVE (étudiant)
+
+- Un tableau avec les EVE de chaque matière de la spé de l'étudiant à remplir
+
+- En cliquand sur un des EVE on va sur la page de remplissage d'EVE
+
+==== Page de remplissage d'EVE (étudiant)
+
+- Une série de bouton pour mettre une note chiffré à la matière
+
+- Un encadré pour mettre un commentaire sur la matière
+
+=== Controleur
+
+==== Servlet
+
+- gère les fonctions DoPost et DoGet permettant la redirection des pages
+
+== Planification et Livrables
+
+=== Phase 1 : Conception
+
+- Livrables : Diagrammes UML, Maquettes Figma, Schéma BDD
+
+- Date : 20/01
+
+=== Phase 2 : Développement Back-end & BDD
+
+- Mise en place Git, structure MVC, connexion BDD.
+
+- Date : 20/01
+
+=== Phase 3 : Développement Front-end & Intégration
+
+- Pages JSP, CSS, Graphiques JS.
+
+- Date : 22/01
+
+=== Phase 4 : Test et Rapport
+
+Tests, Peuplage de données, Rapport.
+
+Date : 23/01
 
 == Schémas UML de l'application
 
@@ -228,15 +302,15 @@ Possède des droits globaux sur l'application ( gestion utilisateurs, lance EVE,
 
 === Diagramme d'activités
 
-== Interface UI/UX
+= Interface UI/UX
 
 === Maquette de l'application
 
 ===
 
-== Amélioration prévue
+= Amélioration prévue
 
-- Envoie du lien de validation de compte par mail
+- Envoie des lien de validation de compte et de réinitialisation de mot de passe par mail
 - Barre de recherche dans la page d'EVE admin
 
 
