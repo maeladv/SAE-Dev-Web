@@ -183,40 +183,40 @@ public class Controller extends HttpServlet {
         if (nom == null || nom.isEmpty() || prenom == null || prenom.isEmpty() || 
             email == null || email.isEmpty() || dateNaissance == null || dateNaissance.isEmpty() ||
             role == null || role.isEmpty()) {
-            request.setAttribute("error", "Nom, prénom, email, date de naissance et rôle requis");
-            request.getRequestDispatcher("/WEB-INF/views/creerCompte.jsp").forward(request, response);
+            envoyerJsonError(response, "Nom, prénom, email, date de naissance et rôle requis", 400);
             return;
         }
 
         if ("etudiant".equalsIgnoreCase(role) && (ine == null || ine.isEmpty())) {
-            request.setAttribute("error", "L'INE est obligatoire pour les étudiants");
-            request.getRequestDispatcher("/WEB-INF/views/creerCompte.jsp").forward(request, response);
+            envoyerJsonError(response, "L'INE est obligatoire pour les étudiants", 400);
             return;
         }
 
         try {
             if (Utilisateur.emailExiste(email)) {
-                request.setAttribute("error", "Cet email est déjà utilisé");
-                request.getRequestDispatcher("/WEB-INF/views/creerCompte.jsp").forward(request, response);
+                envoyerJsonError(response, "Cet email est déjà utilisé", 409);
                 return;
             }
 
             Utilisateur newUser = Utilisateur.creerEnAttente(nom, prenom, email, LocalDate.parse(dateNaissance), role, ine);
             if (newUser != null) {
-                // Créer un lien d'activation (7 jours de validité)
-                String token = model.Lien.creerLien(newUser.getId(), 7);
-                String lienMDP = request.getContextPath() + "/app/complete-profil?token=" + token;
+                // Créer le lien directement au lieu d'appeler creerLienPourMAJMotDePasse
+                String token = model.Lien.creerLien(newUser.getId(), 7); // 7 jours pour activation
+                String lienActivation = request.getContextPath() + "/app/complete-profil?token=" + token;
                 
-                request.setAttribute("success", "Utilisateur créé ! Lien d'activation: " + lienMDP);
-                request.setAttribute("lienMDP", lienMDP);
-                request.getRequestDispatcher("/WEB-INF/views/creerCompte.jsp").forward(request, response);
+                response.setContentType("application/json");
+                response.setStatus(HttpServletResponse.SC_CREATED);
+                response.getWriter().write(String.format(
+                    "{\"success\": true, \"message\": \"Utilisateur créé avec succès\", \"lien\": \"%s\", \"utilisateur\": {\"id\": %d, \"email\": \"%s\"}}", 
+                    lienActivation, newUser.getId(), email
+                ));
             } else {
-                request.setAttribute("error", "Erreur lors de la création de l'utilisateur");
-                request.getRequestDispatcher("/WEB-INF/views/creerCompte.jsp").forward(request, response);
+                envoyerJsonError(response, "Erreur lors de la création de l'utilisateur", 500);
             }
+        } catch (java.time.format.DateTimeParseException e) {
+            envoyerJsonError(response, "Format de date invalide (utiliser YYYY-MM-DD)", 400);
         } catch (Exception e) {
-            request.setAttribute("error", "Erreur: " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/creerCompte.jsp").forward(request, response);
+            envoyerJsonError(response, "Erreur: " + e.getMessage(), 500);
         }
     }
 
@@ -282,7 +282,7 @@ public class Controller extends HttpServlet {
             return;
         }
 
-        String mailUtilisateur = request.getParameter("mailUtilisateur");
+        String mailUtilisateur = request.getParameter("email");
         if (mailUtilisateur == null || mailUtilisateur.isEmpty()) {
             envoyerJsonError(response, "Email utilisateur requis", 400);
             return;

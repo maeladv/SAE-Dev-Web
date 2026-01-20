@@ -24,24 +24,9 @@
     <div class="card">
         <h2>Créer un nouvel utilisateur</h2>
         
-        <% if (request.getAttribute("error") != null) { %>
-            <p class="error"><%= request.getAttribute("error") %></p>
-        <% } %>
-        <% if (request.getAttribute("success") != null) { %>
-            <p class="success"><%= request.getAttribute("success") %></p>
-            <% if (request.getAttribute("lienMDP") != null) { %>
-                <p><strong>Lien d'activation :</strong></p>
-                <div class="link-box">
-                    <a href="<%= request.getAttribute("lienMDP") %>" target="_blank">
-                        <%= request.getAttribute("lienMDP") %>
-                    </a>
-                </div>
-                <p><small>Ce lien expire dans 7 jours. Envoyez-le à l'utilisateur.</small></p>
-            <% } %>
-        <% } %>
+        <div id="responseMessage"></div>
 
-        <% if (request.getAttribute("lienMDP") == null) { %>
-        <form method="post" action="<%= request.getContextPath() %>/app/admin/creer-utilisateur">
+        <form id="creerUtilisateurForm" method="post" action="<%= request.getContextPath() %>/app/admin/creer-utilisateur">
             <input type="text" name="nom" placeholder="Nom" required>
             <input type="text" name="prenom" placeholder="Prénom" required>
             <input type="email" name="email" placeholder="Email" required>
@@ -58,7 +43,6 @@
             
             <button type="submit">Créer l'utilisateur</button>
         </form>
-        <% } %>
     </div>
 
     <script>
@@ -75,6 +59,42 @@
                 ineField.value = '';
             }
         }
+
+        document.getElementById('creerUtilisateurForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('<%= request.getContextPath() %>/app/admin/creer-utilisateur', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messageDiv = document.getElementById('responseMessage');
+                
+                if (data.success) {
+                    messageDiv.innerHTML = `
+                        <div class="success">
+                            <p><strong>${data.message}</strong></p>
+                            <p><strong>Email :</strong> ${data.utilisateur.email}</p>
+                            <p><strong>Lien d'activation :</strong></p>
+                            <div class="link-box">
+                                <a href="${data.lien}" target="_blank">${data.lien}</a>
+                            </div>
+                            <p><small>Ce lien expire dans 7 jours. Envoyez-le à l'utilisateur.</small></p>
+                        </div>
+                    `;
+                    document.getElementById('creerUtilisateurForm').reset();
+                } else {
+                    messageDiv.innerHTML = `<div class="error"><p>${data.message}</p></div>`;
+                }
+            })
+            .catch(error => {
+                document.getElementById('responseMessage').innerHTML = 
+                    `<div class="error"><p>Erreur : ${error.message}</p></div>`;
+            });
+        });
     </script>
 
     <a class="button" href="<%= request.getContextPath() %>/app/logout">Se déconnecter</a>
