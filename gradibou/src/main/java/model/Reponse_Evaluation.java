@@ -166,6 +166,173 @@ public class Reponse_Evaluation {
         return null;
     }
 
+    // ==================== Calcul des statistiques ====================
+
+    public static int calculerTauxReponseParMatiere(int id_evaluation, int id_matiere) throws SQLException {
+        String sqlTotal = "SELECT COUNT(*) AS total FROM a_repondu_evaluation WHERE id_evaluation = ? AND id_matiere = ?";
+        String sqlRepondu = "SELECT COUNT(DISTINCT id_etudiant) AS repondu FROM a_repondu_evaluation " +
+                            "WHERE id_evaluation = ? AND id_matiere = ?";
+
+        int total = 0;
+        int repondu = 0;
+
+        try (Connection conn = DatabaseManager.obtenirConnexion()) {
+            try (PreparedStatement totalStmt = conn.prepareStatement(sqlTotal)) {
+                totalStmt.setInt(1, id_evaluation);
+                totalStmt.setInt(2, id_matiere);
+                ResultSet totalRs = totalStmt.executeQuery();
+                if (totalRs.next()) {
+                    total = totalRs.getInt("total");
+                }
+            }
+
+            try (PreparedStatement reponduStmt = conn.prepareStatement(sqlRepondu)) {
+                reponduStmt.setInt(1, id_evaluation);
+                reponduStmt.setInt(2, id_matiere);
+                ResultSet reponduRs = reponduStmt.executeQuery();
+                if (reponduRs.next()) {
+                    repondu = reponduRs.getInt("repondu");
+                }
+            }
+        }
+
+        if (total == 0) {
+            return 0;
+        }
+        return (repondu * 100) / total;
+    }
+
+    public static double calculerMoyenneQualiteSupportParMatiere(int id_evaluation, int id_matiere) throws SQLException {
+        String sql = "SELECT AVG(qualité_support) AS moyenne FROM reponse_evaluation WHERE id_evaluation = ? AND id_matiere = ?";
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id_evaluation);
+            stmt.setInt(2, id_matiere);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("moyenne");
+            }
+        }
+        return 0.0;
+    }
+
+    public static double calculerMoyenneQualiteEquipeParMatiere(int id_evaluation, int id_matiere) throws SQLException {
+        String sql = "SELECT AVG(qualité_equipe) AS moyenne FROM reponse_evaluation WHERE id_evaluation = ? AND id_matiere = ?";
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id_evaluation);
+            stmt.setInt(2, id_matiere);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("moyenne");
+            }
+        }
+        return 0.0;
+    }
+
+    public static double calculerMoyenneQualiteMaterielParMatiere(int id_evaluation, int id_matiere) throws SQLException {
+        String sql = "SELECT AVG(qualité_materiel) AS moyenne FROM reponse_evaluation WHERE id_evaluation = ? AND id_matiere = ?";
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id_evaluation);
+            stmt.setInt(2, id_matiere);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("moyenne");
+            }
+        }
+        return 0.0;
+    }
+
+    public static double calculerMoyennePertinenceExamenParMatiere(int id_evaluation, int id_matiere) throws SQLException {
+        String sql = "SELECT AVG(pertinence_examen) AS moyenne FROM reponse_evaluation WHERE id_evaluation = ? AND id_matiere = ?";
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id_evaluation);
+            stmt.setInt(2, id_matiere);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("moyenne");
+            }
+        }
+        return 0.0;
+    }
+
+    public static double calculerMoyenneGeneraleParMatiere(int id_evaluation, int id_matiere) throws SQLException {
+        double support = calculerMoyenneQualiteSupportParMatiere(id_evaluation, id_matiere);
+        double equipe = calculerMoyenneQualiteEquipeParMatiere(id_evaluation, id_matiere);
+        double materiel = calculerMoyenneQualiteMaterielParMatiere(id_evaluation, id_matiere);
+        double pertinence = calculerMoyennePertinenceExamenParMatiere(id_evaluation, id_matiere);
+        
+        return (support + equipe + materiel + pertinence) / 4.0;
+    }
+
+    public static double calculerProportionOuiUtilitePourFormationParMatiere(int id_evaluation, int id_matiere) throws SQLException {
+        String sql = "SELECT SUM(CASE WHEN utilite_pour_formation = 1 THEN 1 ELSE 0 END)::double precision / NULLIF(COUNT(*), 0) AS proportion " +
+                    "FROM reponse_evaluation WHERE id_evaluation = ? AND id_matiere = ?";
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id_evaluation);
+            stmt.setInt(2, id_matiere);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("proportion");
+            }
+        }
+        return 0.0;
+    }
+
+    public static double[] calculerProportionTempsParMatiere(int id_evaluation, int id_matiere) throws SQLException {
+        double[] proportions = new double[5];
+        String sqlTotal = "SELECT COUNT(*) AS total FROM reponse_evaluation WHERE id_evaluation = ? AND id_matiere = ?";
+        String sqlCounts = "SELECT temps_par_semaine, COUNT(*) AS cnt FROM reponse_evaluation " +
+                        "WHERE id_evaluation = ? AND id_matiere = ? GROUP BY temps_par_semaine";
+
+        try (Connection conn = DatabaseManager.obtenirConnexion()) {
+            int total = 0;
+            try (PreparedStatement totalStmt = conn.prepareStatement(sqlTotal)) {
+                totalStmt.setInt(1, id_evaluation);
+                totalStmt.setInt(2, id_matiere);
+                ResultSet totalRs = totalStmt.executeQuery();
+                if (totalRs.next()) {
+                    total = totalRs.getInt("total");
+                }
+            }
+            if (total == 0) {
+                return proportions;
+            }
+
+            try (PreparedStatement countStmt = conn.prepareStatement(sqlCounts)) {
+                countStmt.setInt(1, id_evaluation);
+                countStmt.setInt(2, id_matiere);
+                ResultSet rs = countStmt.executeQuery();
+                while (rs.next()) {
+                    int temps = rs.getInt("temps_par_semaine");
+                    if (temps >= 1 && temps <= 5) {
+                        proportions[temps - 1] = rs.getDouble("cnt") / total;
+                    }
+                }
+            }
+        }
+        return proportions;
+    }
+
+    public static String[] recupererCommentairesParMatiere(int id_evaluation, int id_matiere) throws SQLException {
+        String sql = "SELECT commentaires FROM reponse_evaluation WHERE id_evaluation = ? AND id_matiere = ? AND commentaires IS NOT NULL";
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id_evaluation);
+            stmt.setInt(2, id_matiere);
+            ResultSet rs = stmt.executeQuery();
+
+            java.util.List<String> commentairesList = new java.util.ArrayList<>();
+            while (rs.next()) {
+                commentairesList.add(rs.getString("commentaires"));
+            }
+            return commentairesList.toArray(new String[0]);
+        }
+    }
+
     // Getters et Setters
     public int getId() {
         return id;
