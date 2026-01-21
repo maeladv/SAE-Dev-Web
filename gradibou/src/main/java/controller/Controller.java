@@ -81,6 +81,9 @@ public class Controller extends HttpServlet {
                     view = "/WEB-INF/views/error.jsp";
                 }
                 break;
+            case "/forgot-password":
+                view = "/WEB-INF/views/forgot-password.jsp";
+                break;
             case "/admin/creer-compte":
                 if (!estAdmin(request.getSession(false))) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
@@ -286,10 +289,6 @@ public class Controller extends HttpServlet {
 
     public void creerLienPourMAJMotDePasse(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
-        if (!estAdmin(request.getSession(false))) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
-            return;
-        }
 
         String mailUtilisateur = request.getParameter("email");
         if (mailUtilisateur == null || mailUtilisateur.isEmpty()) {
@@ -310,6 +309,7 @@ public class Controller extends HttpServlet {
             String lienMDP = request.getContextPath() + "/app/complete-profil?token=" + token;
 
             envoyerJsonSuccess(response, "Lien créé avec succès", lienMDP);
+            // PAS SAFE, EN ATTENTE DE MISE EN PLACE DE CONNEXION SMTP
         } catch (NumberFormatException e) {
             envoyerJsonError(response, "ID utilisateur invalide", 400);
         } catch (Exception e) {

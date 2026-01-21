@@ -39,7 +39,7 @@
                     <p class="form-feedback" aria-live="polite">&nbsp;</p>
                 </div>
                 <div class="actions">
-                    <a class="btn btn-ghost" href="#">Mot de passe oublié</a>
+                    <a class="btn btn-ghost" href="<%= request.getContextPath() %>/app/forgot-password">Mot de passe oublié</a>
                     <button class="btn btn-primary btn-with-icon" type="submit">
                         Se connecter
                         <img src="https://www.figma.com/api/mcp/asset/51cfe758-9834-4608-9a3d-2b1e4de9b7be" alt="">

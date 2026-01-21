@@ -4,40 +4,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compléter votre profil - Gradibou</title>
+    <title>Finalisez votre inscription - Gradibou</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/global.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/composants.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/header.css">
-    <style>
-        .card { border: 1px solid #ddd; padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-width: 500px; margin: 50px auto; background: white; }
-        h2 { margin-top: 0; text-align: center; }
-        form { display: flex; flex-direction: column; }
-        .error { color: #dc3545; padding: 10px; background: #f8d7da; border-radius: 4px; margin-bottom: 15px; }
-    </style>
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/pages/complete-profil.css">
 </head>
 <body>
-<div class="page-container">
+<div class="page-container complete-profil-page">
     <%@ include file="includes/header.jsp" %>
     
-    <main>
-        <div class="card">
-            <h2>Définissez votre mot de passe</h2>
+    <main class="complete-profil-main">
+        <div class="complete-profil-logo">
+            <img src="https://www.figma.com/api/mcp/asset/b7a7b4d1-4c38-4044-b903-e50a20589fc2" alt="Gradibou">
+        </div>
+
+        <section class="complete-profil-card" aria-labelledby="complete-profil-title">
+            <h1 id="complete-profil-title">Finalisez votre inscription !</h1>
             
             <% if (request.getAttribute("error") != null) { %>
-                <p class="error"><%= request.getAttribute("error") %></p>
+                <p class="status-message error"><%= request.getAttribute("error") %></p>
             <% } %>
 
-            <p>Bienvenue ! Veuillez choisir un mot de passe sécurisé pour finaliser la création de votre compte.</p>
-
-            <form method="post" action="<%= request.getContextPath() %>/app/complete-profil">
+            <form class="form-fields" method="post" action="<%= request.getContextPath() %>/app/complete-profil">
                 <input type="hidden" name="token" value="<%= request.getParameter("token") %>">
                 
-                <input class="input-field" type="password" name="motDePasse" placeholder="Mot de passe" required minlength="6">
-                <input class="input-field" type="password" name="confirmPassword" placeholder="Confirmer le mot de passe" required minlength="6" style="margin-top: 10px;">
+                <div class="field-group">
+                    <label class="field-label" for="motDePasse">Choisissez votre GradiMotdepasse</label>
+                    <input class="input-field" id="motDePasse" type="password" name="motDePasse" placeholder="Votre GradiMotdepasse" required minlength="6">
+                    <p class="form-feedback" aria-live="polite">&nbsp;</p>
+                </div>
                 
-                <button class="btn btn-primary" type="submit" style="margin-top: 20px;">Activer mon compte</button>
+                <div class="field-group">
+                    <label class="field-label" for="confirmPassword">Confirmez votre GradiMotdepasse</label>
+                    <input class="input-field" id="confirmPassword" type="password" name="confirmPassword" placeholder="Votre GradiMotdepasse" required minlength="6">
+                    <p class="form-feedback" aria-live="polite">&nbsp;</p>
+                </div>
+                
+                <button class="btn btn-primary btn-with-icon btn-full-width" type="submit">
+                    Accéder à la plateforme !
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 10H13M13 10L10 7M13 10L10 13" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
             </form>
-        </div>
+        </section>
     </main>
 </div>
 </body>
