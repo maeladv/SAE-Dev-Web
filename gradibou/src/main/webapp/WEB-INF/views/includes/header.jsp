@@ -25,7 +25,7 @@
     }
 %>
 <header class="site-header" data-role="<%= userRole %>">
-    <a class="brand" href="<%= request.getContextPath() %>/">
+    <a class="brand" href="<%= request.getContextPath() %>/app/">
         <img src="https://www.figma.com/api/mcp/asset/254d3b6e-e5ea-46c1-ae6d-55e9947e4239" alt="Logo Gradibou">
     </a>
     
@@ -33,8 +33,8 @@
         <% if ("non-connecte".equals(userRole)) { %>
             <!-- Header pour utilisateurs non connectés -->
             <nav class="nav-links" aria-label="Navigation principale">
-                <a href="#">Emploi du temps</a>
-                <a href="#">Moodle</a>
+                <a href="https://vtmob.uphf.fr">Emploi du temps</a>
+                <a href="https://moodle.uphf.fr">Moodle</a>
             </nav>
             <div class="header-cta">
                 <a class="btn btn-primary btn-with-icon" href="<%= request.getContextPath() %>/app/login">

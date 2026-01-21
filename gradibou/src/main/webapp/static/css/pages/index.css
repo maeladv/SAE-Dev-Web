@@ -1,0 +1,109 @@
+/* Page d'accueil */
+.home-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    padding: 60px 20px;
+    flex: 1;
+}
+
+.home-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.hero-logo-container {
+    position: relative;
+    width: 354px;
+    height: 387px;
+}
+
+.hero-logo-image {
+    position: absolute;
+    left: 30px;
+    top: 0;
+    width: 294px;
+    height: 294px;
+    object-fit: cover;
+}
+
+.hero-logo-text {
+    position: absolute;
+    left: 102px;
+    top: 294px;
+    font-family: 'REM', sans-serif;
+    font-size: 48px;
+    font-weight: 400;
+    line-height: 1;
+    margin: 0;
+}
+
+.hero-logo-grad {
+    font-weight: 700;
+    color: var(--color-rose-principal);
+}
+
+.hero-logo-ibou {
+    font-weight: 300;
+    color: var(--color-noir);
+}
+
+.hero-subtitle {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--color-noir);
+    text-align: center;
+    margin: 0;
+    width: 100%;
+    max-width: 354px;
+}
+
+.home-cta-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Variant du bouton dark */
+.btn-dark {
+    background: var(--color-noir);
+    color: var(--color-blanc);
+}
+
+.btn-dark:hover {
+    background: #2e2e2e;
+}
+
+@media (max-width: 500px) {
+    .hero-logo-container {
+        width: 280px;
+        height: 320px;
+    }
+    
+    .hero-logo-image {
+        left: 20px;
+        width: 240px;
+        height: 240px;
+    }
+    
+    .hero-logo-text {
+        left: 70px;
+        top: 240px;
+        font-size: 38px;
+    }
+    
+    .home-cta-buttons {
+        flex-direction: column;
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .home-cta-buttons .btn {
+        width: 100%;
+    }
+}
