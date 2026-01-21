@@ -66,10 +66,11 @@ public class DatabaseManager {
             "role VARCHAR(50) NOT NULL" +
             ")",
         "CREATE TABLE IF NOT EXISTS specialite (" +
+            "id SERIAL PRIMARY KEY," +
             "tag VARCHAR(100) NOT NULL," +
             "annee INT NOT NULL," +
             "nom VARCHAR(100) NOT NULL," +
-            "PRIMARY KEY (tag, annee)" +
+            "UNIQUE (tag, annee)" +
             ")",
         "CREATE TABLE IF NOT EXISTS etudiant (" +
             "id_utilisateur INT PRIMARY KEY," +

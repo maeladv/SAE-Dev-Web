@@ -81,6 +81,13 @@ public class Controller extends HttpServlet {
                 }
                 view = "/WEB-INF/views/creerCompte.jsp";
                 break;
+            case "/admin/creer-specialite":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = "/WEB-INF/views/creerSpecialite.jsp";
+                break;
             case "/logout":
                 request.getSession().invalidate();
                 try {
@@ -129,6 +136,9 @@ public class Controller extends HttpServlet {
                     break;
                 case "/admin/creer-utilisateur":
                     creationUtilisateurParAdmin(request, response);
+                    break;
+                case "/admin/creer-specialite":
+                    creationSpecialiteParAdmin(request, response);
                     break;
                 case "/admin/maj-mdp":
                     creerLienPourMAJMotDePasse(request, response);
@@ -273,6 +283,41 @@ public class Controller extends HttpServlet {
             request.setAttribute("error", "Erreur: " + e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
         }
+    }
+
+    private void creationSpecialiteParAdmin(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        if (!estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        String tag = request.getParameter("tag");
+        String anneeStr = request.getParameter("annee");
+        String nom = request.getParameter("nom");
+
+        if (tag == null || tag.isEmpty() || anneeStr == null || anneeStr.isEmpty() || nom == null || nom.isEmpty()) {
+            request.setAttribute("error", "Tous les champs sont requis");
+            request.getRequestDispatcher("/WEB-INF/views/creerSpecialite.jsp").forward(request, response);
+            return;
+        }
+
+        try {
+            int annee = Integer.parseInt(anneeStr);
+            model.Specialite spec = new model.Specialite(tag, annee, nom);
+            
+            if (spec.save()) {
+                request.setAttribute("success", "Spécialité créée avec succès");
+            } else {
+                request.setAttribute("error", "Erreur lors de la création de la spécialité");
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "L'année doit être un nombre valide");
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+        }
+        
+        request.getRequestDispatcher("/WEB-INF/views/creerSpecialite.jsp").forward(request, response);
     }
 
     public void creerLienPourMAJMotDePasse(HttpServletRequest request, HttpServletResponse response) 
