@@ -98,10 +98,12 @@ public class Controller extends HttpServlet {
                 return;
         }
 
-        try {
-            request.getRequestDispatcher(view).forward(request, response);
-        } catch (ServletException e) {
-            e.printStackTrace();
+        if (view != null) {
+            try {
+                request.getRequestDispatcher(view).forward(request, response);
+            } catch (ServletException e) {
+                e.printStackTrace();
+            }
         }
     }
 

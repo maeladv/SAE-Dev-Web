@@ -1,0 +1,49 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+
+:root {
+	--color-rose-principal: #fa467e;
+	--color-noir: #1e1e1e;
+	--color-gris-fond: #f3f3f3;
+	--color-blanc: #ffffff;
+	--color-gris-texte: #4a4a4a;
+	--color-gris-contour: #d9d9d9;
+	--radius-xl: 32px;
+	--radius-lg: 12px;
+	--shadow-elev: 0 2px 4px rgba(0, 0, 0, 0.25);
+	--font-base: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family: var(--font-base);
+	background: var(--color-gris-fond);
+	color: var(--color-noir);
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
+img {
+	max-width: 100%;
+	display: block;
+}
+
+.page-container {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	gap: 30px;
+	padding: 10px 10px 40px;
+}
+
+.content-centered {
+	width: 100%;
+	display: flex;
+	justify-content: center;
+}
