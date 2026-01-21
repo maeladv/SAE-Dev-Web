@@ -44,6 +44,13 @@ public class Controller extends HttpServlet {
                 view = "/WEB-INF/views/index.jsp";
                 break;
             case "/login":
+                // si l'utilisateur est connecté, on redirige vers sa page d'accueil
+                if (request.getSession(false) != null && request.getSession(false).getAttribute("user") != null) {
+                    Utilisateur utilisateur = (Utilisateur) request.getSession(false).getAttribute("user");
+                    response.sendRedirect(request.getContextPath() + "/app/" + utilisateur.getRole());
+                    return;
+                }
+
                 view = "/WEB-INF/views/login.jsp";
                 break;
             case "/admin":
