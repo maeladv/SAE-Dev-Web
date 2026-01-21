@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import util.DatabaseManager;
 
 public class Specialite {
@@ -180,6 +179,13 @@ public class Specialite {
 
 
     // Getters et Setters
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public String getTag() {
         return tag;
     }

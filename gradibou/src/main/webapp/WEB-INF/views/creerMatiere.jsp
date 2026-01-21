@@ -43,11 +43,35 @@
             <label for="coefficient">Coefficient</label>
             <input type="number" id="coefficient" name="coefficient" min="1" placeholder="Coefficient" required>
             
-            <label for="specialite">ID Spécialité</label>
-            <input type="number" id="specialite" name="specialiteId" placeholder="ID Spécialité" required>
+            <label for="specialite">Spécialité</label>
+            <select id="specialite" name="specialiteId" required>
+                <option value="">-- Choisir une spécialité --</option>
+                <% 
+                List<Specialite> specialites = (List<Specialite>) request.getAttribute("specialites");
+                if (specialites != null) {
+                    for (Specialite s : specialites) {
+                %>
+                    <option value="<%= s.getId() %>"><%= s.getNom() %> (<%= s.getAnnee() %>)</option>
+                <% 
+                    }
+                }
+                %>
+            </select>
 
-            <label for="professeur">ID Professeur responsable</label>
-            <input type="number" id="professeur" name="profId" placeholder="ID Professeur" required>
+            <label for="professeur">Professeur responsable</label>
+            <select id="professeur" name="profId" required>
+                <option value="">-- Choisir un professeur --</option>
+                <% 
+                List<Utilisateur> professeurs = (List<Utilisateur>) request.getAttribute("professeurs");
+                if (professeurs != null) {
+                    for (Utilisateur p : professeurs) {
+                %>
+                    <option value="<%= p.getId() %>"><%= p.getNom() %> <%= p.getPrenom() %></option>
+                <% 
+                    }
+                }
+                %>
+            </select>
             
             <button type="submit">Créer la matière</button>
         </form>

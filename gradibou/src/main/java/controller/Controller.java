@@ -338,15 +338,19 @@ public class Controller extends HttpServlet {
 
     private void creationMatiereParAdmin(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
-        if (!estAdmin(request.getSession(false))) {
+        HttpSession session = request.getSession(false);
+
+        if (!estAdmin(session)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
-        // Si méthode GET, afficher simplement le formulaire
-        if ("GET".equalsIgnoreCase(request.getMethod())) {
-            request.getRequestDispatcher("/WEB-INF/views/creerMatiere.jsp").forward(request, response);
-            return;
+        try {
+            request.setAttribute("specialites", model.Specialite.trouverToutes());
+            request.setAttribute("professeurs", model.Utilisateur.trouverTousLesProfesseurs());
+        } catch (Exception e) {
+             e.printStackTrace();
+             request.setAttribute("error", "Erreur lors du chargement des listes: " + e.getMessage());
         }
 
         // Traitement du formulaire (POST)
