@@ -92,6 +92,7 @@ public class DatabaseManager {
             "id SERIAL PRIMARY KEY," +
             "nom VARCHAR(100) NOT NULL," +
             "coefficient INT NOT NULL," +
+            "date DATE NOT NULL," +
             "id_matiere INT NOT NULL," +
             "FOREIGN KEY (id_matiere) REFERENCES matiere(id)" +
             ")",
