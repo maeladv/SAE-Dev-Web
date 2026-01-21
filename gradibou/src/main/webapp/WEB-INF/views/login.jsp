@@ -12,20 +12,7 @@
 </head>
 <body>
 <div class="page-container login-page">
-    <header class="site-header">
-        <a class="brand" href="<%= request.getContextPath() %>/">
-            <img src="https://www.figma.com/api/mcp/asset/fd9ab368-a25a-4ba0-8893-eeb203a759c4" alt="Logo Gradibou">
-        </a>
-        <div class="nav-actions">
-            <nav class="nav-links" aria-label="Navigation principale">
-                <a href="#">Emploi du temps</a>
-                <a href="#">Moodle</a>
-            </nav>
-            <div class="header-cta">
-                <a class="btn btn-primary" href="<%= request.getContextPath() %>/app/login">Connexion &rarr;</a>
-            </div>
-        </div>
-    </header>
+    <%@ include file="includes/header.jsp" %>
 
     <main class="login-main">
         <div class="login-logo-large">

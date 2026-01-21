@@ -36,7 +36,15 @@
 
 .nav-links a {
 	font-weight: 600;
-	color: var(--color-gris-texte);
+	color: var(--color-noir);
+	text-decoration: none;
+	padding: 12px 16px;
+	border-radius: var(--radius-lg);
+	transition: background-color 0.15s ease;
+}
+
+.nav-links a:hover {
+	background-color: rgba(0, 0, 0, 0.05);
 }
 
 .header-cta {
