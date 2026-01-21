@@ -62,7 +62,7 @@ public class DatabaseManager {
             "prenom VARCHAR(50) NOT NULL," +
             "mail VARCHAR(100) NOT NULL UNIQUE," +
             "date_naissance DATE," +
-            "mot_de_passe VARCHAR(255) NOT NULL," +
+            "mot_de_passe VARCHAR(255)," +
             "role VARCHAR(50) NOT NULL" +
             ")",
         "CREATE TABLE IF NOT EXISTS specialite (" +
@@ -84,7 +84,7 @@ public class DatabaseManager {
             "nom VARCHAR(100) NOT NULL," +
             "semestre INT NOT NULL CHECK (semestre IN (1, 2))," +
             "id_specialite INT NOT NULL," +
-            "id_prof INT NOT NULL," +
+            "id_prof INT," +
             "FOREIGN KEY (id_specialite) REFERENCES specialite(id)," +
             "FOREIGN KEY (id_prof) REFERENCES utilisateur(id)" +
             ")",
@@ -106,9 +106,9 @@ public class DatabaseManager {
             ")",
         "CREATE TABLE IF NOT EXISTS evaluation (" +
             "id SERIAL PRIMARY KEY," +
-            "date_creation DATETIME," +
-            "date_expiration DATETIME," +
-            "semestre INT NOT NULL CHECK (semestre IN (1, 2))," +
+            "date_debut TIMESTAMP," +
+            "date_fin TIMESTAMP," +
+            "semestre INT NOT NULL CHECK (semestre IN (1, 2))" +
             ")",
         "CREATE TABLE IF NOT EXISTS reponse_evaluation (" +
             "id SERIAL PRIMARY KEY," +
@@ -121,21 +121,23 @@ public class DatabaseManager {
             "commentaires TEXT," +
             "id_matiere INT NOT NULL," +
             "id_evaluation INT NOT NULL," +
-            "FOREIGN KEY (id_matiere) REFERENCES matiere(id)" +
+            "FOREIGN KEY (id_matiere) REFERENCES matiere(id)," +
             "FOREIGN KEY (id_evaluation) REFERENCES evaluation(id)" +
             ")",
         "CREATE TABLE IF NOT EXISTS a_repondu_evaluation (" +
             "id_etudiant INT NOT NULL," +
             "id_matiere INT NOT NULL," +
+            "id_evaluation INT NOT NULL," +
             "FOREIGN KEY (id_etudiant) REFERENCES etudiant(id_utilisateur)," +
             "FOREIGN KEY (id_matiere) REFERENCES matiere(id)," +
+            "FOREIGN KEY (id_evaluation) REFERENCES evaluation(id)," +
             "PRIMARY KEY (id_etudiant, id_matiere)" +
             ")",
         "CREATE TABLE IF NOT EXISTS lien (" +
             "id SERIAL PRIMARY KEY," +
             "token_hash VARCHAR(255) NOT NULL," +
-            "date_utilisation DATE," +
-            "date_expiration DATE," +
+            "date_utilisation TIMESTAMP," +
+            "date_expiration TIMESTAMP," +
             "id_utilisateur INT NOT NULL," +
             "FOREIGN KEY (id_utilisateur) REFERENCES utilisateur(id)" +
             ")",
