@@ -168,8 +168,105 @@ public class Reponse_Evaluation {
 
     // ==================== Calcul des statistiques ====================
 
+    // Global
+
+    // Par specialite
+    public static int calculerTauxReponseParSpecialite(int id_evaluation, int id_specialite) throws SQLException {
+        String sqlTotal = "SELECT COUNT(e.id_utilisateur) AS total " +
+                  "FROM etudiant e " +
+                  "WHERE e.id_specialite = ?";
+        String sqlRepondu = "SELECT COUNT(DISTINCT are.id_etudiant) AS repondu " +
+                            "FROM a_repondu_evaluation are " +
+                            "JOIN matiere m ON are.id_matiere = m.id " +
+                            "WHERE are.id_evaluation = ? AND m.id_specialite = ?";
+
+        int total = 0;
+        int repondu = 0;
+
+        try (Connection conn = DatabaseManager.obtenirConnexion()) {
+            try (PreparedStatement totalStmt = conn.prepareStatement(sqlTotal)) {
+                totalStmt.setInt(1, id_specialite);
+                ResultSet totalRs = totalStmt.executeQuery();
+                if (totalRs.next()) {
+                    total = totalRs.getInt("total");
+                }
+            }
+
+            try (PreparedStatement reponduStmt = conn.prepareStatement(sqlRepondu)) {
+                reponduStmt.setInt(1, id_evaluation);
+                reponduStmt.setInt(2, id_specialite);
+                ResultSet reponduRs = reponduStmt.executeQuery();
+                if (reponduRs.next()) {
+                    repondu = reponduRs.getInt("repondu");
+                }
+            }
+        }
+
+        if (total == 0) {
+            return 0;
+        }
+        return (repondu * 100) / total;
+    }
+
+    public static double calculerMoyenneGeneraleParSpecialite(int id_evaluation, int id_specialite) throws SQLException {
+        String sqlMatieres = "SELECT id FROM matiere WHERE id_specialite = ?";
+        double somme = 0.0;
+        int nbMatieres = 0;
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+            PreparedStatement matieresStmt = conn.prepareStatement(sqlMatieres)) {
+            matieresStmt.setInt(1, id_specialite);
+            try (ResultSet matieresRs = matieresStmt.executeQuery()) {
+                while (matieresRs.next()) {
+                    int idMatiere = matieresRs.getInt("id");
+                    somme += calculerMoyenneGeneraleParMatiere(id_evaluation, idMatiere);
+                    nbMatieres++;
+                }
+            }
+        }
+
+        if (nbMatieres == 0) {
+            return 0.0;
+        }
+        return somme / nbMatieres;
+    }
+
+    public static int[] recupererMeilleurEtPireMatiere(int id_evaluation, int id_specialite) throws SQLException {
+        String sqlMatieres = "SELECT id FROM matiere WHERE id_specialite = ?";
+        int meilleurId = -1;
+        int pireId = -1;
+        double meilleureMoyenne = -1.0;
+        double pireMoyenne = 101.0;
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+            PreparedStatement matieresStmt = conn.prepareStatement(sqlMatieres)) {
+            matieresStmt.setInt(1, id_specialite);
+            try (ResultSet matieresRs = matieresStmt.executeQuery()) {
+                while (matieresRs.next()) {
+                    int idMatiere = matieresRs.getInt("id");
+                    double moyenne = calculerMoyenneGeneraleParMatiere(id_evaluation, idMatiere);
+                    if (moyenne > meilleureMoyenne) {
+                        meilleureMoyenne = moyenne;
+                        meilleurId = idMatiere;
+                    }
+                    if (moyenne < pireMoyenne) {
+                        pireMoyenne = moyenne;
+                        pireId = idMatiere;
+                    }
+                }
+            }
+        }
+
+        return new int[] {meilleurId, pireId};
+    }
+
+    // Par matière
+
     public static int calculerTauxReponseParMatiere(int id_evaluation, int id_matiere) throws SQLException {
-        String sqlTotal = "SELECT COUNT(*) AS total FROM a_repondu_evaluation WHERE id_evaluation = ? AND id_matiere = ?";
+        String sqlTotal = "SELECT COUNT(e.id_utilisateur) AS total " +
+                  "FROM etudiant e " +
+                  "JOIN matiere m ON e.id_specialite = m.id_specialite " +
+                  "WHERE m.id = ?";
         String sqlRepondu = "SELECT COUNT(DISTINCT id_etudiant) AS repondu FROM a_repondu_evaluation " +
                             "WHERE id_evaluation = ? AND id_matiere = ?";
 
@@ -178,8 +275,7 @@ public class Reponse_Evaluation {
 
         try (Connection conn = DatabaseManager.obtenirConnexion()) {
             try (PreparedStatement totalStmt = conn.prepareStatement(sqlTotal)) {
-                totalStmt.setInt(1, id_evaluation);
-                totalStmt.setInt(2, id_matiere);
+                totalStmt.setInt(1, id_matiere);
                 ResultSet totalRs = totalStmt.executeQuery();
                 if (totalRs.next()) {
                     total = totalRs.getInt("total");
