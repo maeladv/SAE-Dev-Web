@@ -169,6 +169,151 @@ public class Reponse_Evaluation {
     // ==================== Calcul des statistiques ====================
 
     // Global
+    public static int calculerTauxReponseGlobal(int id_evaluation) throws SQLException {
+        String sqlTotal = "SELECT COUNT(e.id_utilisateur) AS total FROM etudiant e";
+        String sqlRepondu = "SELECT COUNT(DISTINCT id_etudiant) AS repondu FROM a_repondu_evaluation WHERE id_evaluation = ?";
+
+        int total = 0;
+        int repondu = 0;
+
+        try (Connection conn = DatabaseManager.obtenirConnexion()) {
+            try (Statement totalStmt = conn.createStatement()) {
+                ResultSet totalRs = totalStmt.executeQuery(sqlTotal);
+                if (totalRs.next()) {
+                    total = totalRs.getInt("total");
+                }
+            }
+
+            try (PreparedStatement reponduStmt = conn.prepareStatement(sqlRepondu)) {
+                reponduStmt.setInt(1, id_evaluation);
+                ResultSet reponduRs = reponduStmt.executeQuery();
+                if (reponduRs.next()) {
+                    repondu = reponduRs.getInt("repondu");
+                }
+            }
+        }
+
+        if (total == 0) {
+            return 0;
+        }
+        return (repondu * 100) / total;
+    }
+
+    public int[] recupererIdSpecialitesAvecPlusEtMoinsDeResponses(int id_evaluation) throws SQLException {
+        String sqlSpecialites = "SELECT id FROM specialite";
+        
+        int specialitePlusId = -1;
+        int specialiteMoinsId = -1;
+        int maxTaux = -1;
+        int minTaux = Integer.MAX_VALUE;
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+            PreparedStatement stmt = conn.prepareStatement(sqlSpecialites)) {
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                int idSpecialite = rs.getInt("id");
+                int taux = calculerTauxReponseParSpecialite(id_evaluation, idSpecialite);
+
+                if (taux > maxTaux) {
+                    maxTaux = taux;
+                    specialitePlusId = idSpecialite;
+                }
+                if (taux < minTaux) {
+                    minTaux = taux;
+                    specialiteMoinsId = idSpecialite;
+                }
+            }
+        }
+
+        return new int[] {specialitePlusId, specialiteMoinsId};
+    }
+
+    public static double calculerMoyenneGeneraleGlobale(int id_evaluation) throws SQLException {
+        String sqlMatieres = "SELECT id FROM matiere";
+        double somme = 0.0;
+        int nbMatieres = 0;
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+            PreparedStatement matieresStmt = conn.prepareStatement(sqlMatieres)) {
+            try (ResultSet matieresRs = matieresStmt.executeQuery()) {
+                while (matieresRs.next()) {
+                    int idMatiere = matieresRs.getInt("id");
+                    somme += calculerMoyenneGeneraleParMatiere(id_evaluation, idMatiere);
+                    nbMatieres++;
+                }
+            }
+        }
+
+        if (nbMatieres == 0) {
+            return 0.0;
+        }
+        return somme / nbMatieres;
+    }
+
+    public static int[] recupererSpecialitePositiveEtNegative(int id_evaluation) throws SQLException {
+        String sqlSpecialites = "SELECT id FROM specialite";
+        
+        int specialitePositiveId = -1;
+        int specialiteNegativeId = -1;
+        double meilleureMoyenne = -1.0;
+        double pireMoyenne = 101.0;
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+            PreparedStatement stmt = conn.prepareStatement(sqlSpecialites)) {
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                int idSpecialite = rs.getInt("id");
+                double moyenne = calculerMoyenneGeneraleParSpecialite(id_evaluation, idSpecialite);
+
+                if (moyenne > meilleureMoyenne) {
+                    meilleureMoyenne = moyenne;
+                    specialitePositiveId = idSpecialite;
+                }
+                if (moyenne < pireMoyenne) {
+                    pireMoyenne = moyenne;
+                    specialiteNegativeId = idSpecialite;
+                }
+            }
+        }
+
+        return new int[] {specialitePositiveId, specialiteNegativeId};
+    }
+
+    public static int recupererSpecialiteAvecPlusDeCommentaires(int id_evaluation) throws SQLException {
+        String sqlSpecialites = "SELECT id FROM specialite";
+        
+        int specialiteIdMaxCommentaires = -1;
+        int maxCommentaires = -1;
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+            PreparedStatement stmt = conn.prepareStatement(sqlSpecialites)) {
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                int idSpecialite = rs.getInt("id");
+                String sqlCommentaires = "SELECT COUNT(*) AS nb_commentaires " +
+                                         "FROM reponse_evaluation re " +
+                                         "JOIN matiere m ON re.id_matiere = m.id " +
+                                         "WHERE re.id_evaluation = ? AND m.id_specialite = ? AND re.commentaires IS NOT NULL";
+                try (PreparedStatement commentairesStmt = conn.prepareStatement(sqlCommentaires)) {
+                    commentairesStmt.setInt(1, id_evaluation);
+                    commentairesStmt.setInt(2, idSpecialite);
+                    ResultSet commentairesRs = commentairesStmt.executeQuery();
+                    if (commentairesRs.next()) {
+                        int nbCommentaires = commentairesRs.getInt("nb_commentaires");
+                        if (nbCommentaires > maxCommentaires) {
+                            maxCommentaires = nbCommentaires;
+                            specialiteIdMaxCommentaires = idSpecialite;
+                        }
+                    }
+                }
+            }
+        }
+
+        return specialiteIdMaxCommentaires;
+    }
 
     // Par specialite
     public static int calculerTauxReponseParSpecialite(int id_evaluation, int id_specialite) throws SQLException {
@@ -231,7 +376,7 @@ public class Reponse_Evaluation {
         return somme / nbMatieres;
     }
 
-    public static int[] recupererMeilleurEtPireMatiere(int id_evaluation, int id_specialite) throws SQLException {
+    public static int[] recupererIdMeilleurEtPireMatiere(int id_evaluation, int id_specialite) throws SQLException {
         String sqlMatieres = "SELECT id FROM matiere WHERE id_specialite = ?";
         int meilleurId = -1;
         int pireId = -1;
