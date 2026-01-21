@@ -18,23 +18,21 @@
 
 .hero-logo-container {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
     width: 354px;
     height: 387px;
 }
 
 .hero-logo-image {
-    position: absolute;
-    left: 30px;
-    top: 0;
     width: 294px;
     height: 294px;
     object-fit: cover;
 }
 
 .hero-logo-text {
-    position: absolute;
-    left: 102px;
-    top: 294px;
     font-family: 'REM', sans-serif;
     font-size: 48px;
     font-weight: 400;
