@@ -4,36 +4,44 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 
 import util.DatabaseManager;
 
-public class Specialite {
+public class Matiere {
     private int id;
-    private String tag;
-    private int annee;
     private String nom;
+    private int semestre;
+    private int coefficient;
+    private int specialiteId;
+    private int profId;
     private boolean persisted = false;
-    
-    // Constructeurs
-    public Specialite() {}
 
-    public Specialite(String tag, int annee, String nom) {
-        this.tag = tag;
-        this.annee = annee;
+    // Constructeurs
+    public Matiere() {}
+
+    public Matiere(String nom, int semestre, int coefficient, int specialiteId, int profId) {
         this.nom = nom;
+        this.semestre = semestre;
+        this.coefficient = coefficient;
+        this.specialiteId = specialiteId;
+        this.profId = profId;
     }
 
+    public Matiere(String nom, int semestre, int coefficient, int specialiteId) {
+        this.nom = nom;
+        this.semestre = semestre;
+        this.coefficient = coefficient;
+        this.specialiteId = specialiteId;
+    }
 
     // ==================== Méthodes de recherche ====================
 
     /**
      * Trouver une spécialité par ID
      */
-    public static Specialite trouverParId(int id) throws SQLException {
-        String sql = "SELECT id, tag, annee, nom FROM specialite WHERE id = ?";
+    public static Matiere trouverParId(int id) throws SQLException {
+        String sql = "SELECT id, nom, semestre, coefficient, id_specialite, id_prof FROM matiere WHERE id = ?";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -47,25 +55,7 @@ public class Specialite {
         return null;
     }
 
-    /**
-     * Trouver toutes les spécialités
-     */
-    public static List<Specialite> trouverToutes() throws SQLException {
-        List<Specialite> liste = new ArrayList<>();
-        String sql = "SELECT id, tag, annee, nom FROM specialite ORDER BY nom";
 
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            
-            while (rs.next()) {
-                liste.add(creerDepuisResultSet(rs));
-            }
-        }
-        return liste;
-    }
-
-    
     // ==================== Méthodes de persistence (Active Record) ====================
 
     /**
@@ -84,13 +74,15 @@ public class Specialite {
      */
     private boolean insert() throws SQLException {
         // Ici, le tag est fourni par l'objet et non généré par la BDD
-        String sql = "INSERT INTO specialite (tag, annee, nom) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO matiere (nom, semestre, coefficient, id_specialite, id_prof) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, this.tag);
-            stmt.setInt(2, this.annee);
-            stmt.setString(3, this.nom);
+            stmt.setString(1, this.nom);
+            stmt.setInt(2, this.semestre);
+            stmt.setInt(3, this.coefficient);
+            stmt.setInt(4, this.specialiteId);
+            stmt.setInt(5, this.profId);
 
             int rowsInserted = stmt.executeUpdate();
             
@@ -101,17 +93,19 @@ public class Specialite {
         }
         return false;
     }
-     
-    //Mettre à jour une spécialité existante
+
+     //Mettre à jour une spécialité existante
     private boolean update() throws SQLException {
-        String sql = "UPDATE specialite SET tag = ?, annee = ?, nom = ? WHERE id = ?";
+        String sql = "UPDATE matiere SET nom = ?, semestre = ?, coefficient = ?, id_specialite = ?, id_prof = ? WHERE id = ?";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, this.tag);
-            stmt.setInt(2, this.annee);
-            stmt.setString(3, this.nom);
-            stmt.setInt(4, this.id);
+            stmt.setString(1, this.nom);
+            stmt.setInt(2, this.semestre);
+            stmt.setInt(3, this.coefficient);
+            stmt.setInt(4, this.specialiteId);
+            stmt.setInt(5, this.profId);
+            stmt.setInt(6, this.id);
 
             return stmt.executeUpdate() > 0;
         }
@@ -119,17 +113,17 @@ public class Specialite {
 
     /**
      * Supprimer la spécialité
-     */
+     */   
     public boolean supprimer() throws SQLException {
         if (!persisted) {
             return false;
         }
 
-        String sql = "DELETE FROM specialite WHERE tag = ?";
+        String sql = "DELETE FROM matiere WHERE id = ?";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, this.tag);
+            stmt.setInt(1, this.id);
             boolean success = stmt.executeUpdate() > 0;
             if (success) {
                 this.persisted = false;
@@ -146,29 +140,35 @@ public class Specialite {
             return false;
         }
 
-        Specialite fresh = trouverParId(this.id);
+        Matiere fresh = trouverParId(this.id);
         if (fresh != null) {
-            this.tag = fresh.tag;
-            this.annee = fresh.annee;
+            this.id = fresh.id;
             this.nom = fresh.nom;
+            this.semestre = fresh.semestre;
+            this.coefficient = fresh.coefficient;
+            this.specialiteId = fresh.specialiteId;
+            this.profId = fresh.profId;
             return true;
         }
         return false;
     }
+    
 
     // ==================== Méthodes utilitaires ====================
 
     /**
      * Hydrater un objet depuis un ResultSet
      */
-    private static Specialite creerDepuisResultSet(ResultSet rs) throws SQLException {
-        Specialite spec = new Specialite();
-        spec.id = rs.getInt("id");
-        spec.tag = rs.getString("tag");
-        spec.annee = rs.getInt("annee");
-        spec.nom = rs.getString("nom");
-        spec.persisted = true;
-        return spec;
+    private static Matiere creerDepuisResultSet(ResultSet rs) throws SQLException {
+        Matiere matiere = new Matiere();
+        matiere.id = rs.getInt("id");
+        matiere.nom = rs.getString("nom");
+        matiere.semestre = rs.getInt("semestre");
+        matiere.coefficient = rs.getInt("coefficient");
+        matiere.specialiteId = rs.getInt("id_specialite");
+        matiere.profId = rs.getInt("id_prof");
+        matiere.persisted = true;
+        return matiere;
     }
 
     /**
@@ -178,26 +178,38 @@ public class Specialite {
         return persisted;
     }
 
-
     // Getters et Setters
-    public String getTag() {
-        return tag;
+    public int getId() {
+        return id; 
     }
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
-
-    public int getAnnee() {
-        return annee;
-    }
-    public void setAnnee(int annee) {
-        this.annee = annee;
-    }
-
     public String getNom() {
         return nom;
     }
     public void setNom(String nom) {
         this.nom = nom;
+    }
+    public int getSemestre() {
+        return semestre;
+    }
+    public void setSemestre(int semestre) {
+        this.semestre = semestre;
+    }
+    public int getCoefficient() {
+        return coefficient;
+    }
+    public void setCoefficient(int coefficient) {
+        this.coefficient = coefficient;
+    }
+    public int getSpecialiteId() {
+        return specialiteId;
+    }
+    public void setSpecialiteId(int specialiteId) {
+        this.specialiteId = specialiteId;
+    }
+    public int getProfId() {
+        return profId;
+    }
+    public void setProfId(int profId) {
+        this.profId = profId;
     }
 }

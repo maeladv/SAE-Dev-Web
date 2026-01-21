@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import util.DatabaseManager;
 
@@ -80,6 +82,24 @@ public class Utilisateur {
             }
         }
         return null;
+    }
+
+    /**
+     * Trouver tous les professeurs
+     */
+    public static List<Utilisateur> trouverTousLesProfesseurs() throws SQLException {
+        List<Utilisateur> liste = new ArrayList<>();
+        String sql = "SELECT id, nom, prenom, mail, date_naissance, mot_de_passe, role FROM utilisateur WHERE role = 'professeur' ORDER BY nom, prenom";
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            
+            while (rs.next()) {
+                liste.add(creerDepuisResultSet(rs));
+            }
+        }
+        return liste;
     }
 
     /**

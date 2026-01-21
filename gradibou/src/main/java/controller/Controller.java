@@ -88,6 +88,19 @@ public class Controller extends HttpServlet {
                 }
                 view = "/WEB-INF/views/creerSpecialite.jsp";
                 break;
+            case "/admin/creer-matiere":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                try {
+                    request.setAttribute("specialites", model.Specialite.trouverToutes());
+                    request.setAttribute("professeurs", model.Utilisateur.trouverTousLesProfesseurs());
+                } catch (SQLException e) {
+                    request.setAttribute("error", "Erreur lors du chargement des données: " + e.getMessage());
+                }
+                view = "/WEB-INF/views/creerMatiere.jsp";
+                break;
             case "/logout":
                 request.getSession().invalidate();
                 try {
@@ -139,6 +152,9 @@ public class Controller extends HttpServlet {
                     break;
                 case "/admin/creer-specialite":
                     creationSpecialiteParAdmin(request, response);
+                    break;
+                case "/admin/creer-matiere":
+                    creationMatiereParAdmin(request, response);
                     break;
                 case "/admin/maj-mdp":
                     creerLienPourMAJMotDePasse(request, response);
@@ -318,6 +334,57 @@ public class Controller extends HttpServlet {
         }
         
         request.getRequestDispatcher("/WEB-INF/views/creerSpecialite.jsp").forward(request, response);
+    }
+
+    private void creationMatiereParAdmin(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        if (!estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        // Si méthode GET, afficher simplement le formulaire
+        if ("GET".equalsIgnoreCase(request.getMethod())) {
+            request.getRequestDispatcher("/WEB-INF/views/creerMatiere.jsp").forward(request, response);
+            return;
+        }
+
+        // Traitement du formulaire (POST)
+        String nom = request.getParameter("nom");
+        String semestreStr = request.getParameter("semestre");
+        String coefficientStr = request.getParameter("coefficient");
+        String specialiteIdStr = request.getParameter("specialiteId");
+        String profIdStr = request.getParameter("profId");
+
+        try {
+            // Check if all fields (including profId) are present
+            if (nom == null || nom.isEmpty() || semestreStr == null || semestreStr.isEmpty() || 
+                coefficientStr == null || coefficientStr.isEmpty() || specialiteIdStr == null || specialiteIdStr.isEmpty() ||
+                profIdStr == null || profIdStr.isEmpty()) {
+                request.setAttribute("error", "Tous les champs sont requis, y compris le professeur.");
+                request.getRequestDispatcher("/WEB-INF/views/creerMatiere.jsp").forward(request, response);
+                return;
+            }
+
+            int semestre = Integer.parseInt(semestreStr);
+            int coefficient = Integer.parseInt(coefficientStr);
+            int specialiteId = Integer.parseInt(specialiteIdStr);
+            int profId = Integer.parseInt(profIdStr);
+
+            model.Matiere matiere = new model.Matiere(nom, semestre, coefficient, specialiteId, profId);
+            
+            if (matiere.save()) {
+                request.setAttribute("success", "Matière créée avec succès");
+            } else {
+                request.setAttribute("error", "Erreur lors de la création de la matière");
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Format numérique invalide");
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+        }
+        
+        request.getRequestDispatcher("/WEB-INF/views/creerMatiere.jsp").forward(request, response);
     }
 
     public void creerLienPourMAJMotDePasse(HttpServletRequest request, HttpServletResponse response) 
