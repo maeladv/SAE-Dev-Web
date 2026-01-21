@@ -82,7 +82,7 @@ public class DatabaseManager {
         "CREATE TABLE IF NOT EXISTS matiere (" +
             "id SERIAL PRIMARY KEY," +
             "nom VARCHAR(100) NOT NULL," +
-            "semestre INT NOT NULL," +
+            "semestre INT NOT NULL CHECK (semestre IN (1, 2))," +
             "id_specialite INT NOT NULL," +
             "id_prof INT NOT NULL," +
             "FOREIGN KEY (id_specialite) REFERENCES specialite(id)," +
@@ -96,21 +96,40 @@ public class DatabaseManager {
             "FOREIGN KEY (id_matiere) REFERENCES matiere(id)" +
             ")",
         "CREATE TABLE IF NOT EXISTS note (" +
-            "id SERIAL PRIMARY KEY," +
             "id_etudiant INT NOT NULL," +
             "id_examen INT NOT NULL," +
             "note INT NOT NULL," +
             "date TIMESTAMP DEFAULT NOW()," +
             "FOREIGN KEY (id_etudiant) REFERENCES etudiant(id_utilisateur)," +
-            "FOREIGN KEY (id_examen) REFERENCES examen(id)" +
+            "FOREIGN KEY (id_examen) REFERENCES examen(id)," +
+            "PRIMARY KEY (id_etudiant, id_examen)" +
             ")",
         "CREATE TABLE IF NOT EXISTS evaluation (" +
             "id SERIAL PRIMARY KEY," +
-            "note INT NOT NULL," +
+            "date_creation DATETIME," +
+            "date_expiration DATETIME," +
+            "semestre INT NOT NULL CHECK (semestre IN (1, 2))," +
+            ")",
+        "CREATE TABLE IF NOT EXISTS reponse_evaluation (" +
+            "id SERIAL PRIMARY KEY," +
+            "qualité_support INT NOT NULL," +
+            "qualité_equipe INT NOT NULL," +
+            "qualité_materiel INT NOT NULL," +
+            "pertinence_examen INT NOT NULL," +
+            "temps_par_semaine INT NOT NULL," +
+            "utilite_pour_formation INT NOT NULL," +
             "commentaires TEXT," +
-            "date_expiration DATE," +
             "id_matiere INT NOT NULL," +
+            "id_evaluation INT NOT NULL," +
             "FOREIGN KEY (id_matiere) REFERENCES matiere(id)" +
+            "FOREIGN KEY (id_evaluation) REFERENCES evaluation(id)" +
+            ")",
+        "CREATE TABLE IF NOT EXISTS a_repondu_evaluation (" +
+            "id_etudiant INT NOT NULL," +
+            "id_matiere INT NOT NULL," +
+            "FOREIGN KEY (id_etudiant) REFERENCES etudiant(id_utilisateur)," +
+            "FOREIGN KEY (id_matiere) REFERENCES matiere(id)," +
+            "PRIMARY KEY (id_etudiant, id_matiere)" +
             ")",
         "CREATE TABLE IF NOT EXISTS lien (" +
             "id SERIAL PRIMARY KEY," +
