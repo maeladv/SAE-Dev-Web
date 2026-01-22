@@ -606,11 +606,45 @@ public class Reponse_Evaluation {
             int evaluationId = Integer.parseInt(evaluationIdStr);
             int matiereId = Integer.parseInt(matiereIdStr);
 
+            // Charger entités
+            model.Evaluation evaluation = model.Evaluation.trouverParId(evaluationId);
+            model.Matiere matiere = model.Matiere.trouverParId(matiereId);
+            if (evaluation == null || matiere == null) {
+                request.setAttribute("error", "Évaluation ou matière introuvable");
+                request.getRequestDispatcher("/WEB-INF/views/evaluations.jsp").forward(request, response);
+                return;
+            }
+
+            // 1) Vérifier que l'étudiant appartient à la spécialité de la matière
+            int idSpecEtudiant = etudiant.getIdSpecialite();
+            if (idSpecEtudiant <= 0 || idSpecEtudiant != matiere.getSpecialiteId()) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
+
+            // 2) Vérifier que l'évaluation est ouverte pour cette matière
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            boolean inWindow = !(now.isBefore(evaluation.getDate_debut()) || now.isAfter(evaluation.getDate_fin()));
+            boolean semestreOK = evaluation.getSemestre() == matiere.getSemestre();
+            if (!inWindow || !semestreOK) {
+                request.setAttribute("error", "Cette évaluation n'est pas ouverte pour cette matière.");
+                request.getRequestDispatcher("/WEB-INF/views/evaluations.jsp").forward(request, response);
+                return;
+            }
+
+            // 3) Vérifier que l'étudiant n'a pas déjà répondu
+            boolean dejaRepondu = model.A_Repondu_Evaluation.aRepondu(etudiant.getId(), matiereId, evaluationId);
+            if (dejaRepondu) {
+                request.setAttribute("error", "Vous avez déjà répondu à cette évaluation pour cette matière.");
+                request.getRequestDispatcher("/WEB-INF/views/evaluations.jsp").forward(request, response);
+                return;
+            }
+
             // Vérifier si c'est un GET (affichage du formulaire) ou POST (soumission)
             if (qualiteSupportStr == null) {
                 // GET - Afficher le formulaire
-                request.setAttribute("evaluation", model.Evaluation.trouverParId(evaluationId));
-                request.setAttribute("matiere", model.Matiere.trouverParId(matiereId));
+                request.setAttribute("evaluation", evaluation);
+                request.setAttribute("matiere", matiere);
                 request.setAttribute("evaluationId", evaluationId);
                 request.setAttribute("matiereId", matiereId);
                 request.getRequestDispatcher("/WEB-INF/views/repondreEvaluation.jsp").forward(request, response);

@@ -255,24 +255,18 @@ public class Controller extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/app/login");
                     return;
                 }
+                // Déléguer au handler commun qui gère aussi le GET avec validations
                 try {
-                    String evalIdStr = request.getParameter("evaluationId");
-                    String matiereIdStr = request.getParameter("matiereId");
-                    
-                    if (evalIdStr != null && matiereIdStr != null) {
-                        int evalId = Integer.parseInt(evalIdStr);
-                        int matiereId = Integer.parseInt(matiereIdStr);
-                        
-                        request.setAttribute("evaluation", model.Evaluation.trouverParId(evalId));
-                        request.setAttribute("matiere", model.Matiere.trouverParId(matiereId));
-                        request.setAttribute("evaluationId", evalId);
-                        request.setAttribute("matiereId", matiereId);
-                    }
+                    Reponse_Evaluation.etudiantRepondreEvaluation(request, response);
                 } catch (SQLException e) {
-                    request.setAttribute("error", "Erreur lors du chargement de l'évaluation: " + e.getMessage());
+                    request.setAttribute("error", "Erreur BD: " + e.getMessage());
+                    try {
+                        request.getRequestDispatcher("/WEB-INF/views/evaluations.jsp").forward(request, response);
+                    } catch (ServletException ex) {
+                        ex.printStackTrace();
+                    }
                 }
-                view = "/WEB-INF/views/repondreEvaluation.jsp";
-                break;
+                return;
             case "/admin/resultats-evaluations":
                 if (!Role.estAdmin(request.getSession(false))) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
