@@ -254,9 +254,30 @@ public class Note {
 
     public static String afficherNotes(HttpServletRequest request) {
         try {
+            HttpSession session = request.getSession(false);
+            boolean isAdmin = Role.estAdmin(session);
+            boolean isProfesseur = Role.estProfesseur(session);
+            
             String idExamStr = request.getParameter("examId");
             if (idExamStr != null && !idExamStr.isEmpty()) {
                 int idExam = Integer.parseInt(idExamStr);
+                
+                // Vérifier que le professeur a accès à cet examen (via la matière)
+                if (isProfesseur && !isAdmin) {
+                    Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                    if (currentUser != null) {
+                        Examen examen = model.Examen.trouverParId(idExam);
+                        if (examen != null) {
+                            int matId = examen.getId_matiere();
+                            Matiere matiere = model.Matiere.trouverParId(matId);
+                            if (matiere == null || matiere.getProfId() != currentUser.getId()) {
+                                request.setAttribute("error", "Accès refusé : vous n'avez pas accès à cet examen");
+                                return "/WEB-INF/views/error.jsp";
+                            }
+                        }
+                    }
+                }
+                
                 request.setAttribute("notes", model.Note.trouverParExamen(idExam));
                 request.setAttribute("examen", model.Examen.trouverParId(idExam));
             }
@@ -268,13 +289,35 @@ public class Note {
     }
 
     public static void supprimerNote(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        if (!Role.estAdmin(request.getSession(false))) {
+        HttpSession session = request.getSession(false);
+        boolean isAdmin = Role.estAdmin(session);
+        boolean isProfesseur = Role.estProfesseur(session);
+        
+        if (!isAdmin && !isProfesseur) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
+        
         try {
             int etudiantId = Integer.parseInt(request.getParameter("etudiantId"));
             int examenId = Integer.parseInt(request.getParameter("examenId"));
+            
+            // Vérifier que le professeur a accès à cet examen
+            if (isProfesseur && !isAdmin) {
+                Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                if (currentUser != null) {
+                    Examen examen = model.Examen.trouverParId(examenId);
+                    if (examen != null) {
+                        int matId = examen.getId_matiere();
+                        Matiere matiere = model.Matiere.trouverParId(matId);
+                        if (matiere == null || matiere.getProfId() != currentUser.getId()) {
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                            return;
+                        }
+                    }
+                }
+            }
+            
             model.Note n = model.Note.trouverParIdEtudiantExamen(etudiantId, examenId);
             if (n != null) {
                 n.supprimer();
@@ -287,14 +330,35 @@ public class Note {
     }
 
     public static void modifierNote(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        if (!Role.estAdmin(request.getSession(false))) {
-             response.sendError(HttpServletResponse.SC_FORBIDDEN);
-             return;
+        HttpSession session = request.getSession(false);
+        boolean isAdmin = Role.estAdmin(session);
+        boolean isProfesseur = Role.estProfesseur(session);
+        
+        if (!isAdmin && !isProfesseur) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
         }
+        
         try {
             int etudiantId = Integer.parseInt(request.getParameter("etudiantId"));
             int examenId = Integer.parseInt(request.getParameter("examenId"));
             int valeur = Integer.parseInt(request.getParameter("note"));
+            
+            // Vérifier que le professeur a accès à cet examen
+            if (isProfesseur && !isAdmin) {
+                Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                if (currentUser != null) {
+                    Examen examen = model.Examen.trouverParId(examenId);
+                    if (examen != null) {
+                        int matId = examen.getId_matiere();
+                        Matiere matiere = model.Matiere.trouverParId(matId);
+                        if (matiere == null || matiere.getProfId() != currentUser.getId()) {
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                            return;
+                        }
+                    }
+                }
+            }
             
             model.Note n = model.Note.trouverParIdEtudiantExamen(etudiantId, examenId);
             if (n != null) {

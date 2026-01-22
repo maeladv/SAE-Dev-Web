@@ -265,9 +265,26 @@ public class Examen {
 
     public static String afficherExamens(HttpServletRequest request) {
         try {
+            HttpSession session = request.getSession(false);
+            boolean isAdmin = Role.estAdmin(session);
+            boolean isProfesseur = Role.estProfesseur(session);
+            
             String idMatStr = request.getParameter("matId");
             if (idMatStr != null && !idMatStr.isEmpty()) {
                 int idMat = Integer.parseInt(idMatStr);
+                
+                // Vérifier que le professeur a accès à cette matière
+                if (isProfesseur && !isAdmin) {
+                    Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                    if (currentUser != null) {
+                        Matiere matiere = model.Matiere.trouverParId(idMat);
+                        if (matiere == null || matiere.getProfId() != currentUser.getId()) {
+                            request.setAttribute("error", "Accès refusé : vous n'avez pas accès à cette matière");
+                            return "/WEB-INF/views/error.jsp";
+                        }
+                    }
+                }
+                
                 request.setAttribute("examens", model.Examen.trouverParMatiere(idMat));
                 request.setAttribute("matiere", model.Matiere.trouverParId(idMat));
             } else {
@@ -281,22 +298,42 @@ public class Examen {
     }
 
     public static void supprimerExamen(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        if (!Role.estAdmin(request.getSession(false))) {
+        HttpSession session = request.getSession(false);
+        boolean isAdmin = Role.estAdmin(session);
+        boolean isProfesseur = Role.estProfesseur(session);
+        
+        if (!isAdmin && !isProfesseur) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
+        
         try {
             int id = Integer.parseInt(request.getParameter("id"));
             model.Examen e = model.Examen.trouverParId(id);
             int matId = -1;
+            
             if (e != null) {
                 matId = e.getId_matiere();
+                
+                // Vérifier que le professeur a accès à cette matière
+                if (isProfesseur && !isAdmin) {
+                    Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                    if (currentUser != null) {
+                        Matiere matiere = model.Matiere.trouverParId(matId);
+                        if (matiere == null || matiere.getProfId() != currentUser.getId()) {
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                            return;
+                        }
+                    }
+                }
+                
                 e.supprimer();
             }
+            
             if (matId != -1) {
                 response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matId);
             } else {
-                response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+                response.sendRedirect(request.getContextPath() + "/app/gestion/specialites");
             }
         } catch (Exception e) {
             request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
@@ -305,10 +342,15 @@ public class Examen {
     }
 
     public static void modifierExamen(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        if (!Role.estAdmin(request.getSession(false))) {
-             response.sendError(HttpServletResponse.SC_FORBIDDEN);
-             return;
+        HttpSession session = request.getSession(false);
+        boolean isAdmin = Role.estAdmin(session);
+        boolean isProfesseur = Role.estProfesseur(session);
+        
+        if (!isAdmin && !isProfesseur) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
         }
+        
         try {
             int id = Integer.parseInt(request.getParameter("id"));
             String nom = request.getParameter("nom");
@@ -317,6 +359,20 @@ public class Examen {
             
             model.Examen e = model.Examen.trouverParId(id);
             if (e != null) {
+                int matId = e.getId_matiere();
+                
+                // Vérifier que le professeur a accès à cette matière
+                if (isProfesseur && !isAdmin) {
+                    Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                    if (currentUser != null) {
+                        Matiere matiere = model.Matiere.trouverParId(matId);
+                        if (matiere == null || matiere.getProfId() != currentUser.getId()) {
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                            return;
+                        }
+                    }
+                }
+                
                 e.setNom(nom);
                 e.setCoefficient(coefficient);
                 e.save();
