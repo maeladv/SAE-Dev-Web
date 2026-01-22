@@ -42,6 +42,34 @@ Dialogue de confirmation avant de supprimer un utilisateur.
 <button onclick="confirmDelete(userId, userName)">Supprimer</button>
 ```
 
+### 5. Modal de création de spécialité (`createSpecialiteModal`)
+Formulaire pour créer une nouvelle spécialité avec les champs :
+- Nom de la spécialité
+- Tag de la spécialité (ICY, IIA, ME...) - Non modifiable ultérieurement
+- Année scolaire des étudiants (1-5)
+
+**Utilisation :**
+```html
+<button onclick="openModal('createSpecialiteModal')">Ajouter une spécialité</button>
+```
+
+### 6. Modal de modification de spécialité (`editSpecialiteModal`)
+Formulaire pour modifier le nom d'une spécialité existante.
+Note : Le tag et l'année ne peuvent pas être modifiés.
+
+**Utilisation :**
+```html
+<button onclick="openEditSpecialiteModal(id, nom, tag, annee)">Modifier</button>
+```
+
+### 7. Modal de suppression de spécialité (`deleteSpecialiteModal`)
+Dialogue de confirmation avant de supprimer une spécialité avec son tag et année.
+
+**Utilisation :**
+```html
+<button onclick="confirmDeleteSpecialite(id, tag, annee)">Supprimer</button>
+```
+
 ## API JavaScript
 
 ### ModalManager
