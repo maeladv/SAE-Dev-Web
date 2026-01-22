@@ -66,13 +66,21 @@
                     <div class="matieres-container">
                         <%
                             List<Matiere> matieres = (List<Matiere>) request.getAttribute("matieres");
+                            List<Utilisateur> profs = (List<Utilisateur>) request.getAttribute("professeurs");
+                            java.util.Map<Integer, String> profEmailMap = new java.util.HashMap<>();
+                            if (profs != null) {
+                                for (Utilisateur p : profs) {
+                                    profEmailMap.put(p.getId(), p.getemail());
+                                }
+                            }
+
                             if (matieres != null && !matieres.isEmpty()) {
                                 // Group by semester
                                 java.util.Map<Integer, java.util.List<Matiere>> byPartnered = new java.util.TreeMap<>();
                                 for (Matiere m : matieres) {
                                     byPartnered.computeIfAbsent(m.getSemestre(), k -> new java.util.ArrayList<>()).add(m);
                                 }
-                                
+                
                                 for (java.util.Map.Entry<Integer, java.util.List<Matiere>> entry : byPartnered.entrySet()) {
                         %>
                         <div class="semester-group">
@@ -83,10 +91,10 @@
                             <div class="matiere-item">
                                 <div class="matiere-info">
                                     <h3><%= m.getNom().toUpperCase() %></h3>
-                                    <span class="matiere-prof"><%= m.getProfId() %></span>
+                                    <span class="matiere-prof"><%= profEmailMap.getOrDefault(m.getProfId(), "") %></span>
                                 </div>
                                 <div class="matiere-actions">
-                                    <button class="btn btn-tertiary" title="Modifier" onclick="editMatiere(<%= m.getId() %>, '<%= m.getNom().replace("'", "\\\'" ) %>', <%= m.getSemestre() %>, <%= m.getProfId() %>)">
+                                    <button class="btn btn-tertiary" title="Modifier" onclick="editMatiere(<%= m.getId() %>, '<%= m.getNom().replace("'", "\\'" ) %>', <%= m.getSemestre() %>, '<%= profEmailMap.getOrDefault(m.getProfId(), "") %>')">
                                         <img src="<%= request.getContextPath() %>/static/icons/black/pen.svg" alt="Modifier">
                                     </button>
                                     <button class="btn btn-tertiary" title="Supprimer" onclick="confirmDeleteMatiere(<%= m.getId() %>, '<%= m.getNom().replace("'", "\\\'" ) %>')">
@@ -172,18 +180,12 @@
                         <input type="email" id="matiere-prof" name="profEmail" placeholder="Rentrez l'adresse email du professeur..." class="input-field" required>
                     </div>
                     <div class="form-group">
-                        <label>Semestre associé à la matière</label>
-                        <div class="dropdown" data-dropdown="matiere-semestre">
-                            <button type="button" class="dropdown-toggle" aria-haspopup="listbox" aria-expanded="false">
-                                <span class="dropdown-label">Choisir un semestre</span>
-                                <span class="dropdown-icon">▾</span>
-                            </button>
-                            <ul class="dropdown-menu" role="listbox">
-                                <li class="dropdown-option" role="option" data-value="1" data-label="Semestre 1">Semestre 1</li>
-                                <li class="dropdown-option" role="option" data-value="2" data-label="Semestre 2">Semestre 2</li>
-                            </ul>
-                        </div>
-                        <input type="hidden" id="matiere-semestre" name="semestre" required>
+                        <label for="matiere-semestre">Semestre associé à la matière</label>
+                        <select id="matiere-semestre" name="semestre" class="input-field" required>
+                            <option value="">Choisir un semestre</option>
+                            <option value="1">Semestre 1</option>
+                            <option value="2">Semestre 2</option>
+                        </select>
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn btn-tertiary" onclick="closeModal('addMatiereModal')">Annuler</button>
@@ -210,18 +212,12 @@
                         <input type="email" id="edit-matiere-prof" name="profEmail" class="input-field" required>
                     </div>
                     <div class="form-group">
-                        <label>Semestre associé à la matière</label>
-                        <div class="dropdown" data-dropdown="edit-matiere-semestre">
-                            <button type="button" class="dropdown-toggle" aria-haspopup="listbox" aria-expanded="false">
-                                <span class="dropdown-label">Choisir un semestre</span>
-                                <span class="dropdown-icon">▾</span>
-                            </button>
-                            <ul class="dropdown-menu" role="listbox">
-                                <li class="dropdown-option" role="option" data-value="1" data-label="Semestre 1">Semestre 1</li>
-                                <li class="dropdown-option" role="option" data-value="2" data-label="Semestre 2">Semestre 2</li>
-                            </ul>
-                        </div>
-                        <input type="hidden" id="edit-matiere-semestre" name="semestre" required>
+                        <label for="edit-matiere-semestre">Semestre associé à la matière</label>
+                        <select id="edit-matiere-semestre" name="semestre" class="input-field" required>
+                            <option value="">Choisir un semestre</option>
+                            <option value="1">Semestre 1</option>
+                            <option value="2">Semestre 2</option>
+                        </select>
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn btn-tertiary" onclick="closeModal('editMatiereModal')">Annuler</button>
@@ -315,21 +311,11 @@
         let currentRemoveStudentId = null;
         let currentRemoveStudentEmail = null;
 
-        function editMatiere(id, nom, semestre, profId) {
+        function editMatiere(id, nom, semestre, profEmail) {
             document.getElementById('edit-matiere-id').value = id;
             document.getElementById('edit-matiere-nom').value = nom;
-            
-            // Mettre à jour le dropdown du semestre
-            const semestreDropdown = document.querySelector('.dropdown[data-dropdown="edit-matiere-semestre"]');
-            if (semestreDropdown) {
-                const toggle = semestreDropdown.querySelector('.dropdown-toggle');
-                const label = toggle.querySelector('.dropdown-label');
-                const option = semestreDropdown.querySelector(`.dropdown-option[data-value="${semestre}"]`);
-                if (option) {
-                    label.textContent = option.dataset.label || option.textContent;
-                    semestreDropdown.dataset.value = String(semestre);
-                }
-            }
+            document.getElementById('edit-matiere-prof').value = profEmail;
+            document.getElementById('edit-matiere-semestre').value = semestre;
             
             openModal('editMatiereModal');
         }
@@ -407,28 +393,41 @@
         function submitAddMatiere(event) {
             event.preventDefault();
             const nom = document.getElementById('matiere-nom').value;
-            const semestre = document.querySelector('.dropdown[data-dropdown="matiere-semestre"]')?.dataset.value || '';
+            const semestre = document.getElementById('matiere-semestre').value;
+            const profEmail = document.getElementById('matiere-prof').value;
+
+            const form = document.querySelector('#addMatiereModal form');
             
-            // Récupérer la sélection du professeur (à adapter selon la structure finale)
-            const formData = new FormData();
-            formData.append('nom', nom);
-            formData.append('semestre', semestre);
-            formData.append('specialiteId', specialiteId);
-            // Note: profId doit être ajouté selon la structure du formulaire
+            const params = new URLSearchParams();
+            params.append('nom', nom);
+            params.append('semestre', semestre);
+            params.append('specialiteId', specialiteId);
+            params.append('profEmail', profEmail);
             
             fetch(contextPath + '/app/admin/creer-matiere', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: params
             }).then(response => {
                 if (response.ok) {
                     closeModal('addMatiereModal');
                     location.reload();
                 } else {
-                    alert('Erreur lors de la création de la matière');
+                    return response.text().then(text => {
+                        const message = text && text.trim() ? text : 'Erreur lors de la création de la matière';
+                        if (typeof showFormError === 'function') {
+                            showFormError(form, message);
+                        }
+                    });
                 }
             }).catch(error => {
                 console.error('Erreur:', error);
-                alert('Erreur réseau');
+                if (typeof showFormError === 'function') {
+                    showFormError(form, 'Erreur réseau');
+                }
             });
             return false;
         }
@@ -437,28 +436,41 @@
             event.preventDefault();
             const id = document.getElementById('edit-matiere-id').value;
             const nom = document.getElementById('edit-matiere-nom').value;
-            const semestre = document.querySelector('.dropdown[data-dropdown="edit-matiere-semestre"]')?.dataset.value || '';
+            const semestre = document.getElementById('edit-matiere-semestre').value;
+            const profEmail = document.getElementById('edit-matiere-prof').value;
+            const form = document.querySelector('#editMatiereModal form');
             
-            const formData = new FormData();
-            formData.append('id', id);
-            formData.append('nom', nom);
-            formData.append('semestre', semestre);
-            formData.append('specId', specialiteId);
-            // Note: profId doit être ajouté selon la structure du formulaire
+            const params = new URLSearchParams();
+            params.append('id', id);
+            params.append('nom', nom);
+            params.append('semestre', semestre);
+            params.append('profEmail', profEmail);
+            params.append('specId', specialiteId);
             
             fetch(contextPath + '/app/admin/modifier-matiere', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: params
             }).then(response => {
                 if (response.ok) {
                     closeModal('editMatiereModal');
                     location.reload();
                 } else {
-                    alert('Erreur lors de la modification de la matière');
+                    return response.text().then(text => {
+                        const message = text && text.trim() ? text : 'Erreur lors de la modification de la matière';
+                        if (typeof showFormError === 'function') {
+                            showFormError(form, message);
+                        }
+                    });
                 }
             }).catch(error => {
                 console.error('Erreur:', error);
-                alert('Erreur réseau');
+                if (typeof showFormError === 'function') {
+                    showFormError(form, 'Erreur réseau');
+                }
             });
             return false;
         }
