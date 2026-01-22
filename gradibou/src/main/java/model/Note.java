@@ -15,6 +15,10 @@ public class Note {
     private int id_examen;
     private int valeur;
     private LocalDate date;
+
+    // Champs pour l'affichage (Transient)
+    private String nomEtudiant;
+    private String prenomEtudiant;
     private boolean persisted = false;
 
     // Constructeurs
@@ -65,11 +69,16 @@ public class Note {
     }
 
     /**
-     * Trouver les notes d'un examen
+     * Trouver les notes d'un examen avec les informations de l'étudiant
      */
     public static List<Note> trouverParExamen(int idExamen) throws SQLException {
         List<Note> liste = new ArrayList<>();
-        String sql = "SELECT id_etudiant, id_examen, note, date FROM note WHERE id_examen = ? ORDER BY id_etudiant";
+        // Jointure avec utilisateur pour récupérer nom et prénom
+        String sql = "SELECT n.id_etudiant, n.id_examen, n.note, n.date, u.nom, u.prenom " +
+                     "FROM note n " +
+                     "JOIN utilisateur u ON n.id_etudiant = u.id " +
+                     "WHERE n.id_examen = ? " +
+                     "ORDER BY u.nom, u.prenom";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -77,7 +86,11 @@ public class Note {
             ResultSet rs = stmt.executeQuery();
             
             while (rs.next()) {
-                liste.add(creerDepuisResultSet(rs));
+                Note n = creerDepuisResultSet(rs);
+                // On peuple les champs transient
+                n.setNomEtudiant(rs.getString("nom"));
+                n.setPrenomEtudiant(rs.getString("prenom"));
+                liste.add(n);
             }
         }
         return liste;
@@ -223,4 +236,11 @@ public class Note {
     public void setDate(LocalDate date) {
         this.date = date;
     }
+
+    // Getters et Setters pour les champs transient
+    public String getNomEtudiant() { return nomEtudiant; }
+    public void setNomEtudiant(String nomEtudiant) { this.nomEtudiant = nomEtudiant; }
+
+    public String getPrenomEtudiant() { return prenomEtudiant; }
+    public void setPrenomEtudiant(String prenomEtudiant) { this.prenomEtudiant = prenomEtudiant; }
 }

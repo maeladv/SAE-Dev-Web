@@ -17,6 +17,9 @@ public class Examen {
     private LocalDate date;
     private int id_matiere;
     private boolean persisted = false;
+    
+    // Champs transient (non persisté directement, calculé)
+    private double moyenne = -1.0;
 
     // Constructeurs
     public Examen() {}
@@ -48,18 +51,36 @@ public class Examen {
     }
 
     /**
-     * Trouver tous les examens d'une matière
+     * Trouver tous les examens d'une matière avec leur moyenne
      */
     public static List<Examen> trouverParMatiere(int idMatiere) throws SQLException {
         List<Examen> liste = new ArrayList<>();
-        String sql = "SELECT id, nom, coefficient, date, id_matiere FROM examen WHERE id_matiere = ? ORDER BY date";
+        // On calcule la moyenne des notes pour chaque examen
+        String sql = "SELECT e.id, e.nom, e.coefficient, e.date, e.id_matiere, COALESCE(AVG(n.note), -1) as moyenne " +
+                     "FROM examen e " +
+                     "LEFT JOIN note n ON e.id = n.id_examen " +
+                     "WHERE e.id_matiere = ? " +
+                     "GROUP BY e.id, e.nom, e.coefficient, e.date, e.id_matiere " +
+                     "ORDER BY e.date";
+        
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idMatiere);
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                liste.add(creerDepuisResultSet(rs));
+                Examen ex = new Examen();
+                ex.id = rs.getInt("id");
+                ex.nom = rs.getString("nom");
+                ex.coefficient = rs.getInt("coefficient");
+                if (rs.getDate("date") != null) {
+                    ex.date = rs.getDate("date").toLocalDate();
+                }
+                ex.id_matiere = rs.getInt("id_matiere");
+                ex.moyenne = rs.getDouble("moyenne");
+                ex.persisted = true;
+                
+                liste.add(ex);
             }
         }
         return liste;
@@ -223,5 +244,13 @@ public class Examen {
     }
     public void setId_matiere(int id_matiere) {
         this.id_matiere = id_matiere;
+    }
+    
+    public double getMoyenne() {
+        return moyenne;
+    }
+    
+    public void setMoyenne(double moyenne) {
+        this.moyenne = moyenne;
     }
 }

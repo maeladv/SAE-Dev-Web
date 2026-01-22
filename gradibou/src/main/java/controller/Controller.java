@@ -117,6 +117,112 @@ public class Controller extends HttpServlet {
                     view = "/WEB-INF/views/error.jsp";
                 }
                 break;
+            case "/professeur":
+                if (!estProf(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = "/WEB-INF/views/professeur.jsp";
+                break;
+            case "/professeur/matieres":
+                if (!estProf(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                 try {
+                    Utilisateur prof = (Utilisateur) request.getSession(false).getAttribute("user");
+                    java.util.List<model.Matiere> matieres = model.Matiere.trouverParProfId(prof.getId());
+                    request.setAttribute("matieres", matieres);
+                } catch (SQLException e) {
+                   System.err.println("Erreur lors du chargement des matières du prof: " + e.getMessage());
+                   request.setAttribute("error", "Erreur lors du chargement de la liste des matières");
+                }
+                view = "/WEB-INF/views/listeMesMatieres.jsp";
+                break;
+            case "/professeur/eleves":
+                if (!estProf(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                try {
+                    Utilisateur prof = (Utilisateur) request.getSession(false).getAttribute("user");
+                    java.util.List<Utilisateur> etudiants = Utilisateur.trouverEtudiantsParProfesseur(prof.getId());
+                    request.setAttribute("etudiants", etudiants);
+                } catch (SQLException e) {
+                   System.err.println("Erreur lors du chargement des élèves du prof: " + e.getMessage());
+                   request.setAttribute("error", "Erreur lors du chargement de la liste des élèves");
+                }
+                view = "/WEB-INF/views/listeMesEleves.jsp";
+                break;
+            case "/professeur/matiere/examens":
+                if (!estProf(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                try {
+                    String matiereIdStr = request.getParameter("matiereId");
+                    if (matiereIdStr != null && !matiereIdStr.isEmpty()) {
+                        int matiereId = Integer.parseInt(matiereIdStr);
+                        Utilisateur prof = (Utilisateur) request.getSession(false).getAttribute("user");
+                        model.Matiere matiere = model.Matiere.trouverParId(matiereId);
+                        
+                        if (matiere != null && matiere.getProfId() == prof.getId()) {
+                             java.util.List<model.Examen> examens = model.Examen.trouverParMatiere(matiereId);
+                             request.setAttribute("examens", examens);
+                             request.setAttribute("matiere", matiere);
+                             view = "/WEB-INF/views/listeExamensMatiere.jsp";
+                        } else {
+                            request.setAttribute("error", "Matière introuvable ou vous n'êtes pas l'enseignant de cette matière.");
+                            view = "/WEB-INF/views/error.jsp";
+                        }
+                    } else {
+                        request.setAttribute("error", "Matière non spécifiée");
+                         view = "/WEB-INF/views/error.jsp";
+                    }
+                } catch (Exception e) {
+                   System.err.println("Erreur lors du chargement des examens de la matière: " + e.getMessage());
+                   request.setAttribute("error", "Erreur lors du chargement de la liste des examens");
+                   view = "/WEB-INF/views/error.jsp";
+                }
+                break;
+            case "/professeur/examen/notes":
+                if (!estProf(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                try {
+                    String examenIdStr = request.getParameter("examenId");
+                    if (examenIdStr != null && !examenIdStr.isEmpty()) {
+                        int examenId = Integer.parseInt(examenIdStr);
+                        Utilisateur prof = (Utilisateur) request.getSession(false).getAttribute("user");
+                        model.Examen examen = model.Examen.trouverParId(examenId);
+                        
+                        if (examen != null) {
+                            model.Matiere matiere = model.Matiere.trouverParId(examen.getId_matiere());
+                            if (matiere != null && matiere.getProfId() == prof.getId()) {
+                                java.util.List<model.Note> notes = model.Note.trouverParExamen(examenId);
+                                request.setAttribute("notes", notes);
+                                request.setAttribute("examen", examen);
+                                request.setAttribute("matiere", matiere);
+                                view = "/WEB-INF/views/listeNotesExamen.jsp";
+                            } else {
+                                request.setAttribute("error", "Accès non autorisé à cet examen.");
+                                view = "/WEB-INF/views/error.jsp";
+                            }
+                        } else {
+                            request.setAttribute("error", "Examen introuvable.");
+                            view = "/WEB-INF/views/error.jsp";
+                        }
+                    } else {
+                        request.setAttribute("error", "Examen non spécifié");
+                         view = "/WEB-INF/views/error.jsp";
+                    }
+                } catch (Exception e) {
+                   System.err.println("Erreur lors du chargement des notes de l'examen: " + e.getMessage());
+                   request.setAttribute("error", "Erreur lors du chargement de la liste des notes");
+                   view = "/WEB-INF/views/error.jsp";
+                }
+                break;
             case "/forgot-password":
                 view = "/WEB-INF/views/forgot-password.jsp";
                 break;
@@ -351,6 +457,18 @@ public class Controller extends HttpServlet {
         if (userObj instanceof Utilisateur) {
             Utilisateur utilisateur = (Utilisateur) userObj;
             return "etudiant".equalsIgnoreCase(utilisateur.getRole());
+        }
+        return false;
+    }
+
+    private boolean estProf(HttpSession session) {
+        if (session == null) {
+            return false;
+        }
+        Object userObj = session.getAttribute("user");
+        if (userObj instanceof Utilisateur) {
+            Utilisateur utilisateur = (Utilisateur) userObj;
+            return "professeur".equalsIgnoreCase(utilisateur.getRole());
         }
         return false;
     }

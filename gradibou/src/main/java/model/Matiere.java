@@ -15,6 +15,8 @@ public class Matiere {
     private int semestre;
     private int specialiteId;
     private int profId;
+    private String specialiteTag; // Champ transient pour l'affichage
+    private double moyenne = -1.0; // Champ transient pour l'affichage de la moyenne pondérée
     private boolean persisted = false;
 
     // Constructeurs
@@ -65,6 +67,63 @@ public class Matiere {
             
             while (rs.next()) {
                 liste.add(creerDepuisResultSet(rs));
+            }
+        }
+        return liste;
+    }
+
+    /** avec leur moyenne pondérée globale
+     * Moyenne Matière = Somme(Moyenne Examen * Coeff Examen) / Somme(Coeff Examen)
+     */
+    public static List<Matiere> trouverParProfId(int profId) throws SQLException {
+        List<Matiere> liste = new ArrayList<>();
+        // Requête complexe pour calculer la moyenne pondérée par matière
+        String sql = "SELECT m.id, m.nom, m.semestre, m.id_specialite, m.id_prof, s.tag as specialite_tag, " +
+                     "COALESCE(SUM(CASE WHEN exam_stats.avg_note IS NOT NULL THEN e.coefficient ELSE 0 END), 0) as total_coeff, " +
+                     "COALESCE(SUM(CASE WHEN exam_stats.avg_note IS NOT NULL THEN exam_stats.avg_note * e.coefficient ELSE 0 END), 0) as weighted_sum " +
+                     "FROM matiere m " +
+                     "LEFT JOIN specialite s ON m.id_specialite = s.id " +
+                     "LEFT JOIN examen e ON m.id = e.id_matiere " +
+                     "LEFT JOIN ( " +
+                     "    SELECT id_examen, AVG(note) as avg_note " +
+                     "    FROM note " +
+                     "    GROUP BY id_examen " +
+                     ") exam_stats ON e.id = exam_stats.id_examen " +
+                     "WHERE m.id_prof = ? " +
+                     "GROUP BY m.id, m.nom, m.semestre, m.id_specialite, m.id_prof, s.tag " +
+                     "ORDER BY m.nom";
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, profId);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                Matiere m = new Matiere();
+                m.id = rs.getInt("id");
+                m.nom = rs.getString("nom");
+                m.semestre = rs.getInt("semestre");
+                m.specialiteId = rs.getInt("id_specialite");
+                m.profId = rs.getInt("id_prof");
+                m.persisted = true;
+                
+                try {
+                     m.setSpecialiteTag(rs.getString("specialite_tag"));
+                } catch (SQLException e) {
+                    // Ignorer
+                }
+                
+                // Calcul de la moyenne
+                double totalCoeff = rs.getDouble("total_coeff");
+                double weightedSum = rs.getDouble("weighted_sum");
+                
+                if (totalCoeff > 0) {
+                    m.setMoyenne(weightedSum / totalCoeff);
+                } else {
+                    m.setMoyenne(-1.0);
+                }
+
+                liste.add(m);
             }
         }
         return liste;
@@ -234,5 +293,17 @@ public class Matiere {
     }
     public void setProfId(int profId) {
         this.profId = profId;
+    }
+    public String getSpecialiteTag() {
+        return specialiteTag;
+    }
+    public void setSpecialiteTag(String specialiteTag) {
+        this.specialiteTag = specialiteTag;
+    }
+    public double getMoyenne() {
+        return moyenne;
+    }
+    public void setMoyenne(double moyenne) {
+        this.moyenne = moyenne;
     }
 }

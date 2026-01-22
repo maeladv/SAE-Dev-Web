@@ -142,6 +142,33 @@ public class Utilisateur {
     }
 
     /**
+     * Trouver les étudiants inscrits dans les spécialités où le professeur enseigne.
+     */
+    public static List<Utilisateur> trouverEtudiantsParProfesseur(int profId) throws SQLException {
+        List<Utilisateur> liste = new ArrayList<>();
+        // On récupère les étudiants dont la spécialité correspond à l'une des matières enseignées par le prof.
+        // On utilise DISTINCT pour éviter les doublons si le prof enseigne plusieurs matières dans la même spé.
+        String sql = "SELECT DISTINCT u.id, u.nom, u.prenom, u.email, u.date_naissance, u.mot_de_passe, u.role " +
+                     "FROM utilisateur u " +
+                     "JOIN etudiant e ON u.id = e.id_utilisateur " +
+                     "JOIN specialite s ON e.id_specialite = s.id " +
+                     "JOIN matiere m ON s.id = m.id_specialite " +
+                     "WHERE m.id_prof = ? AND u.role = 'etudiant' " +
+                     "ORDER BY u.nom, u.prenom";
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, profId);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                liste.add(creerDepuisResultSet(rs));
+            }
+        }
+        return liste;
+    }
+
+    /**
      * Vérifier si un email existe
      */
     public static boolean emailExiste(String email) throws SQLException {
