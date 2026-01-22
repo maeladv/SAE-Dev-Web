@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 import util.DatabaseManager;
@@ -54,7 +56,23 @@ public class Matiere {
         }
         return null;
     }
+    /**
+     * Trouver tous les professeurs
+     */
+    public static List<Matiere> trouverToutes() throws SQLException {
+        List<Matiere> liste = new ArrayList<>();
+        String sql = "SELECT id, nom, semestre, coefficient, id_specialite, id_prof FROM matiere ORDER BY nom";
 
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            
+            while (rs.next()) {
+                liste.add(creerDepuisResultSet(rs));
+            }
+        }
+        return liste;
+    }
 
     // ==================== Méthodes de persistence (Active Record) ====================
 

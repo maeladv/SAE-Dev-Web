@@ -82,14 +82,13 @@ public class Examen {
      */
     private boolean insert() throws SQLException {
         // Ici, le tag est fourni par l'objet et non généré par la BDD
-        String sql = "INSERT INTO examen (nom, coefficient, date, id_matiere) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO examen (nom, coefficient, date, id_matiere) VALUES (?, ?, CURRENT_DATE, ?)";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, this.nom);
             stmt.setInt(2, this.coefficient);
-            stmt.setObject(3, this.date);
-            stmt.setInt(4, this.id_matiere);
+            stmt.setInt(3, this.id_matiere);
 
             int rowsInserted = stmt.executeUpdate();
             

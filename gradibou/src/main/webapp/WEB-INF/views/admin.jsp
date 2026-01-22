@@ -16,6 +16,9 @@
       ><br />
       <a href="<%= request.getContextPath() %>/app/admin/creer-matiere"
         >Créer une matière</a
+      ><br />
+      <a href="<%= request.getContextPath() %>/app/admin/creer-examen"
+        >Créer un examen</a
       >
     </p>
 
