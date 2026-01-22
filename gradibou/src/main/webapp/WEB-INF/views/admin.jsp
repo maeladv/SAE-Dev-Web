@@ -32,7 +32,7 @@
                                 </button>
                                 <ul class="dropdown-menu" role="listbox">
                                     <li class="dropdown-option" role="option" data-value="admin" data-label="Administrateur" data-role="admin">Administrateur</li>
-                                    <li class="dropdown-option" role="option" data-value="professeur" data-label="Professeur" data-role="prof">Professeur</li>
+                                    <li class="dropdown-option" role="option" data-value="professeur" data-label="Professeur" data-role="professeur">Professeur</li>
                                     <li class="dropdown-option" role="option" data-value="etudiant" data-label="Étudiant" data-role="etudiant">Étudiant</li>
                                 </ul>
                             </div>
@@ -108,6 +108,25 @@
                                             String rowClass = (index % 2 == 1) ? "table-row-alt" : "";
                                             String roleClass = "role-" + user.getRole().toLowerCase();
                                             String roleLabel = user.getRole().substring(0, 1).toUpperCase() + user.getRole().substring(1);
+                                            String ine = "-";
+                                            String specialiteTag = "-";
+                                            String specialiteClass = "";
+                                            try {
+                                                String valIne = user.getIne();
+                                                ine = (valIne != null && !valIne.isEmpty()) ? valIne : "-";
+                                                String tag = user.getSpecialiteTag();
+                                                if (tag != null && !tag.isEmpty()) {
+                                                    specialiteTag = tag.toUpperCase();
+                                                    specialiteClass = "specialite-badge spe-" + tag.toLowerCase();
+                                                } else {
+                                                    specialiteTag = "-";
+                                                    specialiteClass = "";
+                                                }
+                                            } catch (Exception ignored) {
+                                                ine = "-";
+                                                specialiteTag = "-";
+                                                specialiteClass = "";
+                                            }
                                 %>
                                 <tr <%= !rowClass.isEmpty() ? "class=\"" + rowClass + "\"" : "" %>>
                                     <td><%= user.getId() %></td>
@@ -115,8 +134,20 @@
                                     <td><%= user.getPrenom() %></td>
                                     <td><span class="role-badge <%= roleClass %>"><%= roleLabel.toUpperCase() %></span></td>
                                     <td><%= user.getemail() %></td>
-                                    <td>-</td>
-                                    <td>-</td>
+                                    <td><%= ine %></td>
+                                    <td>
+                                        <%
+                                            if (specialiteClass.isEmpty()) {
+                                        %>
+                                            -
+                                        <%
+                                            } else {
+                                        %>
+                                            <span class="<%= specialiteClass %>"><%= specialiteTag %></span>
+                                        <%
+                                            }
+                                        %>
+                                    </td>
                                     <td>
                                         <div class="table-actions">
                                             <button class="btn-tertiary" title="Éditer"
@@ -194,7 +225,7 @@
                                 </button>
                                 <ul class="dropdown-menu" role="listbox">
                                     <li class="dropdown-option" role="option" data-value="admin" data-label="Administrateur" data-role="admin">Administrateur</li>
-                                    <li class="dropdown-option" role="option" data-value="professeur" data-label="Professeur" data-role="prof">Professeur</li>
+                                    <li class="dropdown-option" role="option" data-value="professeur" data-label="Professeur" data-role="professeur">Professeur</li>
                                     <li class="dropdown-option" role="option" data-value="etudiant" data-label="Étudiant" data-role="etudiant">Étudiant</li>
                                 </ul>
                             </div>

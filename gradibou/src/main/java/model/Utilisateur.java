@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import util.DatabaseManager;
 
@@ -20,6 +21,7 @@ public class Utilisateur {
     private String motDePasse;
     private String role;
     private boolean persisted = false; 
+
 
     public Utilisateur() {}
 
@@ -330,6 +332,39 @@ public class Utilisateur {
         return utilisateur;
     }
 
+    public static Optional<Integer> trouverIdSpecialiteEtudiantParId(int idUtilisateur) throws SQLException {
+        String sql = "SELECT e.id_specialite FROM etudiant e " +
+                     "JOIN utilisateur u ON e.id_utilisateur = u.id " +
+                     "WHERE e.id_utilisateur = ? AND u.role = 'etudiant'";
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idUtilisateur);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                int idSpecValue = rs.getInt("id_specialite");
+                return rs.wasNull() ? Optional.empty() : Optional.of(idSpecValue);
+            }
+        }
+        return Optional.empty();
+    }
+
+    public static Optional<String> trouverIneEtudiantParId(int idUtilisateur) throws SQLException {
+        String sql = "SELECT e.ine FROM etudiant e " +
+                     "JOIN utilisateur u ON e.id_utilisateur = u.id " +
+                     "WHERE e.id_utilisateur = ? AND u.role = 'etudiant'";
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idUtilisateur);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return Optional.ofNullable(rs.getString("ine"));
+            }
+        }
+        return Optional.empty();
+    }
+
     /**
      * Hasher un mot de passe avec BCrypt
      */
@@ -376,16 +411,30 @@ public class Utilisateur {
 
     // Fonction pour recuperer la specialite d'un etudiant
     public int getIdSpecialite() throws SQLException {
-        String sql = "SELECT id_specialite FROM etudiant WHERE id_utilisateur = ?";
+        return trouverIdSpecialiteEtudiantParId(this.id)
+            .orElse(-1);
+    }
+
+    public String getIne() throws SQLException {
+        return trouverIneEtudiantParId(this.id)
+            .orElse("");
+    }
+
+    public String getSpecialiteTag() throws SQLException {
+        String sql = "SELECT s.tag FROM specialite s " +
+                     "JOIN etudiant e ON e.id_specialite = s.id " +
+                     "JOIN utilisateur u ON e.id_utilisateur = u.id " +
+                     "WHERE e.id_utilisateur = ? AND u.role = 'etudiant'";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, this.id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return rs.getInt("id_specialite");
+                String tag = rs.getString("tag");
+                return tag == null ? "" : tag;
             }
         }
-        return -1;
+        return "";
     }
 }

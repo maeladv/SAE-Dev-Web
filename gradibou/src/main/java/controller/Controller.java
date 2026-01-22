@@ -120,13 +120,6 @@ public class Controller extends HttpServlet {
             case "/forgot-password":
                 view = "/WEB-INF/views/forgot-password.jsp";
                 break;
-            case "/admin/creer-compte":
-                if (!estAdmin(request.getSession(false))) {
-                    response.sendRedirect(request.getContextPath() + "/app/login");
-                    return;
-                }
-                view = "/WEB-INF/views/creerCompte.jsp";
-                break;
             case "/admin/creer-specialite":
                 if (!estAdmin(request.getSession(false))) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
