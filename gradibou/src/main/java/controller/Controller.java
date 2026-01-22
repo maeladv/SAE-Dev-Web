@@ -81,6 +81,51 @@ public class Controller extends HttpServlet {
                 }
                 view = "/WEB-INF/views/creerCompte.jsp";
                 break;
+            case "/admin/creer-specialite":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = "/WEB-INF/views/creerSpecialite.jsp";
+                break;
+            case "/admin/creer-matiere":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                try {
+                    request.setAttribute("specialites", model.Specialite.trouverToutes());
+                    request.setAttribute("professeurs", model.Utilisateur.trouverTousLesProfesseurs());
+                } catch (SQLException e) {
+                    request.setAttribute("error", "Erreur lors du chargement des données: " + e.getMessage());
+                }
+                view = "/WEB-INF/views/creerMatiere.jsp";
+                break;
+            case "/admin/creer-examen":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                try {
+                    request.setAttribute("matieres", model.Matiere.trouverToutes());
+                } catch (SQLException e) {
+                    request.setAttribute("error", "Erreur lors du chargement des matières: " + e.getMessage());
+                }
+                view = "/WEB-INF/views/creerExamen.jsp";
+                break;
+            case "/admin/creer-note":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                try {
+                    request.setAttribute("examens", model.Examen.trouverTous());
+                    request.setAttribute("etudiants", model.Utilisateur.trouverTousLesEtudiants());
+                } catch (SQLException e) {
+                    request.setAttribute("error", "Erreur lors du chargement des données: " + e.getMessage());
+                }
+                view = "/WEB-INF/views/creerNote.jsp";
+                break;
             case "/logout":
                 request.getSession().invalidate();
                 try {
@@ -129,6 +174,18 @@ public class Controller extends HttpServlet {
                     break;
                 case "/admin/creer-utilisateur":
                     creationUtilisateurParAdmin(request, response);
+                    break;
+                case "/admin/creer-specialite":
+                    creationSpecialiteParAdmin(request, response);
+                    break;
+                case "/admin/creer-matiere":
+                    creationMatiereParAdmin(request, response);
+                    break;
+                case "/admin/creer-examen":
+                    creationExamenParAdmin(request, response);
+                    break;
+                case "/admin/creer-note":
+                    creationNoteParAdmin(request, response);
                     break;
                 case "/admin/maj-mdp":
                     creerLienPourMAJMotDePasse(request, response);
@@ -273,6 +330,200 @@ public class Controller extends HttpServlet {
             request.setAttribute("error", "Erreur: " + e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
         }
+    }
+
+    private void creationSpecialiteParAdmin(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        if (!estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        String tag = request.getParameter("tag");
+        String anneeStr = request.getParameter("annee");
+        String nom = request.getParameter("nom");
+
+        if (tag == null || tag.isEmpty() || anneeStr == null || anneeStr.isEmpty() || nom == null || nom.isEmpty()) {
+            request.setAttribute("error", "Tous les champs sont requis");
+            request.getRequestDispatcher("/WEB-INF/views/creerSpecialite.jsp").forward(request, response);
+            return;
+        }
+
+        try {
+            int annee = Integer.parseInt(anneeStr);
+            model.Specialite spec = new model.Specialite(tag, annee, nom);
+            
+            if (spec.save()) {
+                request.setAttribute("success", "Spécialité créée avec succès");
+            } else {
+                request.setAttribute("error", "Erreur lors de la création de la spécialité");
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "L'année doit être un nombre valide");
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+        }
+        
+        request.getRequestDispatcher("/WEB-INF/views/creerSpecialite.jsp").forward(request, response);
+    }
+
+    private void creationMatiereParAdmin(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        HttpSession session = request.getSession(false);
+
+        if (!estAdmin(session)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        try {
+            request.setAttribute("specialites", model.Specialite.trouverToutes());
+            request.setAttribute("professeurs", model.Utilisateur.trouverTousLesProfesseurs());
+        } catch (Exception e) {
+             e.printStackTrace();
+             request.setAttribute("error", "Erreur lors du chargement des listes: " + e.getMessage());
+        }
+
+        // Traitement du formulaire (POST)
+        String nom = request.getParameter("nom");
+        String semestreStr = request.getParameter("semestre");
+        String coefficientStr = request.getParameter("coefficient");
+        String specialiteIdStr = request.getParameter("specialiteId");
+        String profIdStr = request.getParameter("profId");
+
+        try {
+            // Check if all fields (including profId) are present
+            if (nom == null || nom.isEmpty() || semestreStr == null || semestreStr.isEmpty() || 
+                coefficientStr == null || coefficientStr.isEmpty() || specialiteIdStr == null || specialiteIdStr.isEmpty() ||
+                profIdStr == null || profIdStr.isEmpty()) {
+                request.setAttribute("error", "Tous les champs sont requis, y compris le professeur.");
+                request.getRequestDispatcher("/WEB-INF/views/creerMatiere.jsp").forward(request, response);
+                return;
+            }
+
+            int semestre = Integer.parseInt(semestreStr);
+            int coefficient = Integer.parseInt(coefficientStr);
+            int specialiteId = Integer.parseInt(specialiteIdStr);
+            int profId = Integer.parseInt(profIdStr);
+
+            model.Matiere matiere = new model.Matiere(nom, semestre, coefficient, specialiteId, profId);
+            
+            if (matiere.save()) {
+                request.setAttribute("success", "Matière créée avec succès");
+            } else {
+                request.setAttribute("error", "Erreur lors de la création de la matière");
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Format numérique invalide");
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+        }
+        
+        request.getRequestDispatcher("/WEB-INF/views/creerMatiere.jsp").forward(request, response);
+    }
+
+    private void creationExamenParAdmin(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/app/login");
+            return;
+        }
+
+        if (!estAdmin(session)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        try {
+            request.setAttribute("matieres", model.Matiere.trouverToutes());
+        } catch (SQLException e) {
+             e.printStackTrace();
+             request.setAttribute("error", "Erreur lors du chargement des matières: " + e.getMessage());
+        }
+
+        String nom = request.getParameter("nom");
+        String coefficientStr = request.getParameter("coefficient");
+        String matiereIdStr = request.getParameter("matiereId");
+
+        try {
+            if (nom == null || nom.isEmpty() || coefficientStr == null || coefficientStr.isEmpty() || 
+                matiereIdStr == null || matiereIdStr.isEmpty()) {
+                request.setAttribute("error", "Tous les champs sont requis.");
+                request.getRequestDispatcher("/WEB-INF/views/creerExamen.jsp").forward(request, response);
+                return;
+            }
+
+            int coefficient = Integer.parseInt(coefficientStr);
+            int matiereId = Integer.parseInt(matiereIdStr);
+
+            model.Examen examen = new model.Examen(nom, coefficient, matiereId);
+            
+            if (examen.save()) {
+                request.setAttribute("success", "Examen créé avec succès");
+            } else {
+                request.setAttribute("error", "Erreur lors de la création de l'examen");
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Format numérique invalide");
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+        }
+        
+        request.getRequestDispatcher("/WEB-INF/views/creerExamen.jsp").forward(request, response);
+    }
+
+    private void creationNoteParAdmin(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/app/login");
+            return;
+        }
+
+        if (!estAdmin(session)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        try {
+            request.setAttribute("examens", model.Examen.trouverTous());
+            request.setAttribute("etudiants", model.Utilisateur.trouverTousLesEtudiants());
+        } catch (SQLException e) {
+             e.printStackTrace();
+             request.setAttribute("error", "Erreur lors du chargement des listes: " + e.getMessage());
+        }
+
+        String examenIdStr = request.getParameter("examenId");
+        String etudiantIdStr = request.getParameter("etudiantId");
+        String noteStr = request.getParameter("note");
+
+        try {
+            if (examenIdStr == null || examenIdStr.isEmpty() || etudiantIdStr == null || etudiantIdStr.isEmpty() || 
+                noteStr == null || noteStr.isEmpty()) {
+                request.setAttribute("error", "Tous les champs sont requis.");
+                request.getRequestDispatcher("/WEB-INF/views/creerNote.jsp").forward(request, response);
+                return;
+            }
+
+            int examenId = Integer.parseInt(examenIdStr);
+            int etudiantId = Integer.parseInt(etudiantIdStr);
+            int noteVal = Integer.parseInt(noteStr);
+
+            model.Note note = new model.Note(noteVal, examenId, etudiantId);
+            
+            if (note.save()) {
+                request.setAttribute("success", "Note attribuée avec succès");
+            } else {
+                request.setAttribute("error", "Erreur lors de l'enregistrement de la note");
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Format numérique invalide");
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+        }
+        
+        request.getRequestDispatcher("/WEB-INF/views/creerNote.jsp").forward(request, response);
     }
 
     public void creerLienPourMAJMotDePasse(HttpServletRequest request, HttpServletResponse response) 
