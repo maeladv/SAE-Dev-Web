@@ -1,5 +1,6 @@
 package model;
 
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,7 +9,11 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Base64;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import util.DatabaseManager;
+import util.Json;
 
 public class Lien {
     private int id;
@@ -88,6 +93,38 @@ public class Lien {
             stmt.setDate(1, java.sql.Date.valueOf(LocalDate.now()));
             stmt.setString(2, tokenHash);
             stmt.executeUpdate();
+        }
+    }
+
+    // ================ Méthodes pour le controllers ================
+
+    public static void creerLienPourMAJMotDePasse(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+
+        String emailUtilisateur = request.getParameter("email");
+        if (emailUtilisateur == null || emailUtilisateur.isEmpty()) {
+            Json.envoyerJsonError(response, "email utilisateur requis", 400);
+            return;
+        }
+
+        Utilisateur utilisateur = Utilisateur.trouverParemail(emailUtilisateur);
+        if (utilisateur == null) {
+            Json.envoyerJsonError(response, "Utilisateur non trouvé", 404);
+            return;
+        }
+
+        try {
+            int userId = utilisateur.getId();
+
+            String token = model.Lien.creerLien(userId, 1); // Lien valide 1 jour
+            String lienMDP = request.getContextPath() + "/app/complete-profil?token=" + token;
+
+            Json.envoyerJsonSuccess(response, "Lien créé avec succès", lienMDP);
+            // PAS SAFE, EN ATTENTE DE MISE EN PLACE DE CONNEXION SMTP
+        } catch (NumberFormatException e) {
+            Json.envoyerJsonError(response, "ID utilisateur invalide", 400);
+        } catch (Exception e) {
+            Json.envoyerJsonError(response, "Erreur: " + e.getMessage(), 500);
         }
     }
 

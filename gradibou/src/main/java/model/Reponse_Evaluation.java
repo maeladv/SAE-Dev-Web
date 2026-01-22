@@ -1,12 +1,18 @@
 package model;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import util.DatabaseManager;
+import util.Role;
 
 public class Reponse_Evaluation {
     private int id;
@@ -571,6 +577,100 @@ public class Reponse_Evaluation {
                 commentairesList.add(rs.getString("commentaires"));
             }
             return commentairesList.toArray(new String[0]);
+        }
+    }
+
+    // ================ Méthodes pour le controllers ================
+
+    public static void etudiantRepondreEvaluation(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (!Role.estEtudiant(session)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        Utilisateur etudiant = (Utilisateur) session.getAttribute("user");
+        
+        String evaluationIdStr = request.getParameter("evaluationId");
+        String matiereIdStr = request.getParameter("matiereId");
+        String qualiteSupportStr = request.getParameter("qualite_support");
+
+        try {
+            if (evaluationIdStr == null || evaluationIdStr.isEmpty() || matiereIdStr == null || matiereIdStr.isEmpty()) {
+                request.setAttribute("error", "Paramètres manquants");
+                request.getRequestDispatcher("/WEB-INF/views/evaluations.jsp").forward(request, response);
+                return;
+            }
+
+            int evaluationId = Integer.parseInt(evaluationIdStr);
+            int matiereId = Integer.parseInt(matiereIdStr);
+
+            // Vérifier si c'est un GET (affichage du formulaire) ou POST (soumission)
+            if (qualiteSupportStr == null) {
+                // GET - Afficher le formulaire
+                request.setAttribute("evaluation", model.Evaluation.trouverParId(evaluationId));
+                request.setAttribute("matiere", model.Matiere.trouverParId(matiereId));
+                request.setAttribute("evaluationId", evaluationId);
+                request.setAttribute("matiereId", matiereId);
+                request.getRequestDispatcher("/WEB-INF/views/repondreEvaluation.jsp").forward(request, response);
+            } else {
+                // POST - Traiter la soumission
+                String qualiteEquipeStr = request.getParameter("qualite_equipe");
+                String qualiteMaterielStr = request.getParameter("qualite_materiel");
+                String pertinenceExamenStr = request.getParameter("pertinence_examen");
+                String tempsParSemaineStr = request.getParameter("temps_par_semaine");
+                String utiliteStr = request.getParameter("utilite_pour_formation");
+                String commentaires = request.getParameter("commentaires");
+
+                // Validation des champs obligatoires
+                if (qualiteSupportStr == null || qualiteSupportStr.isEmpty() ||
+                    qualiteEquipeStr == null || qualiteEquipeStr.isEmpty() ||
+                    qualiteMaterielStr == null || qualiteMaterielStr.isEmpty() ||
+                    pertinenceExamenStr == null || pertinenceExamenStr.isEmpty() ||
+                    tempsParSemaineStr == null || tempsParSemaineStr.isEmpty() ||
+                    utiliteStr == null || utiliteStr.isEmpty()) {
+                    request.setAttribute("error", "Tous les champs obligatoires doivent être remplis");
+                    request.setAttribute("evaluation", model.Evaluation.trouverParId(evaluationId));
+                    request.setAttribute("matiere", model.Matiere.trouverParId(matiereId));
+                    request.setAttribute("evaluationId", evaluationId);
+                    request.setAttribute("matiereId", matiereId);
+                    request.getRequestDispatcher("/WEB-INF/views/repondreEvaluation.jsp").forward(request, response);
+                    return;
+                }
+
+                // Créer la réponse d'évaluation
+                model.Reponse_Evaluation reponse = new model.Reponse_Evaluation(
+                    Integer.parseInt(qualiteSupportStr),
+                    Integer.parseInt(qualiteEquipeStr),
+                    Integer.parseInt(qualiteMaterielStr),
+                    Integer.parseInt(pertinenceExamenStr),
+                    Integer.parseInt(tempsParSemaineStr),
+                    Integer.parseInt(utiliteStr),
+                    commentaires,
+                    matiereId,
+                    evaluationId
+                );
+                
+                reponse.insert();
+
+                // Marquer que l'étudiant a répondu
+                model.A_Repondu_Evaluation aRepondu = new model.A_Repondu_Evaluation(
+                    etudiant.getId(),
+                    matiereId,
+                    evaluationId
+                );
+                aRepondu.insert();
+
+                request.setAttribute("success", "Votre réponse a été enregistrée avec succès !");
+                request.getRequestDispatcher("/WEB-INF/views/repondreEvaluation.jsp").forward(request, response);
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Format numérique invalide");
+            request.getRequestDispatcher("/WEB-INF/views/evaluations.jsp").forward(request, response);
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/evaluations.jsp").forward(request, response);
         }
     }
 

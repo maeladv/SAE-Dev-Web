@@ -1,5 +1,6 @@
 package model;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,7 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import util.DatabaseManager;
+import util.Json;
+import util.Role;
 
 public class Utilisateur {
     private int id;
@@ -384,6 +390,117 @@ public class Utilisateur {
      */
     public boolean estPersiste() {
         return persisted;
+    }
+
+    // ================ Méthodes pour le controllers ================
+
+    public static void creationUtilisateurParAdmin(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        if (!Role.estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        String nom = request.getParameter("nom");
+        String prenom = request.getParameter("prenom");
+        String email = request.getParameter("email");
+        String dateNaissance = request.getParameter("dateNaissance");
+        String role = request.getParameter("role");
+        String ine = request.getParameter("ine");
+
+        if (nom == null || nom.isEmpty() || prenom == null || prenom.isEmpty() || 
+            email == null || email.isEmpty() || dateNaissance == null || dateNaissance.isEmpty() ||
+            role == null || role.isEmpty()) {
+            Json.envoyerJsonError(response, "Nom, prénom, email, date de naissance et rôle requis", 400);
+            return;
+        }
+
+        if ("etudiant".equalsIgnoreCase(role) && (ine == null || ine.isEmpty())) {
+            Json.envoyerJsonError(response, "L'INE est obligatoire pour les étudiants", 400);
+            return;
+        }
+
+        try {
+            if (Utilisateur.emailExiste(email)) {
+                Json.envoyerJsonError(response, "Cet email est déjà utilisé", 409);
+                return;
+            }
+
+            Utilisateur newUser = Utilisateur.creerEnAttente(nom, prenom, email, LocalDate.parse(dateNaissance), role, ine);
+            if (newUser != null) {
+                // Créer le lien directement au lieu d'appeler creerLienPourMAJMotDePasse
+                String token = model.Lien.creerLien(newUser.getId(), 7); // 7 jours pour activation
+                String lienActivation = request.getContextPath() + "/app/complete-profil?token=" + token;
+                
+                response.setContentType("application/json");
+                response.setStatus(HttpServletResponse.SC_CREATED);
+                response.getWriter().write(String.format(
+                    "{\"success\": true, \"message\": \"Utilisateur créé avec succès\", \"lien\": \"%s\", \"utilisateur\": {\"id\": %d, \"email\": \"%s\"}}", 
+                    lienActivation, newUser.getId(), email
+                ));
+            } else {
+                Json.envoyerJsonError(response, "Erreur lors de la création de l'utilisateur", 500);
+            }
+        } catch (java.time.format.DateTimeParseException e) {
+            Json.envoyerJsonError(response, "Format de date invalide (utiliser YYYY-MM-DD)", 400);
+        } catch (Exception e) {
+            Json.envoyerJsonError(response, "Erreur: " + e.getMessage(), 500);
+        }
+    }
+
+    public static void completerProfil(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        String token = request.getParameter("token");
+        String motDePasse = request.getParameter("motDePasse");
+        String confirmPassword = request.getParameter("confirmPassword");
+
+        if (token == null || token.isEmpty()) {
+            request.setAttribute("error", "Token manquant");
+            request.getRequestDispatcher("/WEB-INF/views/indedx.jsp").forward(request, response);
+            return;
+        }
+
+        try {
+            int userId = model.Lien.validerLien(token);
+            if (userId == -1) {
+                request.setAttribute("error", "Lien invalide ou expiré");
+                request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+                return;
+            }
+
+            if (motDePasse == null || motDePasse.isEmpty()) {
+                request.setAttribute("error", "Le mot de passe est obligatoire");
+                request.setAttribute("token", token);
+                request.setAttribute("userId", userId);
+                request.getRequestDispatcher("/WEB-INF/views/complete-profil.jsp").forward(request, response);
+                return;
+            }
+
+            if (!motDePasse.equals(confirmPassword)) {
+                request.setAttribute("error", "Les mots de passe ne correspondent pas");
+                request.setAttribute("token", token);
+                request.setAttribute("userId", userId);
+                request.getRequestDispatcher("/WEB-INF/views/complete-profil.jsp").forward(request, response);
+                return;
+            }
+
+            Utilisateur utilisateur = Utilisateur.trouverParId(userId);
+            if (utilisateur != null) {
+                if (utilisateur.completerProfil(motDePasse)) {
+                    model.Lien.marquerCommeUtilise(token);
+                    request.setAttribute("success", "Profil complété avec succès ! Vous pouvez maintenant vous connecter.");
+                    request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
+                } else {
+                    request.setAttribute("error", "Erreur lors de la mise à jour du profil");
+                    request.setAttribute("token", token);
+                    request.setAttribute("userId", userId);
+                    request.getRequestDispatcher("/WEB-INF/views/complete-profil.jsp").forward(request, response);
+                }
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur: " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
     }
 
     // ==================== GETTERS & SETTERS ====================

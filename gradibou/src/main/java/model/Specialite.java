@@ -1,5 +1,6 @@
 package model;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,7 +8,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import util.DatabaseManager;
+import util.Role;
 
 public class Specialite {
     private int id;
@@ -181,7 +186,7 @@ public class Specialite {
     // ==================== Méthodes utilitaires ====================
 
     /**
-     * Hydrater un objet depuis un ResultSet
+     * Creer un objet depuis un ResultSet
      */
     private static Specialite creerDepuisResultSet(ResultSet rs) throws SQLException {
         Specialite spec = new Specialite();
@@ -191,6 +196,96 @@ public class Specialite {
         spec.nom = rs.getString("nom");
         spec.persisted = true;
         return spec;
+    }
+
+    // ================ Méthodes pour le controllers ================
+
+    public static void creationSpecialiteParAdmin(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        if (!Role.estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        String tag = request.getParameter("tag");
+        String anneeStr = request.getParameter("annee");
+        String nom = request.getParameter("nom");
+
+        if (tag == null || tag.isEmpty() || anneeStr == null || anneeStr.isEmpty() || nom == null || nom.isEmpty()) {
+            request.setAttribute("error", "Tous les champs sont requis");
+            request.getRequestDispatcher("/WEB-INF/views/creerSpecialite.jsp").forward(request, response);
+            return;
+        }
+
+        try {
+            int annee = Integer.parseInt(anneeStr);
+            model.Specialite spec = new model.Specialite(tag, annee, nom);
+            
+            if (spec.save()) {
+                request.setAttribute("success", "Spécialité créée avec succès");
+            } else {
+                request.setAttribute("error", "Erreur lors de la création de la spécialité");
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "L'année doit être un nombre valide");
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+        }
+        
+        request.getRequestDispatcher("/WEB-INF/views/creerSpecialite.jsp").forward(request, response);
+    }
+
+    public static String afficherSpecialites(HttpServletRequest request) {
+        try {
+            request.setAttribute("specialites", model.Specialite.trouverToutes());
+            return "/WEB-INF/views/listeSpecialites.jsp";
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur lors du chargement des spécialités : " + e.getMessage());
+            return "/WEB-INF/views/error.jsp";
+        }
+    }
+
+    public static void supprimerSpecialite(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!Role.estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            model.Specialite s = model.Specialite.trouverParId(id);
+            if (s != null) {
+                s.supprimer();
+            }
+            response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    public static void modifierSpecialite(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!Role.estAdmin(request.getSession(false))) {
+             response.sendError(HttpServletResponse.SC_FORBIDDEN);
+             return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            String nom = request.getParameter("nom");
+            String tag = request.getParameter("tag");
+            int annee = Integer.parseInt(request.getParameter("annee"));
+            
+            model.Specialite s = model.Specialite.trouverParId(id);
+            if (s != null) {
+                s.setNom(nom);
+                s.setTag(tag);
+                s.setAnnee(annee);
+                s.save();
+            }
+            response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la modification : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
     }
 
     /**

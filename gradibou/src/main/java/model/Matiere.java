@@ -1,5 +1,6 @@
 package model;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,7 +8,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import util.DatabaseManager;
+import util.Role;
 
 public class Matiere {
     private int id;
@@ -187,7 +193,7 @@ public class Matiere {
     // ==================== Méthodes utilitaires ====================
 
     /**
-     * Hydrater un objet depuis un ResultSet
+     * Creer un objet depuis un ResultSet
      */
     private static Matiere creerDepuisResultSet(ResultSet rs) throws SQLException {
         Matiere matiere = new Matiere();
@@ -198,6 +204,134 @@ public class Matiere {
         matiere.profId = rs.getInt("id_prof");
         matiere.persisted = true;
         return matiere;
+    }
+
+    // ================ Méthodes pour le controllers ================
+
+    public static void creationMatiereParAdmin(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        HttpSession session = request.getSession(false);
+
+        if (!Role.estAdmin(session)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        try {
+            request.setAttribute("specialites", model.Specialite.trouverToutes());
+            request.setAttribute("professeurs", model.Utilisateur.trouverTousLesProfesseurs());
+        } catch (Exception e) {
+             e.printStackTrace();
+             request.setAttribute("error", "Erreur lors du chargement des listes: " + e.getMessage());
+        }
+
+        // Traitement du formulaire (POST)
+        String nom = request.getParameter("nom");
+        String semestreStr = request.getParameter("semestre");
+        String specialiteIdStr = request.getParameter("specialiteId");
+        String profIdStr = request.getParameter("profId");
+
+        try {
+            // Check if all fields (including profId) are present
+            if (nom == null || nom.isEmpty() || semestreStr == null || semestreStr.isEmpty() || 
+                specialiteIdStr == null || specialiteIdStr.isEmpty() ||
+                profIdStr == null || profIdStr.isEmpty()) {
+                request.setAttribute("error", "Tous les champs sont requis, y compris le professeur.");
+                request.getRequestDispatcher("/WEB-INF/views/creerMatiere.jsp").forward(request, response);
+                return;
+            }
+
+            int semestre = Integer.parseInt(semestreStr);
+            int specialiteId = Integer.parseInt(specialiteIdStr);
+            int profId = Integer.parseInt(profIdStr);
+
+            model.Matiere matiere = new model.Matiere(nom, semestre, specialiteId, profId);
+            
+            if (matiere.save()) {
+                request.setAttribute("success", "Matière créée avec succès");
+            } else {
+                request.setAttribute("error", "Erreur lors de la création de la matière");
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Format numérique invalide");
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+        }
+        
+        request.getRequestDispatcher("/WEB-INF/views/creerMatiere.jsp").forward(request, response);
+    }
+
+    public static String afficherMatieres(HttpServletRequest request) {
+        try {
+            String idSpecStr = request.getParameter("specId");
+            if (idSpecStr != null && !idSpecStr.isEmpty()) {
+                int idSpec = Integer.parseInt(idSpecStr);
+                request.setAttribute("matieres", model.Matiere.trouverParSpecialite(idSpec));
+                request.setAttribute("specialite", model.Specialite.trouverParId(idSpec));
+            } else {
+                request.setAttribute("matieres", model.Matiere.trouverToutes());
+                request.setAttribute("specialite", null);
+            }
+            request.setAttribute("professeurs", model.Utilisateur.trouverTousLesProfesseurs());
+            return "/WEB-INF/views/listeMatieres.jsp";
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur : " + e.getMessage());
+            return "/WEB-INF/views/error.jsp";
+        }
+    }
+
+    public static void supprimerMatiere(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!Role.estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            model.Matiere m = model.Matiere.trouverParId(id);
+            if (m != null) {
+                m.supprimer();
+            }
+            // Redirection intelligente : on essaie de revenir à la liste filtrée si on a l'info
+            String specId = request.getParameter("specId");
+            if (specId != null && !specId.isEmpty()) {
+                response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specId);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    public static void modifierMatiere(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!Role.estAdmin(request.getSession(false))) {
+             response.sendError(HttpServletResponse.SC_FORBIDDEN);
+             return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            String nom = request.getParameter("nom");
+            int semestre = Integer.parseInt(request.getParameter("semestre"));
+            int profId = Integer.parseInt(request.getParameter("profId"));
+            
+            model.Matiere m = model.Matiere.trouverParId(id);
+            if (m != null) {
+                m.setNom(nom);
+                m.setSemestre(semestre);
+                m.setProfId(profId);
+                m.save();
+            }
+            String specId = request.getParameter("specId");
+            if (specId != null && !specId.isEmpty()) {
+                response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specId);
+            } else {
+                 response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la modification : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
     }
 
     /**
