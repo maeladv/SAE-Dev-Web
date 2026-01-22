@@ -221,6 +221,18 @@ public class Controller extends HttpServlet {
                 case "/complete-profil":
                     completerProfil(request, response);
                     break;
+                case "/admin/supprimer-specialite":
+                    supprimerSpecialite(request, response);
+                    break;
+                case "/admin/supprimer-matiere":
+                    supprimerMatiere(request, response);
+                    break;
+                case "/admin/supprimer-examen":
+                    supprimerExamen(request, response);
+                    break;
+                case "/admin/supprimer-note":
+                    supprimerNote(request, response);
+                    break;
                 default:
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
                     break;
@@ -643,6 +655,91 @@ public class Controller extends HttpServlet {
         } catch (Exception e) {
             request.setAttribute("error", "Erreur : " + e.getMessage());
             return "/WEB-INF/views/error.jsp";
+        }
+    }
+
+    private void supprimerSpecialite(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            model.Specialite s = model.Specialite.trouverParId(id);
+            if (s != null) {
+                s.supprimer();
+            }
+            response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    private void supprimerMatiere(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            model.Matiere m = model.Matiere.trouverParId(id);
+            if (m != null) {
+                m.supprimer();
+            }
+            // Redirection intelligente : on essaie de revenir à la liste filtrée si on a l'info
+            String specId = request.getParameter("specId");
+            if (specId != null && !specId.isEmpty()) {
+                response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specId);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    private void supprimerExamen(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            model.Examen e = model.Examen.trouverParId(id);
+            int matId = -1;
+            if (e != null) {
+                matId = e.getId_matiere();
+                e.supprimer();
+            }
+            if (matId != -1) {
+                response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matId);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    private void supprimerNote(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        try {
+            int etudiantId = Integer.parseInt(request.getParameter("etudiantId"));
+            int examenId = Integer.parseInt(request.getParameter("examenId"));
+            model.Note n = model.Note.trouverParIdEtudiantExamen(etudiantId, examenId);
+            if (n != null) {
+                n.supprimer();
+            }
+            response.sendRedirect(request.getContextPath() + "/app/admin/notes?examId=" + examenId);
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
         }
     }
 

@@ -39,6 +39,7 @@
                     <th>Étudiant</th>
                     <th>Note (/20)</th>
                     <th>Date</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -52,11 +53,18 @@
                     <td><%= etudiant != null ? etudiant.getNom() + " " + etudiant.getPrenom() : "Étudiant #" + n.getIdEtudiant() %></td>
                     <td><strong><%= n.getValeur() %></strong></td>
                     <td><%= n.getDate() %></td>
+                    <td>
+                        <form action="<%= request.getContextPath() %>/app/admin/supprimer-note" method="post" style="margin: 0;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette note ?');">
+                            <input type="hidden" name="etudiantId" value="<%= n.getIdEtudiant() %>">
+                            <input type="hidden" name="examenId" value="<%= n.getIdExamen() %>">
+                            <button type="submit" style="background-color: #dc3545; padding: 5px 10px; font-size: 0.8em; color: white; border: none; border-radius: 4px; cursor: pointer;">Supprimer</button>
+                        </form>
+                    </td>
                 </tr>
             <%      }
                 } else {
             %>
-                <tr><td colspan="3" style="text-align: center; color: #777;">Aucune note trouvée pour cet examen.</td></tr>
+                <tr><td colspan="4" style="text-align: center; color: #777;">Aucune note trouvée pour cet examen.</td></tr>
             <%  } %>
             </tbody>
         </table>

@@ -39,7 +39,13 @@
     %>
         <li>
             <span><%= s.getNom() %> (<%= s.getTag() %> - <%= s.getAnnee() %>)</span>
-            <a href="<%= request.getContextPath() %>/app/admin/matieres?specId=<%= s.getId() %>">Voir les matières &rarr;</a>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <a href="<%= request.getContextPath() %>/app/admin/matieres?specId=<%= s.getId() %>">Voir les matières &rarr;</a>
+                <form action="<%= request.getContextPath() %>/app/admin/supprimer-specialite" method="post" style="margin: 0;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette spécialité ? Tout le contenu associé sera également supprimé permanently.');">
+                    <input type="hidden" name="id" value="<%= s.getId() %>">
+                    <button type="submit" style="background-color: #dc3545; padding: 5px 10px; font-size: 0.8em;">Supprimer</button>
+                </form>
+            </div>
         </li>
     <%      }
         } else {

@@ -45,7 +45,14 @@
         %>
             <li>
                 <span><%= m.getNom() %></span>
-                <a href="<%= request.getContextPath() %>/app/admin/examens?matId=<%= m.getId() %>">Voir les examens &rarr;</a>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <a href="<%= request.getContextPath() %>/app/admin/examens?matId=<%= m.getId() %>">Voir les examens &rarr;</a>
+                    <form action="<%= request.getContextPath() %>/app/admin/supprimer-matiere" method="post" style="margin: 0;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette matière ?');">
+                        <input type="hidden" name="id" value="<%= m.getId() %>">
+                        <input type="hidden" name="specId" value="<%= spec != null ? spec.getId() : "" %>">
+                        <button type="submit" style="background-color: #dc3545; padding: 5px 10px; font-size: 0.8em;">Supprimer</button>
+                    </form>
+                </div>
             </li>
         <%      }
             } else {

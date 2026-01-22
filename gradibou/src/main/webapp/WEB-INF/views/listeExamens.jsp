@@ -57,9 +57,15 @@
                     <td><%= e.getNom() %></td>
                     <td><%= e.getCoefficient() %></td>
                     <td>
-                        <a href="<%= request.getContextPath() %>/app/admin/notes?examId=<%= e.getId() %>" class="action-link">
-                            Voir les notes &rarr;
-                        </a>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <a href="<%= request.getContextPath() %>/app/admin/notes?examId=<%= e.getId() %>" class="action-link">
+                                Voir les notes &rarr;
+                            </a>
+                            <form action="<%= request.getContextPath() %>/app/admin/supprimer-examen" method="post" style="margin: 0;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet examen ?');">
+                                <input type="hidden" name="id" value="<%= e.getId() %>">
+                                <button type="submit" style="background-color: #dc3545; padding: 5px 10px; font-size: 0.8em;">Supprimer</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             <%      }
