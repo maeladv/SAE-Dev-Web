@@ -38,7 +38,11 @@
                         for (Utilisateur u : etudiants) {
                     %>
                     <tr>
-                        <td><%= u.getNom() %></td>
+                        <td>
+                            <a href="<%= request.getContextPath() %>/app/professeur/eleve/examens?studentId=<%= u.getId() %>" style="text-decoration: underline; color: inherit;">
+                                <%= u.getNom() %>
+                            </a>
+                        </td>
                         <td><%= u.getPrenom() %></td>
                         <td><%= u.getemail() %></td>
                         <td><%= u.getSpecialiteTag() %></td> 

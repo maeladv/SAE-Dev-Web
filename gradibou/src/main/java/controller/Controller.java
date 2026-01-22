@@ -223,6 +223,36 @@ public class Controller extends HttpServlet {
                    view = "/WEB-INF/views/error.jsp";
                 }
                 break;
+            case "/professeur/eleve/examens":
+                if (!estProf(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                try {
+                    String studentIdStr = request.getParameter("studentId");
+                    if (studentIdStr != null && !studentIdStr.isEmpty()) {
+                        int studentId = Integer.parseInt(studentIdStr);
+                        Utilisateur etudiant = Utilisateur.trouverParId(studentId);
+                        
+                        if (etudiant != null && "etudiant".equals(etudiant.getRole())) {
+                            java.util.List<model.Note> notes = model.Note.trouverParEtudiant(studentId);
+                            request.setAttribute("notes", notes);
+                            request.setAttribute("etudiant", etudiant);
+                            view = "/WEB-INF/views/detailsNotesEtudiant.jsp";
+                        } else {
+                            request.setAttribute("error", "Étudiant introuvable.");
+                            view = "/WEB-INF/views/error.jsp";
+                        }
+                    } else {
+                        request.setAttribute("error", "Identifiant étudiant non spécifié");
+                        view = "/WEB-INF/views/error.jsp";
+                    }
+                } catch (Exception e) {
+                   System.err.println("Erreur lors du chargement des notes de l'étudiant: " + e.getMessage());
+                   request.setAttribute("error", "Erreur lors du chargement de la fiche étudiant");
+                   view = "/WEB-INF/views/error.jsp";
+                }
+                break;
             case "/forgot-password":
                 view = "/WEB-INF/views/forgot-password.jsp";
                 break;

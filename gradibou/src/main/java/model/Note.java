@@ -19,6 +19,9 @@ public class Note {
     // Champs pour l'affichage (Transient)
     private String nomEtudiant;
     private String prenomEtudiant;
+    private String nomExamen;
+    private int coefficientExamen;
+    private String nomMatiere;
     private boolean persisted = false;
 
     // Constructeurs
@@ -96,7 +99,49 @@ public class Note {
         return liste;
     }
 
+    /**
+     * Trouver les notes d'un étudiant avec détails de l'examen et matière
+     */
+    public static List<Note> trouverParEtudiant(int idEtudiant) throws SQLException {
+        List<Note> liste = new ArrayList<>();
+        String sql = "SELECT n.id_etudiant, n.id_examen, n.note, n.date, " +
+                     "e.nom as nom_examen, e.coefficient, m.nom as nom_matiere " +
+                     "FROM note n " +
+                     "JOIN examen e ON n.id_examen = e.id " +
+                     "JOIN matiere m ON e.id_matiere = m.id " +
+                     "WHERE n.id_etudiant = ? " +
+                     "ORDER BY m.nom, n.date";
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idEtudiant);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                Note n = new Note();
+                n.id_etudiant = rs.getInt("id_etudiant");
+                n.id_examen = rs.getInt("id_examen");
+                n.valeur = rs.getInt("note");
+                if (rs.getDate("date") != null) {
+                    n.date = rs.getDate("date").toLocalDate();
+                }
+                
+                // Champs transient
+                n.nomExamen = rs.getString("nom_examen");
+                n.coefficientExamen = rs.getInt("coefficient");
+                n.nomMatiere = rs.getString("nom_matiere");
+                n.persisted = true;
+                
+                liste.add(n);
+            }
+        }
+        return liste;
+    }
+
+
      // ==================== Méthodes de persistence (Active Record) ====================
+
+    
 
     /**
      * Sauvegarder la spécialité (INSERT automatique)
@@ -204,6 +249,8 @@ public class Note {
         return note;
     }
 
+    
+    
     /**
      * Vérifier si l'objet est persisté en base de données
      */
@@ -237,10 +284,18 @@ public class Note {
         this.date = date;
     }
 
-    // Getters et Setters pour les champs transient
     public String getNomEtudiant() { return nomEtudiant; }
     public void setNomEtudiant(String nomEtudiant) { this.nomEtudiant = nomEtudiant; }
 
     public String getPrenomEtudiant() { return prenomEtudiant; }
     public void setPrenomEtudiant(String prenomEtudiant) { this.prenomEtudiant = prenomEtudiant; }
+
+    public String getNomExamen() { return nomExamen; }
+    public void setNomExamen(String nomExamen) { this.nomExamen = nomExamen; }
+    
+    public int getCoefficientExamen() { return coefficientExamen; }
+    public void setCoefficientExamen(int coefficientExamen) { this.coefficientExamen = coefficientExamen; }
+    
+    public String getNomMatiere() { return nomMatiere; }
+    public void setNomMatiere(String nomMatiere) { this.nomMatiere = nomMatiere; }
 }
