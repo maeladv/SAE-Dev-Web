@@ -279,23 +279,69 @@ public class Utilisateur {
     }
 
     /**
-     * Supprimer l'utilisateur
+     * Supprimer l'utilisateur et toutes ses données associées
      */
     public boolean supprimer() throws SQLException {
         if (!persisted) {
             return false;
         }
 
-        String sql = "DELETE FROM utilisateur WHERE id = ?";
+        try (Connection conn = DatabaseManager.obtenirConnexion()) {
+            conn.setAutoCommit(false);
+            
+            try {
+                // Supprimer les liens de réinitialisation
+                String deleteLienSql = "DELETE FROM lien WHERE id_utilisateur = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(deleteLienSql)) {
+                    stmt.setInt(1, this.id);
+                    stmt.executeUpdate();
+                }
 
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, this.id);
-            boolean success = stmt.executeUpdate() > 0;
-            if (success) {
-                this.persisted = false;
+                // Si c'est un étudiant, supprimer les données d'étudiant
+                String deleteNoteSql = "DELETE FROM note WHERE id_etudiant = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(deleteNoteSql)) {
+                    stmt.setInt(1, this.id);
+                    stmt.executeUpdate();
+                }
+
+                String deleteARepondsql = "DELETE FROM a_repondu_evaluation WHERE id_etudiant = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(deleteARepondsql)) {
+                    stmt.setInt(1, this.id);
+                    stmt.executeUpdate();
+                }
+
+                String deleteEtudiantSql = "DELETE FROM etudiant WHERE id_utilisateur = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(deleteEtudiantSql)) {
+                    stmt.setInt(1, this.id);
+                    stmt.executeUpdate();
+                }
+
+                // Si c'est un professeur, réinitialiser les matières
+                String updateMatiereSql = "UPDATE matiere SET id_prof = NULL WHERE id_prof = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(updateMatiereSql)) {
+                    stmt.setInt(1, this.id);
+                    stmt.executeUpdate();
+                }
+
+                // Supprimer l'utilisateur
+                String deleteUtilisateurSql = "DELETE FROM utilisateur WHERE id = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(deleteUtilisateurSql)) {
+                    stmt.setInt(1, this.id);
+                    boolean success = stmt.executeUpdate() > 0;
+                    
+                    if (success) {
+                        this.persisted = false;
+                        conn.commit();
+                        return true;
+                    } else {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
             }
-            return success;
         }
     }
 
@@ -553,5 +599,72 @@ public class Utilisateur {
             }
         }
         return "";
+    }
+
+    // ==================== Méthodes statiques pour les actions admin ====================
+
+    public static void modifierUtilisateur(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!util.Role.estAdmin(request.getSession(false))) {
+            util.Json.envoyerJsonError(response, "Accès refusé", HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            String nom = request.getParameter("nom");
+            String prenom = request.getParameter("prenom");
+            String email = request.getParameter("email");
+            String role = request.getParameter("role");
+
+            if (nom == null || nom.isEmpty() || prenom == null || prenom.isEmpty() ||
+                email == null || email.isEmpty() || role == null || role.isEmpty()) {
+                util.Json.envoyerJsonError(response, "Tous les champs obligatoires doivent être remplis", HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
+
+            Utilisateur user = Utilisateur.trouverParId(id);
+            if (user != null) {
+                user.setNom(nom);
+                user.setPrenom(prenom);
+                user.setemail(email);
+                user.setRole(role);
+                user.save();
+                util.Json.envoyerJsonSuccess(response, "Utilisateur modifié avec succès", request.getContextPath() + "/app/admin");
+            } else {
+                util.Json.envoyerJsonError(response, "Utilisateur non trouvé", HttpServletResponse.SC_NOT_FOUND);
+            }
+        } catch (Exception e) {
+            util.Json.envoyerJsonError(response, "Erreur : " + e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public static void supprimerUtilisateur(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!util.Role.estAdmin(request.getSession(false))) {
+            util.Json.envoyerJsonError(response, "Accès refusé", HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        try {
+            String idStr = request.getParameter("id");
+            if (idStr == null || idStr.isEmpty()) {
+                util.Json.envoyerJsonError(response, "ID utilisateur requis", HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
+            
+            int id = Integer.parseInt(idStr);
+            Utilisateur user = Utilisateur.trouverParId(id);
+            if (user != null) {
+                user.supprimer();
+                util.Json.envoyerJsonSuccess(response, "Utilisateur supprimé avec succès", request.getContextPath() + "/app/admin");
+            } else {
+                util.Json.envoyerJsonError(response, "Utilisateur non trouvé", HttpServletResponse.SC_NOT_FOUND);
+            }
+        } catch (NumberFormatException e) {
+            util.Json.envoyerJsonError(response, "ID utilisateur invalide", HttpServletResponse.SC_BAD_REQUEST);
+        } catch (SQLException e) {
+            util.Json.envoyerJsonError(response, "Erreur base de données", HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            util.Json.envoyerJsonError(response, "Erreur : " + e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
     }
 }

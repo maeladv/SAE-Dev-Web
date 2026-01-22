@@ -151,7 +151,7 @@
                                     <td>
                                         <div class="table-actions">
                                             <button class="btn-tertiary" title="Éditer"
-                                                onclick="openModal('createAccountModal')">
+                                                onclick="editUser(<%= user.getId() %>, '<%= user.getNom() %>', '<%= user.getPrenom() %>', '<%= user.getemail() %>', '<%= user.getRole() %>')">
                                                 <img src="<%= request.getContextPath() %>/static/icons/black/pen.svg"
                                                     alt="Éditer un utilisateur icone">
                                             </button>
@@ -159,6 +159,11 @@
                                                 onclick="confirmDelete(<%= user.getId() %>, '<%= user.getPrenom() %> <%= user.getNom() %>')">
                                                 <img src="<%= request.getContextPath() %>/static/icons/black/trash.svg"
                                                     alt="Supprimer un utilisateur icone">
+                                            </button>
+                                            <button class="btn-tertiary" title="Copier le lien de réinitialisation"
+                                                onclick="copyResetLink(<%= user.getId() %>)">
+                                                <img src="<%= request.getContextPath() %>/static/icons/black/link.svg"
+                                                    alt="Copier le lien de réinitialisation icone">
                                             </button>
                                             <button class="btn-primary" title="Voir le profil">
                                                 <img src="<%= request.getContextPath() %>/static/icons/white/eye.svg" alt="Voir le profil icone">
@@ -249,6 +254,60 @@
                         <button type="button" class="modal-btn modal-btn-secondary"
                             onclick="closeModal()">Annuler</button>
                         <button type="submit" class="modal-btn modal-btn-primary">Créer le compte</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal: Éditer un utilisateur -->
+        <div id="editAccountModal" class="modal-overlay">
+            <div class="modal">
+                <h2 class="modal-title">Modifier l'utilisateur</h2>
+
+                <form onsubmit="return submitEditAccount(event)">
+                    <input type="hidden" id="editUserId" name="id">
+                    <div class="modal-form-grid">
+                        <!-- Colonne gauche -->
+                        <div class="form-group">
+                            <label for="editPrenom">Prénom</label>
+                            <input type="text" id="editPrenom" name="prenom" placeholder="Rentrez le prénom..." required>
+                            <span class="error-message">Ce champ est invalide</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editNom">Nom</label>
+                            <input type="text" id="editNom" name="nom" placeholder="Rentrez le nom..." required>
+                            <span class="error-message">Ce champ est invalide</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editEmail">Adresse mail</label>
+                            <input type="email" id="editEmail" name="email" placeholder="Adresse mail INSA" required>
+                            <span class="error-message">Ce champ est invalide</span>
+                        </div>
+
+                        <!-- Colonne droite -->
+                        <div class="form-group">
+                            <label>Choix du rôle</label>
+                            <div class="dropdown" data-dropdown="modal-edit-role">
+                                <button type="button" class="dropdown-toggle" aria-haspopup="listbox" aria-expanded="false">
+                                    <span class="dropdown-label">Choisir un rôle</span>
+                                    <span class="dropdown-icon">▾</span>
+                                </button>
+                                <ul class="dropdown-menu" role="listbox">
+                                    <li class="dropdown-option" role="option" data-value="admin" data-label="Administrateur" data-role="admin">Administrateur</li>
+                                    <li class="dropdown-option" role="option" data-value="professeur" data-label="Professeur" data-role="professeur">Professeur</li>
+                                    <li class="dropdown-option" role="option" data-value="etudiant" data-label="Étudiant" data-role="etudiant">Étudiant</li>
+                                </ul>
+                            </div>
+                            <span class="error-message">Ce champ est invalide</span>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="modal-btn modal-btn-secondary"
+                            onclick="closeModal()">Annuler</button>
+                        <button type="submit" class="modal-btn modal-btn-primary">Modifier l'utilisateur</button>
                     </div>
                 </form>
             </div>

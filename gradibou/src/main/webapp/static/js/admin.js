@@ -3,6 +3,70 @@ let currentSortColumn = null;
 let currentSortDirection = 'asc'; // 'asc' ou 'desc'
 
 /**
+ * Affiche une notification toast
+ */
+function showNotification(message, type = 'info') {
+    // Créer le conteneur si nécessaire
+    let notificationContainer = document.getElementById('notification-container');
+    if (!notificationContainer) {
+        notificationContainer = document.createElement('div');
+        notificationContainer.id = 'notification-container';
+        notificationContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 10000;';
+        document.body.appendChild(notificationContainer);
+    }
+
+    const notification = document.createElement('div');
+    notification.className = 'notification notification-' + type;
+    
+    const backgroundColor = type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3';
+    notification.style.cssText = `
+        background: ${backgroundColor};
+        color: white;
+        padding: 16px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        min-width: 300px;
+        animation: slideIn 0.3s ease-in-out;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    `;
+    notification.textContent = message;
+    notificationContainer.appendChild(notification);
+
+    // Supprimer après 3 secondes
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Ajouter les animations CSS pour les notifications
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+
+/**
  * Trie le tableau en fonction de la colonne sélectionnée
  * @param {number} columnIndex - L'index de la colonne à trier (0-based)
  * @param {string} columnType - Le type de données ('text', 'number')
@@ -213,5 +277,221 @@ function closeAllDropdowns() {
         if (toggle) {
             toggle.setAttribute('aria-expanded', 'false');
         }
+    });
+}
+
+// ==================== Gestion des utilisateurs ====================
+
+/**
+ * Soumet le formulaire de création de compte
+ */
+function submitCreateAccount(event) {
+    event.preventDefault();
+    
+    const nom = document.getElementById('nom').value.trim();
+    const prenom = document.getElementById('prenom').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const role = document.querySelector('.dropdown[data-dropdown="modal-role"]')?.dataset.value;
+    
+    if (!nom || !prenom || !email || !role) {
+        showNotification('Veuillez remplir tous les champs obligatoires', 'error');
+        return false;
+    }
+    
+    const params = new URLSearchParams();
+    params.append('nom', nom);
+    params.append('prenom', prenom);
+    params.append('email', email);
+    params.append('role', role);
+    
+    fetch(contextPath + '/app/admin/creer-utilisateur', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: params.toString()
+    })
+    .then(response => response.text())
+    .then(text => {
+        try {
+            const data = JSON.parse(text);
+            if (data.success) {
+                closeModal();
+                showNotification(data.message || 'Utilisateur créé avec succès', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification(data.message || 'Erreur lors de la création', 'error');
+            }
+        } catch (parseError) {
+            console.error('Erreur de parsing JSON:', parseError, 'Texte reçu:', text);
+            showNotification('Erreur: réponse invalide du serveur', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur réseau:', error);
+        showNotification('Erreur réseau: ' + error.message, 'error');
+    });
+    
+    return false;
+}
+
+/**
+ * Édite un utilisateur existant
+ */
+function editUser(userId, nom, prenom, email, role) {
+    document.getElementById('editUserId').value = userId;
+    document.getElementById('editNom').value = nom;
+    document.getElementById('editPrenom').value = prenom;
+    document.getElementById('editEmail').value = email;
+    
+    // Sélectionner le rôle dans le dropdown
+    const roleDropdown = document.querySelector('.dropdown[data-dropdown="modal-edit-role"]');
+    const roleOption = roleDropdown?.querySelector(`[data-value="${role}"]`);
+    if (roleOption) {
+        selectDropdownOption(roleDropdown, roleOption);
+    }
+    
+    openModal('editAccountModal');
+}
+
+/**
+ * Soumet le formulaire de modification d'utilisateur
+ */
+function submitEditAccount(event) {
+    event.preventDefault();
+    
+    const userId = document.getElementById('editUserId').value;
+    const nom = document.getElementById('editNom').value.trim();
+    const prenom = document.getElementById('editPrenom').value.trim();
+    const email = document.getElementById('editEmail').value.trim();
+    const role = document.querySelector('.dropdown[data-dropdown="modal-edit-role"]')?.dataset.value;
+    
+    if (!userId || !nom || !prenom || !email || !role) {
+        showNotification('Veuillez remplir tous les champs obligatoires', 'error');
+        return false;
+    }
+    
+    const params = new URLSearchParams();
+    params.append('id', userId);
+    params.append('nom', nom);
+    params.append('prenom', prenom);
+    params.append('email', email);
+    params.append('role', role);
+    
+    fetch(contextPath + '/app/admin/modifier-utilisateur', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: params.toString()
+    })
+    .then(response => response.text())
+    .then(text => {
+        try {
+            const data = JSON.parse(text);
+            if (data.success) {
+                closeModal();
+                showNotification(data.message || 'Utilisateur modifié avec succès', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification(data.message || 'Erreur lors de la modification', 'error');
+            }
+        } catch (parseError) {
+            console.error('Erreur de parsing JSON:', parseError, 'Texte reçu:', text);
+            showNotification('Erreur: réponse invalide du serveur', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur réseau:', error);
+        showNotification('Erreur réseau: ' + error.message, 'error');
+    });
+    
+    return false;
+}
+
+let userToDelete = null;
+
+/**
+ * Confirme la suppression d'un utilisateur
+ */
+function confirmDelete(userId, userName) {
+    userToDelete = userId;
+    openModal('deleteConfirmModal');
+}
+
+/**
+ * Exécute la suppression d'un utilisateur
+ */
+function executeDelete() {
+    if (!userToDelete) return;
+    
+    const params = new URLSearchParams();
+    params.append('id', userToDelete);
+    
+    fetch(contextPath + '/app/admin/supprimer-utilisateur', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: params.toString()
+    })
+    .then(response => response.text())
+    .then(text => {
+        try {
+            const data = JSON.parse(text);
+            if (data.success) {
+                closeModal();
+                showNotification(data.message || 'Utilisateur supprimé avec succès', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification(data.message || 'Erreur lors de la suppression', 'error');
+            }
+        } catch (parseError) {
+            console.error('Erreur de parsing JSON:', parseError, 'Texte reçu:', text);
+            showNotification('Erreur: réponse invalide du serveur', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur réseau:', error);
+        showNotification('Erreur réseau: ' + error.message, 'error');
+    });
+}
+
+/**
+ * Copie le lien de réinitialisation du mot de passe
+ */
+function copyResetLink(userId) {
+    fetch(contextPath + '/app/admin/get-reset-link?userId=' + encodeURIComponent(userId))
+    .then(response => response.text())
+    .then(text => {
+        try {
+            const data = JSON.parse(text);
+            if (data.success && data.link) {
+                const link = data.link;
+                
+                // Copier le lien dans le presse-papiers
+                navigator.clipboard.writeText(link).then(() => {
+                    showNotification('Lien de réinitialisation copié dans le presse-papiers', 'success');
+                }).catch(() => {
+                    // Fallback si clipboard.writeText échoue
+                    const textArea = document.createElement('textarea');
+                    textArea.value = link;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showNotification('Lien de réinitialisation copié (fallback)', 'success');
+                });
+            } else {
+                showNotification(data.message || 'Impossible de générer le lien', 'error');
+            }
+        } catch (parseError) {
+            console.error('Erreur de parsing JSON:', parseError, 'Texte reçu:', text);
+            showNotification('Erreur: réponse invalide du serveur', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur réseau:', error);
+        showNotification('Erreur réseau: ' + error.message, 'error');
     });
 }

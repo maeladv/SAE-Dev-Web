@@ -347,6 +347,40 @@ public class Controller extends HttpServlet {
                 }
                 view = "/WEB-INF/views/detailsResultatEvaluation.jsp";
                 break;
+            case "/admin/get-reset-link":
+                if (!Role.estAdmin(request.getSession(false))) {
+                    util.Json.envoyerJsonError(response, "Accès refusé", HttpServletResponse.SC_FORBIDDEN);
+                    return;
+                }
+                try {
+                    String userIdStr = request.getParameter("userId");
+                    if (userIdStr == null || userIdStr.isEmpty()) {
+                        util.Json.envoyerJsonError(response, "userId requis", HttpServletResponse.SC_BAD_REQUEST);
+                        return;
+                    }
+                    int userId = Integer.parseInt(userIdStr);
+                    Utilisateur user = Utilisateur.trouverParId(userId);
+                    if (user == null) {
+                        util.Json.envoyerJsonError(response, "Utilisateur non trouvé", HttpServletResponse.SC_NOT_FOUND);
+                        return;
+                    }
+                    // Créer un lien de réinitialisation valide pour 7 jours
+                    String resetToken = model.Lien.creerLien(userId, 7);
+                    String resetUrl = request.getScheme() + "://" + request.getServerName() + 
+                                    (request.getServerPort() == 80 || request.getServerPort() == 443 ? "" : ":" + request.getServerPort()) +
+                                    request.getContextPath() + "/app/complete-profil?token=" + resetToken;
+                    
+                    // Retourner le JSON avec le lien
+                    response.setContentType("application/json;charset=UTF-8");
+                    java.io.PrintWriter out = response.getWriter();
+                    out.print("{\"success\": true, \"link\": \"" + resetUrl.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}");
+                    out.flush();
+                } catch (NumberFormatException e) {
+                    util.Json.envoyerJsonError(response, "userId invalide", HttpServletResponse.SC_BAD_REQUEST);
+                } catch (Exception e) {
+                    util.Json.envoyerJsonError(response, "Erreur: " + e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                }
+                return;
             case "/logout":
                 request.getSession().invalidate();
                 try {
@@ -433,6 +467,12 @@ public class Controller extends HttpServlet {
                     break;
                 case "/admin/modifier-note":
                     Note.modifierNote(request, response);
+                    break;
+                case "/admin/modifier-utilisateur":
+                    Utilisateur.modifierUtilisateur(request, response);
+                    break;
+                case "/admin/supprimer-utilisateur":
+                    Utilisateur.supprimerUtilisateur(request, response);
                     break;
                 default:
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
