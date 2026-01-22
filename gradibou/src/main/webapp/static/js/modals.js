@@ -31,6 +31,9 @@ class ModalManager {
             overlay.classList.add('active');
             this.activeModal = modalId;
             document.body.style.overflow = 'hidden'; // Empêcher le scroll
+            
+            // Initialiser les dropdowns du modal
+            setTimeout(() => initializeModalDropdowns(), 100);
         }
     }
 
@@ -200,11 +203,132 @@ function closeModal() {
 
 function submitCreateAccount(event) {
     event.preventDefault();
+    event.stopPropagation();
     
-    if (modalManager.validateCreateAccountForm()) {
-        // Soumettre le formulaire
-        event.target.submit();
+    const form = event.target;
+    
+    // Récupérer la valeur du dropdown de rôle
+    const modal = form.closest('.modal');
+    const roleDropdown = modal ? modal.querySelector('.dropdown[data-dropdown="modal-role"]') : null;
+    const roleValue = roleDropdown?.dataset.value;
+    
+    console.log('Tentative soumission - Role value:', roleValue);
+    
+    if (!roleValue) {
+        showFormError(form, "Veuillez sélectionner un rôle");
+        return false;
     }
+    
+    // Vérifier les champs obligatoires
+    if (!form.prenom.value || !form.nom.value || !form.email.value || !form.dateNaissance.value) {
+        showFormError(form, "Tous les champs obligatoires doivent être complétés");
+        return false;
+    }
+    
+    // Créer URLSearchParams pour x-www-form-urlencoded
+    const params = new URLSearchParams();
+    params.append('nom', form.nom.value);
+    params.append('prenom', form.prenom.value);
+    params.append('email', form.email.value);
+    params.append('dateNaissance', form.dateNaissance.value);
+    params.append('role', roleValue);
+    params.append('ine', form.ine.value || '');
+    params.append('specialite', form.specialite.value || '');
+    
+    console.log('Données envoyées:', {
+        nom: form.nom.value,
+        prenom: form.prenom.value,
+        email: form.email.value,
+        dateNaissance: form.dateNaissance.value,
+        role: roleValue,
+        ine: form.ine.value || '',
+        specialite: form.specialite.value || ''
+    });
+    
+    // Afficher un état de chargement
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Création en cours...';
+    
+    // Envoyer la requête AJAX avec x-www-form-urlencoded
+    fetch(`${contextPath}/app/admin/creer-utilisateur`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: params.toString()
+    })
+    .then(response => {
+        console.log('Status:', response.status);
+        return response.text().then(text => {
+            console.log('Response text:', text);
+            try {
+                return { status: response.status, data: JSON.parse(text) };
+            } catch (e) {
+                console.error('Erreur parsing JSON:', e);
+                throw new Error('Réponse non-JSON du serveur');
+            }
+        });
+    })
+    .then(({ status, data }) => {
+        console.log('Data reçue:', data);
+        
+        if (data.success) {
+            showSuccessMessage(form, "Compte créé avec succès!");
+            setTimeout(() => {
+                form.reset();
+                if (roleDropdown) {
+                    roleDropdown.dataset.value = '';
+                    roleDropdown.querySelector('.dropdown-label').textContent = 'Choisir un rôle';
+                }
+                closeModal();
+                location.reload();
+            }, 1500);
+        } else {
+            showFormError(form, data.message || "Une erreur est survenue lors de la création du compte");
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    })
+    .catch(error => {
+        console.error('Erreur AJAX:', error);
+        showFormError(form, error.message || "Une erreur est survenue lors de la création du compte");
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    });
+    
+    return false;
+}
+
+/**
+ * Affiche un message d'erreur dans le formulaire du modal
+ */
+function showFormError(form, message) {
+    let errorContainer = form.querySelector('.form-error-message');
+    if (!errorContainer) {
+        errorContainer = document.createElement('div');
+        errorContainer.className = 'form-error-message';
+        form.insertBefore(errorContainer, form.firstChild);
+    }
+    
+    errorContainer.innerHTML = `<p style="color: #fe3232; padding: 12px; background-color: rgba(254, 50, 50, 0.1); border-radius: 8px; margin-bottom: 16px;">${message}</p>`;
+    errorContainer.style.display = 'block';
+}
+
+/**
+ * Affiche un message de succès dans le formulaire du modal
+ */
+function showSuccessMessage(form, message) {
+    let successContainer = form.querySelector('.form-success-message');
+    if (!successContainer) {
+        successContainer = document.createElement('div');
+        successContainer.className = 'form-success-message';
+        form.insertBefore(successContainer, form.firstChild);
+    }
+    
+    successContainer.innerHTML = `<p style="color: #2d65c6; padding: 12px; background-color: rgba(45, 101, 198, 0.1); border-radius: 8px; margin-bottom: 16px;">${message}</p>`;
+    successContainer.style.display = 'block';
 }
 
 function submitCSVUpload(event) {
@@ -248,3 +372,66 @@ document.addEventListener('DOMContentLoaded', () => {
         modalManager.setupFileInput('csvFileError');
     }
 });
+
+/**
+ * Initialise les dropdowns personnalisés du modal
+ */
+function initializeModalDropdowns() {
+    const modal = document.querySelector('.modal-overlay.active .modal');
+    if (!modal) return;
+    
+    const dropdowns = modal.querySelectorAll('.dropdown[data-dropdown="modal-role"]');
+    
+    dropdowns.forEach(dropdown => {
+        const toggle = dropdown.querySelector('.dropdown-toggle');
+        const options = dropdown.querySelectorAll('.dropdown-option');
+        
+        if (!toggle || !options.length) return;
+        
+        // Ajouter event listener au toggle
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = dropdown.classList.contains('open');
+            
+            // Fermer tous les autres
+            modal.querySelectorAll('.dropdown').forEach(d => {
+                if (d !== dropdown) d.classList.remove('open');
+            });
+            
+            if (!isOpen) {
+                dropdown.classList.add('open');
+            } else {
+                dropdown.classList.remove('open');
+            }
+        });
+        
+        // Ajouter event listeners aux options
+        options.forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const value = option.getAttribute('data-value');
+                const label = option.getAttribute('data-label') || option.textContent.trim();
+                const role = option.getAttribute('data-role');
+                
+                const labelSpan = dropdown.querySelector('.dropdown-label');
+                if (labelSpan) {
+                    if (role) {
+                        labelSpan.innerHTML = `<span class="role-badge role-${role}">${label.toUpperCase()}</span>`;
+                    } else {
+                        labelSpan.textContent = label;
+                    }
+                }
+                
+                dropdown.dataset.value = value;
+                dropdown.classList.remove('open');
+            });
+        });
+    });
+    
+    // Fermer les dropdowns si on clique ailleurs
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dropdown')) {
+            modal.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+        }
+    });
+}

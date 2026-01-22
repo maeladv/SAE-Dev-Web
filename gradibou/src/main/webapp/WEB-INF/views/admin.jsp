@@ -216,8 +216,7 @@
             <div class="modal">
                 <h2 class="modal-title">Créer un compte</h2>
 
-                <form action="<%= request.getContextPath() %>/app/admin/creer-utilisateur" method="post"
-                    onsubmit="return submitCreateAccount(event)">
+                <form onsubmit="return submitCreateAccount(event)">
                     <div class="modal-form-grid">
                         <!-- Colonne gauche -->
                         <div class="form-group">
