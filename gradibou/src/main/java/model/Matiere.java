@@ -47,13 +47,13 @@ public class Matiere {
     public static Matiere trouverParId(int id) throws SQLException {
         String sql = "SELECT id, nom, semestre, id_specialite, id_prof FROM matiere WHERE id = ?";
 
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = DatabaseManager.obtenirConnexion();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                return creerDepuisResultSet(rs);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return creerDepuisResultSet(rs);
+                }
             }
         }
         return null;
@@ -65,8 +65,8 @@ public class Matiere {
         List<Matiere> liste = new ArrayList<>();
         String sql = "SELECT id, nom, semestre, id_specialite, id_prof FROM matiere ORDER BY nom";
 
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-            PreparedStatement stmt = conn.prepareStatement(sql);
+        Connection conn = DatabaseManager.obtenirConnexion();
+        try (PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery()) {
             
             while (rs.next()) {
@@ -83,13 +83,13 @@ public class Matiere {
         List<Matiere> liste = new ArrayList<>();
         String sql = "SELECT id, nom, semestre, id_specialite, id_prof FROM matiere WHERE id_specialite = ? ORDER BY nom";
 
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = DatabaseManager.obtenirConnexion();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, specialiteId);
-            ResultSet rs = stmt.executeQuery();
-            
-            while (rs.next()) {
-                liste.add(creerDepuisResultSet(rs));
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    liste.add(creerDepuisResultSet(rs));
+                }
             }
         }
         return liste;
@@ -109,14 +109,13 @@ public class Matiere {
     }
 
     /**
-     * Insérer une nouvelle spécialité en base de données
+     * Insérer une nouvelle matière en base de données
      */
     private boolean insert() throws SQLException {
-        // Ici, le tag est fourni par l'objet et non généré par la BDD
         String sql = "INSERT INTO matiere (nom, semestre, id_specialite, id_prof) VALUES (?, ?, ?, ?)";
 
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = DatabaseManager.obtenirConnexion();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, this.nom);
             stmt.setInt(2, this.semestre);
             stmt.setInt(3, this.specialiteId);
@@ -132,12 +131,12 @@ public class Matiere {
         return false;
     }
 
-     //Mettre à jour une spécialité existante
+     //Mettre à jour une matière existante
     private boolean update() throws SQLException {
         String sql = "UPDATE matiere SET nom = ?, semestre = ?, id_specialite = ?, id_prof = ? WHERE id = ?";
 
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = DatabaseManager.obtenirConnexion();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, this.nom);
             stmt.setInt(2, this.semestre);
             stmt.setInt(3, this.specialiteId);
@@ -149,17 +148,47 @@ public class Matiere {
     }
 
     /**
-     * Supprimer la spécialité
+     * Supprimer la matière (avec suppression en cascade)
+     * - Supprime tous les examens de la matière (qui supprimeront leurs notes)
+     * - Supprime les réponses d'évaluation pour cette matière
+     * - Supprime les a_repondu_evaluation pour cette matière
      */   
     public boolean supprimer() throws SQLException {
+        Connection conn = DatabaseManager.obtenirConnexion();
+        return supprimer(conn);
+    }
+    
+    /**
+     * Supprimer la matière avec une connexion fournie (pour les suppressions en cascade)
+     */
+    public boolean supprimer(Connection conn) throws SQLException {
         if (!persisted) {
             return false;
         }
 
+        // 1. Supprimer tous les examens de cette matière (cascade vers notes)
+        List<Examen> examens = Examen.trouverParMatiere(this.id);
+        for (Examen e : examens) {
+            e.supprimer(conn);
+        }
+        
+        // 2. Supprimer les a_repondu_evaluation pour cette matière
+        String deleteAReponduSql = "DELETE FROM a_repondu_evaluation WHERE id_matiere = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(deleteAReponduSql)) {
+            stmt.setInt(1, this.id);
+            stmt.executeUpdate();
+        }
+        
+        // 3. Supprimer les réponses d'évaluation pour cette matière
+        String deleteReponsesSql = "DELETE FROM reponse_evaluation WHERE id_matiere = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(deleteReponsesSql)) {
+            stmt.setInt(1, this.id);
+            stmt.executeUpdate();
+        }
+        
+        // 4. Supprimer la matière
         String sql = "DELETE FROM matiere WHERE id = ?";
-
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, this.id);
             boolean success = stmt.executeUpdate() > 0;
             if (success) {

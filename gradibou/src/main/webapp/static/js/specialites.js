@@ -5,6 +5,73 @@ let currentDeleteTag = null;
 let currentDeleteAnnee = null;
 
 /**
+ * Affiche une notification toast
+ */
+function showNotification(message, type = 'info') {
+    // Créer le conteneur si nécessaire
+    let notificationContainer = document.getElementById('notification-container');
+    if (!notificationContainer) {
+        notificationContainer = document.createElement('div');
+        notificationContainer.id = 'notification-container';
+        notificationContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 10000;';
+        document.body.appendChild(notificationContainer);
+    }
+
+    const notification = document.createElement('div');
+    notification.className = 'notification notification-' + type;
+    
+    const backgroundColor = type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3';
+    notification.style.cssText = `
+        background: ${backgroundColor};
+        color: white;
+        padding: 16px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        min-width: 300px;
+        animation: slideIn 0.3s ease-in-out;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    `;
+    notification.textContent = message;
+    notificationContainer.appendChild(notification);
+
+    // Supprimer après 3 secondes
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Ajouter les animations CSS pour les notifications
+if (!document.getElementById('notification-animations')) {
+    const style = document.createElement('style');
+    style.id = 'notification-animations';
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+/**
  * Ouvrir le modal de modification de spécialité
  */
 function openEditSpecialiteModal(id, nom, tag, annee) {
@@ -42,12 +109,12 @@ function submitCreateSpecialite(event) {
     const annee = formData.get('annee');
     
     if (!nom || !tag || !annee) {
-        showError(form, 'Tous les champs sont requis');
+        showFormError(form, 'Tous les champs sont requis');
         return false;
     }
     
     if (annee < 1 || annee > 5) {
-        showError(form, 'L\'année doit être entre 1 et 5');
+        showFormError(form, 'L\'année doit être entre 1 et 5');
         return false;
     }
     
@@ -59,17 +126,17 @@ function submitCreateSpecialite(event) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showSuccess(form, data.message || 'Spécialité créée avec succès');
+            showSuccessMessage(form, data.message || 'Spécialité créée avec succès');
             setTimeout(() => {
                 window.location.href = `${contextPath}/app/gestion/specialites`;
             }, 1000);
         } else {
-            showError(form, data.message || 'Erreur lors de la création');
+            showFormError(form, data.message || 'Erreur lors de la création');
         }
     })
     .catch(error => {
         console.error('Erreur:', error);
-        showError(form, 'Une erreur est survenue');
+        showFormError(form, 'Une erreur est survenue');
     });
     
     return false;
@@ -88,7 +155,7 @@ function submitEditSpecialite(event) {
     const nom = formData.get('nom');
     
     if (!nom) {
-        showError(form, 'Le nom est requis');
+        showFormError(form, 'Le nom est requis');
         return false;
     }
     
@@ -100,17 +167,17 @@ function submitEditSpecialite(event) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showSuccess(form, data.message || 'Spécialité modifiée avec succès');
+            showSuccessMessage(form, data.message || 'Spécialité modifiée avec succès');
             setTimeout(() => {
                 window.location.href = `${contextPath}/app/gestion/specialites`;
             }, 1000);
         } else {
-            showError(form, data.message || 'Erreur lors de la modification');
+            showFormError(form, data.message || 'Erreur lors de la modification');
         }
     })
     .catch(error => {
         console.error('Erreur:', error);
-        showError(form, 'Une erreur est survenue');
+        showFormError(form, 'Une erreur est survenue');
     });
     
     return false;
@@ -138,41 +205,11 @@ function executeDeleteSpecialite() {
             closeModal();
             window.location.href = `${contextPath}/app/gestion/specialites`;
         } else {
-            alert(data.message || 'Erreur lors de la suppression');
+            showNotification(data.message || 'Erreur lors de la suppression', 'error');
         }
     })
     .catch(error => {
         console.error('Erreur:', error);
-        alert('Une erreur est survenue lors de la suppression');
+        showNotification('Une erreur est survenue lors de la suppression', 'error');
     });
-}
-
-/**
- * Afficher un message d'erreur dans le formulaire
- */
-function showError(form, message) {
-    let errorContainer = form.querySelector('.form-error-message');
-    if (!errorContainer) {
-        errorContainer = document.createElement('div');
-        errorContainer.className = 'form-error-message';
-        form.insertBefore(errorContainer, form.firstChild);
-    }
-    
-    errorContainer.innerHTML = `<p style="color: #fe3232; padding: 12px; background-color: rgba(254, 50, 50, 0.1); border-radius: 8px; margin-bottom: 16px;">${message}</p>`;
-    errorContainer.style.display = 'block';
-}
-
-/**
- * Afficher un message de succès dans le formulaire
- */
-function showSuccess(form, message) {
-    let successContainer = form.querySelector('.form-success-message');
-    if (!successContainer) {
-        successContainer = document.createElement('div');
-        successContainer.className = 'form-success-message';
-        form.insertBefore(successContainer, form.firstChild);
-    }
-    
-    successContainer.innerHTML = `<p style="color: #2d65c6; padding: 12px; background-color: rgba(45, 101, 198, 0.1); border-radius: 8px; margin-bottom: 16px;">${message}</p>`;
-    successContainer.style.display = 'block';
 }

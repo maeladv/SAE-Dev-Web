@@ -250,6 +250,100 @@ public class Utilisateur {
     }
 
     /**
+     * Mettre à jour un utilisateur avec gestion du changement de rôle
+     */
+    public boolean updateWithRoleChange(String ancienRole) throws SQLException {
+        if (!persisted) {
+            return false;
+        }
+
+        try (Connection conn = DatabaseManager.obtenirConnexion()) {
+            conn.setAutoCommit(false);
+            
+            try {
+                // Si le rôle passe de étudiant à autre chose, nettoyer les tables liées
+                if ("etudiant".equalsIgnoreCase(ancienRole) && !"etudiant".equalsIgnoreCase(this.role)) {
+                    // Supprimer les notes
+                    String deleteNoteSql = "DELETE FROM note WHERE id_etudiant = ?";
+                    try (PreparedStatement stmt = conn.prepareStatement(deleteNoteSql)) {
+                        stmt.setInt(1, this.id);
+                        stmt.executeUpdate();
+                    }
+
+                    // Supprimer les réponses d'évaluation
+                    String deleteARepondsql = "DELETE FROM a_repondu_evaluation WHERE id_etudiant = ?";
+                    try (PreparedStatement stmt = conn.prepareStatement(deleteARepondsql)) {
+                        stmt.setInt(1, this.id);
+                        stmt.executeUpdate();
+                    }
+
+                    // Supprimer l'enregistrement étudiant
+                    String deleteEtudiantSql = "DELETE FROM etudiant WHERE id_utilisateur = ?";
+                    try (PreparedStatement stmt = conn.prepareStatement(deleteEtudiantSql)) {
+                        stmt.setInt(1, this.id);
+                        stmt.executeUpdate();
+                    }
+                }
+
+                // Si le rôle passe à étudiant, ajouter à la table étudiant
+                if (!"etudiant".equalsIgnoreCase(ancienRole) && "etudiant".equalsIgnoreCase(this.role)) {
+                    // Vérifier que l'enregistrement n'existe pas déjà
+                    String checkEtudiantSql = "SELECT id_utilisateur FROM etudiant WHERE id_utilisateur = ?";
+                    boolean etudiantExists = false;
+                    try (PreparedStatement stmt = conn.prepareStatement(checkEtudiantSql)) {
+                        stmt.setInt(1, this.id);
+                        try (java.sql.ResultSet rs = stmt.executeQuery()) {
+                            etudiantExists = rs.next();
+                        }
+                    }
+
+                    // Ajouter si n'existe pas
+                    if (!etudiantExists) {
+                        String insertEtudiantSql = "INSERT INTO etudiant (id_utilisateur, ine, id_specialite) VALUES (?, ?, NULL)";
+                        try (PreparedStatement stmt = conn.prepareStatement(insertEtudiantSql)) {
+                            stmt.setInt(1, this.id);
+                            stmt.setString(2, ""); // INE vide par défaut
+                            stmt.executeUpdate();
+                        }
+                    }
+                }
+
+                // Si le rôle passe de professeur à autre chose, réinitialiser les matières
+                if ("professeur".equalsIgnoreCase(ancienRole) && !"professeur".equalsIgnoreCase(this.role)) {
+                    String updateMatiereSql = "UPDATE matiere SET id_prof = NULL WHERE id_prof = ?";
+                    try (PreparedStatement stmt = conn.prepareStatement(updateMatiereSql)) {
+                        stmt.setInt(1, this.id);
+                        stmt.executeUpdate();
+                    }
+                }
+
+                // Mettre à jour l'utilisateur
+                String updateUtilisateurSql = "UPDATE utilisateur SET nom = ?, prenom = ?, email = ?, date_naissance = ?, role = ? WHERE id = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(updateUtilisateurSql)) {
+                    stmt.setString(1, this.nom);
+                    stmt.setString(2, this.prenom);
+                    stmt.setString(3, this.email);
+                    stmt.setDate(4, java.sql.Date.valueOf(this.dateNaissance));
+                    stmt.setString(5, this.role);
+                    stmt.setInt(6, this.id);
+
+                    boolean success = stmt.executeUpdate() > 0;
+                    if (success) {
+                        conn.commit();
+                        return true;
+                    } else {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+        }
+    }
+
+    /**
      * Mettre à jour le mot de passe uniquement
      */
     public boolean mettreAJourMotDePasse(String nouveauMotDePasse) throws SQLException {
@@ -624,15 +718,28 @@ public class Utilisateur {
 
             Utilisateur user = Utilisateur.trouverParId(id);
             if (user != null) {
+                String ancienRole = user.getRole();
+                
                 user.setNom(nom);
                 user.setPrenom(prenom);
                 user.setemail(email);
                 user.setRole(role);
-                user.save();
+                
+                // Si le rôle a changé, utiliser updateWithRoleChange()
+                if (!ancienRole.equalsIgnoreCase(role)) {
+                    user.updateWithRoleChange(ancienRole);
+                } else {
+                    user.save();
+                }
+                
                 util.Json.envoyerJsonSuccess(response, "Utilisateur modifié avec succès", request.getContextPath() + "/app/admin");
             } else {
                 util.Json.envoyerJsonError(response, "Utilisateur non trouvé", HttpServletResponse.SC_NOT_FOUND);
             }
+        } catch (NumberFormatException e) {
+            util.Json.envoyerJsonError(response, "ID utilisateur invalide", HttpServletResponse.SC_BAD_REQUEST);
+        } catch (SQLException e) {
+            util.Json.envoyerJsonError(response, "Erreur base de données", HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             util.Json.envoyerJsonError(response, "Erreur : " + e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }

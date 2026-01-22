@@ -39,13 +39,13 @@ public class Specialite {
     public static Specialite trouverParId(int id) throws SQLException {
         String sql = "SELECT id, tag, annee, nom FROM specialite WHERE id = ?";
 
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = DatabaseManager.obtenirConnexion();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                return creerDepuisResultSet(rs);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return creerDepuisResultSet(rs);
+                }
             }
         }
         return null;
@@ -58,8 +58,8 @@ public class Specialite {
         List<Specialite> liste = new ArrayList<>();
         String sql = "SELECT id, tag, annee, nom FROM specialite ORDER BY nom";
 
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql);
+        Connection conn = DatabaseManager.obtenirConnexion();
+        try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             
             while (rs.next()) {
@@ -80,13 +80,13 @@ public class Specialite {
                      "WHERE m.id_prof = ? " +
                      "ORDER BY s.nom";
 
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = DatabaseManager.obtenirConnexion();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idProf);
-            ResultSet rs = stmt.executeQuery();
-            
-            while (rs.next()) {
-                liste.add(creerDepuisResultSet(rs));
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    liste.add(creerDepuisResultSet(rs));
+                }
             }
         }
         return liste;
@@ -113,8 +113,8 @@ public class Specialite {
         // Ici, le tag est fourni par l'objet et non généré par la BDD
         String sql = "INSERT INTO specialite (tag, annee, nom) VALUES (?, ?, ?)";
 
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = DatabaseManager.obtenirConnexion();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, this.tag);
             stmt.setInt(2, this.annee);
             stmt.setString(3, this.nom);
@@ -133,8 +133,8 @@ public class Specialite {
     private boolean update() throws SQLException {
         String sql = "UPDATE specialite SET tag = ?, annee = ?, nom = ? WHERE id = ?";
 
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = DatabaseManager.obtenirConnexion();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, this.tag);
             stmt.setInt(2, this.annee);
             stmt.setString(3, this.nom);
@@ -145,18 +145,33 @@ public class Specialite {
     }
 
     /**
-     * Supprimer la spécialité
+     * Supprimer la spécialité (avec suppression en cascade)
+     * - Supprime toutes les matières de la spécialité (qui supprimeront leurs examens/notes/évaluations)
+     * - Met à jour les étudiants ayant cette spécialité (id_specialite -> NULL)
      */
     public boolean supprimer() throws SQLException {
         if (!persisted) {
             return false;
         }
 
-        String sql = "DELETE FROM specialite WHERE tag = ?";
-
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, this.tag);
+        Connection conn = DatabaseManager.obtenirConnexion();
+        // 1. Supprimer toutes les matières de cette spécialité (cascade vers examens, notes, évaluations)
+        List<Matiere> matieres = Matiere.trouverParSpecialite(this.id);
+        for (Matiere m : matieres) {
+            m.supprimer(conn);
+        }
+        
+        // 2. Mettre à jour les étudiants ayant cette spécialité
+        String updateEtudiantsSql = "UPDATE etudiant SET id_specialite = NULL WHERE id_specialite = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(updateEtudiantsSql)) {
+            stmt.setInt(1, this.id);
+            stmt.executeUpdate();
+        }
+        
+        // 3. Supprimer la spécialité
+        String sql = "DELETE FROM specialite WHERE id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, this.id);
             boolean success = stmt.executeUpdate() > 0;
             if (success) {
                 this.persisted = false;
@@ -267,11 +282,12 @@ public class Specialite {
             model.Specialite s = model.Specialite.trouverParId(id);
             if (s != null) {
                 s.supprimer();
+                util.Json.envoyerJsonSuccess(response, "Spécialité supprimée avec succès", "");
+            } else {
+                util.Json.envoyerJsonError(response, "Spécialité non trouvée", HttpServletResponse.SC_NOT_FOUND);
             }
-            response.sendRedirect(request.getContextPath() + "/app/gestion/specialites");
         } catch (Exception e) {
-            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+            util.Json.envoyerJsonError(response, "Erreur lors de la suppression : " + e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -320,13 +336,13 @@ public class Specialite {
         
         String sql = "SELECT COUNT(*) FROM etudiant WHERE id_specialite = ?";
         
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = DatabaseManager.obtenirConnexion();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, this.id);
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                return rs.getInt(1);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         }
         return 0;
@@ -342,13 +358,13 @@ public class Specialite {
         
         String sql = "SELECT COUNT(DISTINCT id_prof) FROM matiere WHERE id_specialite = ? AND id_prof IS NOT NULL";
         
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        Connection conn = DatabaseManager.obtenirConnexion();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, this.id);
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                return rs.getInt(1);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         }
         return 0;
