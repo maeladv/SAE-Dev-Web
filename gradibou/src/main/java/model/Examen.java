@@ -1,5 +1,6 @@
 package model;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,7 +9,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import util.DatabaseManager;
+import util.Role;
 
 public class Examen {
     private int id;
@@ -176,7 +182,7 @@ public class Examen {
     // ==================== Méthodes utilitaires ====================
 
     /**
-     * Hydrater un objet depuis un ResultSet
+     * Creer un objet depuis un ResultSet
      */
     private static Examen creerDepuisResultSet(ResultSet rs) throws SQLException {
         Examen exam = new Examen();
@@ -187,6 +193,125 @@ public class Examen {
         exam.id_matiere = rs.getInt("id_matiere");
         exam.persisted = true;
         return exam;
+    }
+
+    // ================ Méthodes pour le controllers ================
+
+    public static void creationExamenParAdmin(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/app/login");
+            return;
+        }
+
+        if (!Role.estAdmin(session)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        try {
+            request.setAttribute("matieres", model.Matiere.trouverToutes());
+        } catch (SQLException e) {
+             e.printStackTrace();
+             request.setAttribute("error", "Erreur lors du chargement des matières: " + e.getMessage());
+        }
+
+        String nom = request.getParameter("nom");
+        String coefficientStr = request.getParameter("coefficient");
+        String matiereIdStr = request.getParameter("matiereId");
+
+        try {
+            if (nom == null || nom.isEmpty() || coefficientStr == null || coefficientStr.isEmpty() || 
+                matiereIdStr == null || matiereIdStr.isEmpty()) {
+                request.setAttribute("error", "Tous les champs sont requis.");
+                request.getRequestDispatcher("/WEB-INF/views/creerExamen.jsp").forward(request, response);
+                return;
+            }
+
+            int coefficient = Integer.parseInt(coefficientStr);
+            int matiereId = Integer.parseInt(matiereIdStr);
+
+            model.Examen examen = new model.Examen(nom, coefficient, matiereId);
+            
+            if (examen.save()) {
+                request.setAttribute("success", "Examen créé avec succès");
+            } else {
+                request.setAttribute("error", "Erreur lors de la création de l'examen");
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Format numérique invalide");
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+        }
+        
+        request.getRequestDispatcher("/WEB-INF/views/creerExamen.jsp").forward(request, response);
+    }
+
+    public static String afficherExamens(HttpServletRequest request) {
+        try {
+            String idMatStr = request.getParameter("matId");
+            if (idMatStr != null && !idMatStr.isEmpty()) {
+                int idMat = Integer.parseInt(idMatStr);
+                request.setAttribute("examens", model.Examen.trouverParMatiere(idMat));
+                request.setAttribute("matiere", model.Matiere.trouverParId(idMat));
+            } else {
+                request.setAttribute("examens", model.Examen.trouverTous());
+            }
+            return "/WEB-INF/views/listeExamens.jsp";
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur : " + e.getMessage());
+            return "/WEB-INF/views/error.jsp";
+        }
+    }
+
+    public static void supprimerExamen(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!Role.estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            model.Examen e = model.Examen.trouverParId(id);
+            int matId = -1;
+            if (e != null) {
+                matId = e.getId_matiere();
+                e.supprimer();
+            }
+            if (matId != -1) {
+                response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matId);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    public static void modifierExamen(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!Role.estAdmin(request.getSession(false))) {
+             response.sendError(HttpServletResponse.SC_FORBIDDEN);
+             return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            String nom = request.getParameter("nom");
+            int coefficient = Integer.parseInt(request.getParameter("coefficient"));
+             // Date n'est pas modifiable dans cette version simplifiée ou on garde l'existante
+            
+            model.Examen e = model.Examen.trouverParId(id);
+            if (e != null) {
+                e.setNom(nom);
+                e.setCoefficient(coefficient);
+                e.save();
+            }
+            int matId = e != null ? e.getId_matiere() : -1;
+            response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matId);
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la modification : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
     }
 
     /**

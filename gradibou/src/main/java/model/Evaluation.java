@@ -1,5 +1,6 @@
 package model;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,7 +10,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import util.DatabaseManager;
+import util.Role;
 
 public class Evaluation {
     private int id;
@@ -145,6 +150,116 @@ public class Evaluation {
             }
         }
         return liste;
+    }
+
+    // ================ Méthodes pour le controllers ================
+
+    public static void creationEvaluationParAdmin(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        if (!Role.estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        String dateDebutStr = request.getParameter("date_debut");
+        String dateFinStr = request.getParameter("date_fin");
+        String semestreStr = request.getParameter("semestre");
+
+        try {
+            if (dateDebutStr == null || dateDebutStr.isEmpty() || dateFinStr == null || dateFinStr.isEmpty() || 
+                semestreStr == null || semestreStr.isEmpty()) {
+                request.setAttribute("error", "Tous les champs sont requis.");
+                request.getRequestDispatcher("/WEB-INF/views/creerEvaluation.jsp").forward(request, response);
+                return;
+            }
+
+            int semestre = Integer.parseInt(semestreStr);
+            
+            // Convertir les dates du format datetime-local
+            java.time.LocalDateTime dateDebut = java.time.LocalDateTime.parse(dateDebutStr);
+            java.time.LocalDateTime dateFin = java.time.LocalDateTime.parse(dateFinStr);
+
+            model.Evaluation evaluation = new model.Evaluation(dateDebut, dateFin, semestre);
+            evaluation.save();
+            
+            request.setAttribute("success", "Évaluation créée avec succès (ID: " + evaluation.getId() + ")");
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Format numérique invalide");
+        } catch (java.time.format.DateTimeParseException e) {
+            request.setAttribute("error", "Format de date invalide");
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+        }
+        
+        request.getRequestDispatcher("/WEB-INF/views/creerEvaluation.jsp").forward(request, response);
+    }
+
+    public static java.util.List<java.util.Map<String, Object>> obtenirEvaluationsDisponibles(int idEtudiant) throws SQLException {
+        java.util.List<java.util.Map<String, Object>> evaluations = new java.util.ArrayList<>();
+        
+        // Récupérer la spécialité de l'étudiant
+        Utilisateur etudiant = Utilisateur.trouverParId(idEtudiant);
+        if (etudiant == null || etudiant.getIdSpecialite() <= 0) {
+            return evaluations;
+        }
+
+        int idSpecialite = etudiant.getIdSpecialite();
+
+        // Récupérer toutes les évaluations et les matières de la spécialité
+        String sql = "SELECT DISTINCT e.id, e.date_debut, e.date_fin, e.semestre, m.id as matiere_id, m.nom as matiere_nom " +
+                 "FROM evaluation e, matiere m " +
+                 "WHERE m.id_specialite = ? " +
+                 "AND m.semestre = e.semestre " +
+                 "ORDER BY e.date_fin DESC";
+        
+        try (java.sql.Connection conn = util.DatabaseManager.obtenirConnexion();
+             java.sql.PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idSpecialite);
+            java.sql.ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                java.util.Map<String, Object> eval = new java.util.HashMap<>();
+                int evalId = rs.getInt("id");
+                int matiereId = rs.getInt("matiere_id");
+                
+                eval.put("evaluation_id", evalId);
+                eval.put("matiere_id", matiereId);
+                eval.put("matiere_nom", rs.getString("matiere_nom"));
+                eval.put("date_debut", rs.getObject("date_debut"));
+                eval.put("date_fin", rs.getObject("date_fin"));
+                eval.put("semestre", rs.getInt("semestre"));
+                
+                // Vérifier si l'étudiant a déjà répondu
+                boolean aRepondu = model.A_Repondu_Evaluation.aRepondu(idEtudiant, matiereId, evalId);
+                
+                // Vérifier si l'évaluation est toujours ouverte
+                java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                java.time.LocalDateTime dateFin = rs.getObject("date_fin", java.time.LocalDateTime.class);
+                
+                String status;
+                if (aRepondu) {
+                    status = "answered";
+                } else if (now.isAfter(dateFin)) {
+                    status = "closed";
+                } else {
+                    status = "open";
+                }
+                
+                eval.put("status", status);
+                
+                // Calculer le taux de réponse
+                try {
+                    int tauxReponse = model.Reponse_Evaluation.calculerTauxReponseParMatiere(evalId, matiereId);
+                    eval.put("taux_reponse", tauxReponse);
+                } catch (Exception e) {
+                    eval.put("taux_reponse", 0);
+                }
+                
+                evaluations.add(eval);
+            }
+        }
+        
+        return evaluations;
     }
 
     // Getters et Setters

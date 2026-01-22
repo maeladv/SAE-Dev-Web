@@ -1,5 +1,6 @@
 package model;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,7 +9,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import util.DatabaseManager;
+import util.Role;
 
 public class Note {
     private int id_etudiant;
@@ -179,7 +185,7 @@ public class Note {
     // ==================== Méthodes utilitaires ====================
 
     /**
-     * Hydrater un objet depuis un ResultSet
+     * Creer un objet depuis un ResultSet
      */
     private static Note creerDepuisResultSet(ResultSet rs) throws SQLException {
         Note note = new Note();
@@ -189,6 +195,117 @@ public class Note {
         note.date = rs.getDate("date").toLocalDate();
         note.persisted = true;
         return note;
+    }
+
+    // ================ Méthodes pour le controllers ================
+
+    public static void creationNoteParAdmin(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/app/login");
+            return;
+        }
+
+        if (!Role.estAdmin(session)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        try {
+            request.setAttribute("examens", model.Examen.trouverTous());
+            request.setAttribute("etudiants", model.Utilisateur.trouverTousLesEtudiants());
+        } catch (SQLException e) {
+             e.printStackTrace();
+             request.setAttribute("error", "Erreur lors du chargement des listes: " + e.getMessage());
+        }
+
+        String examenIdStr = request.getParameter("examenId");
+        String etudiantIdStr = request.getParameter("etudiantId");
+        String noteStr = request.getParameter("note");
+
+        try {
+            if (examenIdStr == null || examenIdStr.isEmpty() || etudiantIdStr == null || etudiantIdStr.isEmpty() || 
+                noteStr == null || noteStr.isEmpty()) {
+                request.setAttribute("error", "Tous les champs sont requis.");
+                request.getRequestDispatcher("/WEB-INF/views/creerNote.jsp").forward(request, response);
+                return;
+            }
+
+            int examenId = Integer.parseInt(examenIdStr);
+            int etudiantId = Integer.parseInt(etudiantIdStr);
+            int noteVal = Integer.parseInt(noteStr);
+
+            model.Note note = new model.Note(noteVal, examenId, etudiantId);
+            
+            if (note.save()) {
+                request.setAttribute("success", "Note attribuée avec succès");
+            } else {
+                request.setAttribute("error", "Erreur lors de l'enregistrement de la note");
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Format numérique invalide");
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+        }
+        
+        request.getRequestDispatcher("/WEB-INF/views/creerNote.jsp").forward(request, response);
+    }
+
+    public static String afficherNotes(HttpServletRequest request) {
+        try {
+            String idExamStr = request.getParameter("examId");
+            if (idExamStr != null && !idExamStr.isEmpty()) {
+                int idExam = Integer.parseInt(idExamStr);
+                request.setAttribute("notes", model.Note.trouverParExamen(idExam));
+                request.setAttribute("examen", model.Examen.trouverParId(idExam));
+            }
+            return "/WEB-INF/views/listeNotes.jsp";
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur : " + e.getMessage());
+            return "/WEB-INF/views/error.jsp";
+        }
+    }
+
+    public static void supprimerNote(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!Role.estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        try {
+            int etudiantId = Integer.parseInt(request.getParameter("etudiantId"));
+            int examenId = Integer.parseInt(request.getParameter("examenId"));
+            model.Note n = model.Note.trouverParIdEtudiantExamen(etudiantId, examenId);
+            if (n != null) {
+                n.supprimer();
+            }
+            response.sendRedirect(request.getContextPath() + "/app/admin/notes?examId=" + examenId);
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    public static void modifierNote(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!Role.estAdmin(request.getSession(false))) {
+             response.sendError(HttpServletResponse.SC_FORBIDDEN);
+             return;
+        }
+        try {
+            int etudiantId = Integer.parseInt(request.getParameter("etudiantId"));
+            int examenId = Integer.parseInt(request.getParameter("examenId"));
+            int valeur = Integer.parseInt(request.getParameter("note"));
+            
+            model.Note n = model.Note.trouverParIdEtudiantExamen(etudiantId, examenId);
+            if (n != null) {
+                n.setValeur(valeur);
+                n.save();
+            }
+            response.sendRedirect(request.getContextPath() + "/app/admin/notes?examId=" + examenId);
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la modification : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
     }
 
     /**
