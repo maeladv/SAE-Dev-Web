@@ -409,6 +409,8 @@ public class Matiere {
              response.sendError(HttpServletResponse.SC_FORBIDDEN);
              return;
         }
+        boolean isAjax = "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"));
+        
         try {
             int id = Integer.parseInt(request.getParameter("id"));
             String nom = request.getParameter("nom");
@@ -417,8 +419,14 @@ public class Matiere {
 
             Utilisateur prof = Utilisateur.trouverParemail(profEmail);
             if (prof == null || !"professeur".equalsIgnoreCase(prof.getRole())) {
-                request.setAttribute("error", "Le professeur doit exister et avoir le rôle professeur");
-                request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+                if (isAjax) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    response.setContentType("text/plain;charset=UTF-8");
+                    response.getWriter().write("Le professeur doit exister et avoir le rôle professeur");
+                } else {
+                    request.setAttribute("error", "Le professeur doit exister et avoir le rôle professeur");
+                    request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+                }
                 return;
             }
             int profId = prof.getId();
@@ -428,12 +436,27 @@ public class Matiere {
                 m.setNom(nom);
                 m.setSemestre(semestre);
                 m.setProfId(profId);
-                m.save();
+                if (!m.save()) {
+                    throw new SQLException("Erreur lors de la modification de la matière");
+                }
+                if (isAjax) {
+                    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                    return;
+                }
             }
-            response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + m.getSpecialiteId());
+            
+            if (!isAjax) {
+                response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + m.getSpecialiteId());
+            }
         } catch (Exception e) {
-            request.setAttribute("error", "Erreur lors de la modification : " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+            if (isAjax) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.setContentType("text/plain;charset=UTF-8");
+                response.getWriter().write("Erreur lors de la modification : " + e.getMessage());
+            } else {
+                request.setAttribute("error", "Erreur lors de la modification : " + e.getMessage());
+                request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+            }
         }
     }
 
