@@ -89,14 +89,22 @@ public class DatabaseManager {
             "FOREIGN KEY (id_specialite) REFERENCES specialite(id)," +
             "FOREIGN KEY (id_prof) REFERENCES utilisateur(id)" +
             ")",
-        "CREATE TABLE IF NOT EXISTS note (" +
+        "CREATE TABLE IF NOT EXISTS examen (" +
             "id SERIAL PRIMARY KEY," +
-            "id_etudiant INT NOT NULL," +
+            "nom VARCHAR(100) NOT NULL," +
+            "coefficient INT NOT NULL," +
+            "date DATE NOT NULL," +
             "id_matiere INT NOT NULL," +
+            "FOREIGN KEY (id_matiere) REFERENCES matiere(id)" +
+            ")",
+        "CREATE TABLE IF NOT EXISTS note (" +
+            "id_etudiant INT NOT NULL," +
+            "id_examen INT NOT NULL," +
             "note INT NOT NULL," +
             "date TIMESTAMP DEFAULT NOW()," +
             "FOREIGN KEY (id_etudiant) REFERENCES etudiant(id_utilisateur)," +
-            "FOREIGN KEY (id_matiere) REFERENCES matiere(id)" +
+            "FOREIGN KEY (id_examen) REFERENCES examen(id)," +
+            "PRIMARY KEY (id_etudiant, id_examen)" +
             ")",
         "CREATE TABLE IF NOT EXISTS evaluation (" +
             "id SERIAL PRIMARY KEY," +
