@@ -273,7 +273,87 @@ public class Controller extends HttpServlet {
                     return;
                 }
                 try {
-                    request.setAttribute("evaluations", model.Evaluation.trouverToutes());
+                    // Liste des évaluations
+                    java.util.List<model.Evaluation> evaluations = model.Evaluation.trouverToutes();
+                    request.setAttribute("evaluations", evaluations);
+
+                    // Choisir l'évaluation courante: celle ouverte, sinon la plus récente
+                    Integer currentEvalId = null;
+                    java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                    for (model.Evaluation e : evaluations) {
+                        if (e != null && now.isAfter(e.getDate_debut()) && now.isBefore(e.getDate_fin())) {
+                            currentEvalId = e.getId();
+                            break;
+                        }
+                    }
+                    if (currentEvalId == null && !evaluations.isEmpty()) {
+                        currentEvalId = evaluations.get(0).getId();
+                    }
+
+                    if (currentEvalId != null) {
+                        // Taux de réponse global
+                        int responseRate = model.Reponse_Evaluation.calculerTauxReponseGlobal(currentEvalId);
+                        request.setAttribute("responseRate", responseRate);
+
+                        // Spécialités la plus/moins investie (par taux de réponse)
+                        int[] plusMoins = model.Reponse_Evaluation.recupererIdSpecialitesAvecPlusEtMoinsDeResponses(currentEvalId);
+                        java.util.Map<String, Object> mostInvested = new java.util.HashMap<>();
+                        java.util.Map<String, Object> leastInvested = new java.util.HashMap<>();
+                        if (plusMoins[0] > 0) {
+                            model.Specialite specPlus = model.Specialite.trouverParId(plusMoins[0]);
+                            int tauxPlus = model.Reponse_Evaluation.calculerTauxReponseParSpecialite(currentEvalId, plusMoins[0]);
+                            mostInvested.put("tag", specPlus != null ? specPlus.getTag() : "-");
+                            mostInvested.put("rate", tauxPlus);
+                        }
+                        if (plusMoins[1] > 0) {
+                            model.Specialite specMoins = model.Specialite.trouverParId(plusMoins[1]);
+                            int tauxMoins = model.Reponse_Evaluation.calculerTauxReponseParSpecialite(currentEvalId, plusMoins[1]);
+                            leastInvested.put("tag", specMoins != null ? specMoins.getTag() : "-");
+                            leastInvested.put("rate", tauxMoins);
+                        }
+                        request.setAttribute("mostInvested", mostInvested);
+                        request.setAttribute("leastInvested", leastInvested);
+
+                        // Satisfaction générale (moyenne /5 convertie en pourcentage)
+                        double moyenneGlobale = model.Reponse_Evaluation.calculerMoyenneGeneraleGlobale(currentEvalId);
+                        int satisfactionPercent = (int) Math.round((moyenneGlobale / 5.0) * 100.0);
+                        request.setAttribute("satisfactionPercent", satisfactionPercent);
+
+                        // Retours les plus négatifs/positifs (par moyenne générale de spécialité)
+                        int[] posNeg = model.Reponse_Evaluation.recupererSpecialitePositiveEtNegative(currentEvalId);
+                        java.util.Map<String, Object> positiveReturn = new java.util.HashMap<>();
+                        java.util.Map<String, Object> negativeReturn = new java.util.HashMap<>();
+                        if (posNeg[0] > 0) {
+                            model.Specialite specPos = model.Specialite.trouverParId(posNeg[0]);
+                            double avgPos = model.Reponse_Evaluation.calculerMoyenneGeneraleParSpecialite(currentEvalId, posNeg[0]);
+                            positiveReturn.put("tag", specPos != null ? specPos.getTag() : "-");
+                            positiveReturn.put("avg", avgPos);
+                        }
+                        if (posNeg[1] > 0) {
+                            model.Specialite specNeg = model.Specialite.trouverParId(posNeg[1]);
+                            double avgNeg = model.Reponse_Evaluation.calculerMoyenneGeneraleParSpecialite(currentEvalId, posNeg[1]);
+                            negativeReturn.put("tag", specNeg != null ? specNeg.getTag() : "-");
+                            negativeReturn.put("avg", avgNeg);
+                        }
+                        request.setAttribute("positiveReturn", positiveReturn);
+                        request.setAttribute("negativeReturn", negativeReturn);
+
+                        // Spécialité avec le plus de réponses texte
+                        int specMostCommentsId = model.Reponse_Evaluation.recupererSpecialiteAvecPlusDeCommentaires(currentEvalId);
+                        if (specMostCommentsId > 0) {
+                            model.Specialite specMC = model.Specialite.trouverParId(specMostCommentsId);
+                            request.setAttribute("mostTextResponsesTag", specMC != null ? specMC.getTag() : "-");
+                        }
+                    } else {
+                        // Valeurs par défaut si aucune évaluation
+                        request.setAttribute("responseRate", 0);
+                        request.setAttribute("satisfactionPercent", 0);
+                        request.setAttribute("mostInvested", java.util.Collections.emptyMap());
+                        request.setAttribute("leastInvested", java.util.Collections.emptyMap());
+                        request.setAttribute("positiveReturn", java.util.Collections.emptyMap());
+                        request.setAttribute("negativeReturn", java.util.Collections.emptyMap());
+                        request.setAttribute("mostTextResponsesTag", "-");
+                    }
                 } catch (SQLException e) {
                     request.setAttribute("error", "Erreur lors du chargement des évaluations: " + e.getMessage());
                 }

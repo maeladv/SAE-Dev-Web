@@ -1,0 +1,330 @@
+/* Page Résultats Évaluations Admin */
+
+.re-admin-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 60px 40px;
+  align-items: center;
+}
+
+/* Section programmation */
+.eva-program-section {
+  background: var(--gradibou-blanc);
+  border: 1px solid var(--color-gris-contour);
+  border-radius: 12px;
+  padding: 20px;
+  width: 100%;
+}
+
+.eva-program-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.eva-program-title {
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--gradibou-noir);
+}
+
+.eva-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--gradibou-blanc);
+}
+
+.eva-status-badge.stopped {
+  background: var(--color-gris-fonce);
+}
+
+.eva-status-badge.scheduled {
+  background: var(--gradibou-status-warning);
+}
+
+.eva-status-badge.running {
+  background: var(--gradibou-status-success);
+}
+
+.eva-status-badge img {
+  width: 20px;
+  height: 20px;
+}
+
+.eva-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 631px;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+.eva-form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.eva-input-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.eva-input-label {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--gradibou-noir);
+}
+
+.eva-input {
+  background: var(--gradibou-blanc);
+  border: 0.5px solid var(--color-gris-contour);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 16px;
+  color: var(--gradibou-noir);
+}
+
+.eva-input:disabled,
+.eva-input.locked {
+  background: var(--color-gris-contour);
+  color: var(--color-gris-fonce);
+}
+
+.eva-input::placeholder {
+  color: var(--color-gris-texte);
+}
+
+.eva-select {
+  background: var(--gradibou-blanc);
+  border: 0.5px solid var(--color-gris-contour);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 16px;
+  color: var(--gradibou-noir);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231e1e1e' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+
+.eva-select:disabled {
+  background-color: var(--color-gris-contour);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23838383' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  color: var(--color-gris-fonce);
+}
+
+.eva-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Stats grid */
+.eva-stats-grid {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  padding: 20px 16px;
+}
+
+.eva-stat-card {
+  flex: 1;
+  background: var(--gradibou-blanc);
+  border: 1px solid var(--color-gris-contour);
+  border-radius: 16px;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eva-stat-large {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.eva-stat-value-big {
+  font-weight: 900;
+  font-size: 96px;
+  line-height: 1;
+  color: var(--gradibou-noir);
+}
+
+.eva-stat-unit {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--color-gris-fonce);
+}
+
+.eva-stat-label {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--gradibou-noir);
+}
+
+.eva-stat-double {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eva-stat-item {
+  background: var(--gradibou-blanc);
+  border: 1px solid var(--color-gris-contour);
+  border-radius: 16px;
+  padding: 20px 16px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.eva-stat-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eva-stat-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--gradibou-noir);
+}
+
+.eva-stat-value-medium {
+  font-weight: 900;
+  font-size: 40px;
+  line-height: 1;
+  color: var(--gradibou-noir);
+  text-align: right;
+}
+
+.eva-stat-image-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.eva-chart {
+  width: 159px;
+  height: 122px;
+}
+
+.eva-waiting-message {
+  background: var(--gradibou-blanc);
+  border: 1px solid var(--color-gris-contour);
+  border-radius: 16px;
+  padding: 20px 16px;
+  width: 100%;
+  text-align: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--gradibou-noir);
+}
+
+/* Liste spécialités */
+.eva-specialty-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.eva-specialty-item {
+  background: var(--gradibou-blanc);
+  border-radius: 24px;
+  padding: 16px 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.eva-specialty-name {
+  flex: 1;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--gradibou-noir);
+}
+
+.eva-specialty-score {
+  font-weight: 900;
+  font-size: 20px;
+  color: var(--gradibou-noir);
+  text-align: right;
+}
+
+.eva-specialty-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 16px;
+}
+
+/* Badges spécialités */
+.spe-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.spe-badge.icy {
+  background: rgba(139, 57, 190, 0.2);
+  color: #8b39be;
+}
+
+.spe-badge.avm {
+  background: rgba(192, 107, 22, 0.2);
+  color: #c06b16;
+}
+
+.spe-badge.iia {
+  background: rgba(33, 112, 36, 0.2);
+  color: #217024;
+}
+
+.spe-badge.gcb {
+  background: rgba(23, 119, 117, 0.2);
+  color: #177775;
+}
+
+.spe-badge.me {
+  background: rgba(52, 91, 163, 0.2);
+  color: #345ba3;
+}
+
+.year-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--color-gris-contour);
+  color: var(--color-gris-fonce);
+  font-weight: 800;
+  font-size: 16px;
+  text-transform: uppercase;
+}
