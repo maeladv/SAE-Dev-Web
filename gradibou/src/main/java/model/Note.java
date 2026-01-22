@@ -128,6 +128,8 @@ public class Note {
             stmt.setInt(1, this.id_etudiant);
             stmt.setInt(2, this.id_examen);
             stmt.setInt(3, this.valeur);
+            stmt.setInt(4, this.id_etudiant);
+            stmt.setInt(5, this.id_examen);
 
             return stmt.executeUpdate() > 0;
         }

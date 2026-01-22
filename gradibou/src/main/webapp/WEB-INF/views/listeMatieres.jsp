@@ -2,6 +2,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="model.Matiere" %>
 <%@ page import="model.Specialite" %>
+<%@ page import="model.Utilisateur" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -20,6 +21,15 @@
         input[type="text"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
         button { padding: 8px 12px; background-color: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer; }
         button:hover { background-color: #0b5ed7; }
+        
+        /* Modal styles */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 5px; }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover, .close:focus { color: black; text-decoration: none; cursor: pointer; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 8px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -44,9 +54,10 @@
                 for (Matiere m : matieres) {
         %>
             <li>
-                <span><%= m.getNom() %></span>
+                <span><%= m.getNom() %> (S<%= m.getSemestre() %> - Coeff: <%= m.getCoefficient() %>)</span>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <a href="<%= request.getContextPath() %>/app/admin/examens?matId=<%= m.getId() %>">Voir les examens &rarr;</a>
+                    <button type="button" onclick="openEditModal('<%= m.getId() %>', '<%= m.getNom().replace("'", "\\'") %>', '<%= m.getSemestre() %>', '<%= m.getCoefficient() %>', '<%= m.getProfId() %>')" style="background-color: #ffc107; color: black; border: 1px solid #ffca2c; padding: 5px 10px; font-size: 0.8em; cursor: pointer; border-radius: 4px;">Modifier</button>
                     <form action="<%= request.getContextPath() %>/app/admin/supprimer-matiere" method="post" style="margin: 0;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette matière ?');">
                         <input type="hidden" name="id" value="<%= m.getId() %>">
                         <input type="hidden" name="specId" value="<%= spec != null ? spec.getId() : "" %>">
@@ -74,5 +85,65 @@
     </div>
     
     <a href="<%= request.getContextPath() %>/app/admin/specialites" class="back-link">&larr; Retour aux spécialités</a>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h3 style="margin-top: 0;">Modifier Matière</h3>
+            <form id="editForm" action="<%= request.getContextPath() %>/app/admin/modifier-matiere" method="post">
+                <input type="hidden" id="edit-id" name="id">
+                <input type="hidden" name="specId" value="<%= spec != null ? spec.getId() : "" %>">
+                <div class="form-group">
+                    <label for="edit-nom">Nom:</label>
+                    <input type="text" id="edit-nom" name="nom" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-semestre">Semestre:</label>
+                    <input type="number" id="edit-semestre" name="semestre" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-coefficient">Coefficient:</label>
+                    <input type="number" id="edit-coefficient" name="coefficient" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-profId">Professeur:</label>
+                    <select id="edit-profId" name="profId" required style="width: 100%; padding: 8px;">
+                        <% 
+                        List<Utilisateur> profs = (List<Utilisateur>) request.getAttribute("professeurs");
+                        if (profs != null) {
+                            for (Utilisateur p : profs) {
+                        %>
+                            <option value="<%= p.getId() %>"><%= p.getNom() %> <%= p.getPrenom() %></option>
+                        <% 
+                            }
+                        } 
+                        %>
+                    </select>
+                </div>
+                <button type="submit" style="background-color: #0d6efd; color: white; width: 100%;">Enregistrer</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        var modal = document.getElementById("editModal");
+        function openEditModal(id, nom, semestre, coeff, profId) {
+            document.getElementById("edit-id").value = id;
+            document.getElementById("edit-nom").value = nom;
+            document.getElementById("edit-semestre").value = semestre;
+            document.getElementById("edit-coefficient").value = coeff;
+            document.getElementById("edit-profId").value = profId;
+            modal.style.display = "block";
+        }
+        function closeEditModal() {
+            modal.style.display = "none";
+        }
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeEditModal();
+            }
+        }
+    </script>
 </body>
 </html>
