@@ -247,23 +247,16 @@
                         <!-- Colonne droite -->
                         <div class="form-group">
                             <label>Choix du rôle</label>
-                            <div class="custom-dropdown">
-                                <div class="dropdown-toggle">
-                                    <div class="dropdown-value">Choisir un rôle</div>
-                                    <svg class="dropdown-arrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                        <path d="M6 8L10 12L14 8" stroke="currentColor" stroke-width="1.5"
-                                            stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                </div>
-                                <div class="dropdown-menu">
-                                    <div class="dropdown-item role-item role-admin" data-value="admin">Administrateur
-                                    </div>
-                                    <div class="dropdown-item role-item role-prof" data-value="professeur">Professeur
-                                    </div>
-                                    <div class="dropdown-item role-item role-etudiant" data-value="etudiant">Étudiant
-                                    </div>
-                                </div>
-                                <input type="hidden" name="role" required>
+                            <div class="dropdown" data-dropdown="modal-role">
+                                <button type="button" class="dropdown-toggle" aria-haspopup="listbox" aria-expanded="false">
+                                    <span class="dropdown-label">Choisir un rôle</span>
+                                    <span class="dropdown-icon">▾</span>
+                                </button>
+                                <ul class="dropdown-menu" role="listbox">
+                                    <li class="dropdown-option" role="option" data-value="admin" data-label="Administrateur" data-role="admin">Administrateur</li>
+                                    <li class="dropdown-option" role="option" data-value="professeur" data-label="Professeur" data-role="prof">Professeur</li>
+                                    <li class="dropdown-option" role="option" data-value="etudiant" data-label="Étudiant" data-role="etudiant">Étudiant</li>
+                                </ul>
                             </div>
                             <span class="error-message">Ce champ est invalide</span>
                         </div>
