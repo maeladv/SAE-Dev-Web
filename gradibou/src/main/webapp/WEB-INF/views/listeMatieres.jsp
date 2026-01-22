@@ -255,6 +255,9 @@
                         <label for="student-email">Adresse email de l'étudiant</label>
                         <input type="email" id="student-email" name="email" placeholder="Rentrez l'adresse email de l'étudiant à ajouter" class="input-field" required>
                     </div>
+                    <div id="addStudentError" style="display: none; margin-bottom: 1rem; padding: 0.75rem; background-color: #ffe6e6; border-left: 4px solid #fe3232; border-radius: 4px;">
+                        <p id="addStudentErrorText" style="margin: 0; color: #fe3232; font-size: 0.9rem;"></p>
+                    </div>
                     <div class="modal-actions">
                         <button type="button" class="btn btn-tertiary" onclick="closeModal('addStudentModal')">Annuler</button>
                         <button type="submit" class="btn btn-primary">Ajouter</button>
@@ -270,6 +273,9 @@
             <h2 class="modal-title">Retirer l'étudiant de la spécialité ?</h2>
             <div class="modal-content">
                 <p class="modal-message">Êtes-vous sûr·e de vouloir effectuer cette opération ?</p>
+                <div id="removeStudentError" style="display: none; margin-bottom: 1rem; padding: 0.75rem; background-color: #ffe6e6; border-left: 4px solid #fe3232; border-radius: 4px;">
+                    <p id="removeStudentErrorText" style="margin: 0; color: #fe3232; font-size: 0.9rem;"></p>
+                </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-tertiary" onclick="closeModal('removeStudentModal')">Annuler</button>
                     <button type="button" class="btn btn-primary btn-danger" onclick="submitRemoveStudent()">Retirer l'étudiant</button>
@@ -369,23 +375,37 @@
 
         function submitRemoveStudent() {
             if (currentRemoveStudentEmail) {
-                const formData = new FormData();
-                formData.append('email', currentRemoveStudentEmail);
-                formData.append('specialiteId', specialiteId);
+                const params = new URLSearchParams();
+                params.append('email', currentRemoveStudentEmail);
+                params.append('specialiteId', specialiteId);
+                
+                // Cacher les erreurs précédentes
+                const errorContainer = document.getElementById('removeStudentError');
+                const errorText = document.getElementById('removeStudentErrorText');
+                errorContainer.style.display = 'none';
+                errorText.textContent = '';
                 
                 fetch(contextPath + '/app/admin/retirer-etudiant', {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: params
                 }).then(response => {
                     if (response.ok) {
                         closeModal('removeStudentModal');
                         location.reload();
                     } else {
-                        alert('Erreur lors du retrait de l\'étudiant');
+                        return response.text().then(text => {
+                            const message = text && text.trim() ? text : 'Erreur lors du retrait de l\'étudiant';
+                            errorText.textContent = message;
+                            errorContainer.style.display = 'block';
+                        });
                     }
                 }).catch(error => {
                     console.error('Erreur:', error);
-                    alert('Erreur réseau');
+                    errorText.textContent = 'Erreur réseau : impossible de contacter le serveur';
+                    errorContainer.style.display = 'block';
                 });
             }
         }
@@ -478,24 +498,39 @@
         function submitAddStudent(event) {
             event.preventDefault();
             const email = document.getElementById('student-email').value;
+            const form = event.target;
             
-            const formData = new FormData();
-            formData.append('email', email);
-            formData.append('specialiteId', specialiteId);
+            const params = new URLSearchParams();
+            params.append('email', email);
+            params.append('specialiteId', specialiteId);
+            
+            // Cacher les erreurs précédentes
+            const errorContainer = document.getElementById('addStudentError');
+            const errorText = document.getElementById('addStudentErrorText');
+            errorContainer.style.display = 'none';
+            errorText.textContent = '';
             
             fetch(contextPath + '/app/admin/ajouter-etudiant', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: params
             }).then(response => {
                 if (response.ok) {
                     closeModal('addStudentModal');
                     location.reload();
                 } else {
-                    alert('Erreur lors de l\'ajout de l\'étudiant');
+                    return response.text().then(text => {
+                        const message = text && text.trim() ? text : 'Erreur lors de l\'ajout de l\'étudiant';
+                        errorText.textContent = message;
+                        errorContainer.style.display = 'block';
+                    });
                 }
             }).catch(error => {
                 console.error('Erreur:', error);
-                alert('Erreur réseau');
+                errorText.textContent = 'Erreur réseau : impossible de contacter le serveur';
+                errorContainer.style.display = 'block';
             });
             return false;
         }

@@ -495,6 +495,12 @@ public class Controller extends HttpServlet {
                 case "/admin/supprimer-utilisateur":
                     Utilisateur.supprimerUtilisateur(request, response);
                     break;
+                case "/admin/retirer-etudiant":
+                    Utilisateur.retirerEtudiantSpecialite(request, response);
+                    break;
+                case "/admin/ajouter-etudiant":
+                    Utilisateur.ajouterEtudiantSpecialite(request, response);
+                    break;
                 default:
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
                     break;

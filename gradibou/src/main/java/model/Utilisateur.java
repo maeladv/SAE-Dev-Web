@@ -797,4 +797,191 @@ public class Utilisateur {
             util.Json.envoyerJsonError(response, "Erreur : " + e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
+
+    public static void retirerEtudiantDeSpecialite(String email, int specialiteId) throws SQLException {
+        Utilisateur etudiant = Utilisateur.trouverParemail(email);
+        if (etudiant == null) {
+            throw new SQLException("Étudiant non trouvé");
+        }
+        
+        Connection conn = DatabaseManager.obtenirConnexion();
+        try {
+            int idEtudiant = etudiant.id;
+            
+            // 1. Supprimer les réponses d'évaluation pour cette spécialité
+            String deleteReponsesSql = "DELETE FROM reponse_evaluation WHERE id_matiere IN " +
+                    "(SELECT id FROM matiere WHERE id_specialite = ?) " +
+                    "AND id IN (SELECT id FROM reponse_evaluation WHERE id_evaluation IN " +
+                    "(SELECT id_evaluation FROM a_repondu_evaluation WHERE id_etudiant = ? AND id_matiere IN " +
+                    "(SELECT id FROM matiere WHERE id_specialite = ?)))";
+            try (PreparedStatement stmt = conn.prepareStatement(deleteReponsesSql)) {
+                stmt.setInt(1, specialiteId);
+                stmt.setInt(2, idEtudiant);
+                stmt.setInt(3, specialiteId);
+                stmt.executeUpdate();
+            }
+            
+            // 2. Supprimer les a_repondu_evaluation pour cette spécialité
+            String deleteAReponduSql = "DELETE FROM a_repondu_evaluation WHERE id_etudiant = ? AND id_matiere IN " +
+                    "(SELECT id FROM matiere WHERE id_specialite = ?)";
+            try (PreparedStatement stmt = conn.prepareStatement(deleteAReponduSql)) {
+                stmt.setInt(1, idEtudiant);
+                stmt.setInt(2, specialiteId);
+                stmt.executeUpdate();
+            }
+            
+            // 3. Supprimer les notes des examens des matières de la spécialité
+            String deleteNotesSql = "DELETE FROM note WHERE id_etudiant = ? AND id_examen IN " +
+                    "(SELECT id FROM examen WHERE id_matiere IN " +
+                    "(SELECT id FROM matiere WHERE id_specialite = ?))";
+            try (PreparedStatement stmt = conn.prepareStatement(deleteNotesSql)) {
+                stmt.setInt(1, idEtudiant);
+                stmt.setInt(2, specialiteId);
+                stmt.executeUpdate();
+            }
+            
+            // 4. Mettre à jour l'association étudiant-spécialité (mettre à NULL)
+            String updateEtudiantSql = "UPDATE etudiant SET id_specialite = NULL WHERE id_utilisateur = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(updateEtudiantSql)) {
+                stmt.setInt(1, idEtudiant);
+                stmt.executeUpdate();
+            }
+        } finally {
+            // La connexion sera fermée par le pool
+        }
+    }
+
+    public static void retirerEtudiantSpecialite(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!util.Role.estAdmin(request.getSession(false))) {
+            response.setContentType("text/plain");
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().println("Accès refusé");
+            return;
+        }
+
+        boolean isAjax = "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
+        
+        try {
+            String email = request.getParameter("email");
+            String specialiteIdStr = request.getParameter("specialiteId");
+            
+            if (email == null || email.isEmpty() || specialiteIdStr == null || specialiteIdStr.isEmpty()) {
+                if (isAjax) {
+                    response.setContentType("text/plain");
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    response.getWriter().println("Email et ID spécialité requis");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/app/admin");
+                }
+                return;
+            }
+            
+            int specialiteId = Integer.parseInt(specialiteIdStr);
+            retirerEtudiantDeSpecialite(email, specialiteId);
+            
+            if (isAjax) {
+                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specialiteId);
+            }
+        } catch (NumberFormatException e) {
+            if (isAjax) {
+                response.setContentType("text/plain");
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().println("ID spécialité invalide");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/app/admin");
+            }
+        } catch (SQLException e) {
+            if (isAjax) {
+                response.setContentType("text/plain");
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.getWriter().println("Erreur lors de la suppression de l'étudiant : " + e.getMessage());
+            } else {
+                response.sendRedirect(request.getContextPath() + "/app/admin");
+            }
+        }
+    }
+
+    public static void ajouterEtudiantSpecialite(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!util.Role.estAdmin(request.getSession(false))) {
+            response.setContentType("text/plain");
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().println("Accès refusé");
+            return;
+        }
+
+        boolean isAjax = "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
+        
+        try {
+            String email = request.getParameter("email");
+            String specialiteIdStr = request.getParameter("specialiteId");
+            
+            if (email == null || email.isEmpty() || specialiteIdStr == null || specialiteIdStr.isEmpty()) {
+                if (isAjax) {
+                    response.setContentType("text/plain");
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    response.getWriter().println("Email et ID spécialité requis");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/app/admin");
+                }
+                return;
+            }
+            
+            int specialiteId = Integer.parseInt(specialiteIdStr);
+            Utilisateur user = Utilisateur.trouverParemail(email);
+            
+            if (user == null) {
+                if (isAjax) {
+                    response.setContentType("text/plain");
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    response.getWriter().println("Utilisateur non trouvé");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specialiteId);
+                }
+                return;
+            }
+            
+            if (!user.getRole().equalsIgnoreCase("etudiant")) {
+                if (isAjax) {
+                    response.setContentType("text/plain");
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    response.getWriter().println("L'utilisateur n'est pas un étudiant");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specialiteId);
+                }
+                return;
+            }
+            
+            String sql = "UPDATE etudiant SET id_specialite = ? WHERE id_utilisateur = ?";
+            try (Connection conn = DatabaseManager.obtenirConnexion();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, specialiteId);
+                stmt.setInt(2, user.id);
+                stmt.executeUpdate();
+            }
+            
+            if (isAjax) {
+                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specialiteId);
+            }
+        } catch (NumberFormatException e) {
+            if (isAjax) {
+                response.setContentType("text/plain");
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().println("ID spécialité invalide");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/app/admin");
+            }
+        } catch (SQLException e) {
+            if (isAjax) {
+                response.setContentType("text/plain");
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.getWriter().println("Erreur lors de l'ajout de l'étudiant : " + e.getMessage());
+            } else {
+                response.sendRedirect(request.getContextPath() + "/app/admin");
+            }
+        }
+    }
 }
