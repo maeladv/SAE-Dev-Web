@@ -19,6 +19,9 @@
       ><br />
       <a href="<%= request.getContextPath() %>/app/admin/creer-examen"
         >Créer un examen</a
+      ><br />
+      <a href="<%= request.getContextPath() %>/app/admin/creer-note"
+        >Saisir une note</a
       >
     </p>
 

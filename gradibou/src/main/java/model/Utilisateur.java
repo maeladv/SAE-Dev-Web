@@ -103,6 +103,24 @@ public class Utilisateur {
     }
 
     /**
+     * Trouver tous les étudiants
+     */
+    public static List<Utilisateur> trouverTousLesEtudiants() throws SQLException {
+        List<Utilisateur> liste = new ArrayList<>();
+        String sql = "SELECT id, nom, prenom, mail, date_naissance, mot_de_passe, role FROM utilisateur WHERE role = 'etudiant' ORDER BY nom, prenom";
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            
+            while (rs.next()) {
+                liste.add(creerDepuisResultSet(rs));
+            }
+        }
+        return liste;
+    }
+
+    /**
      * Vérifier si un email existe
      */
     public static boolean emailExiste(String email) throws SQLException {

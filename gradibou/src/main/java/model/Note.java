@@ -4,40 +4,41 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
+
 
 import util.DatabaseManager;
 
-public class Examen {
-    private int id;
-    private String nom;
-    private int coefficient;
+public class Note {
+    private int id_etudiant;
+    private int id_examen;
+    private int valeur;
     private LocalDate date;
-    private int id_matiere;
     private boolean persisted = false;
 
     // Constructeurs
-    public Examen() {}
+    public Note() {}
 
-    public Examen(String nom, int coefficient, int id_matiere) {
-        this.nom = nom;
-        this.coefficient = coefficient;
-        this.id_matiere = id_matiere;
+    public Note(int valeur, int id_examen, int id_etudiant) {
+        this.valeur = valeur;
+        this.id_examen = id_examen;
+        this.id_etudiant = id_etudiant;
     }
 
     // ==================== Méthodes de recherche ====================
 
     /**
-     * Trouver un examen par ID
+     * Trouver une note par ID
      */
-    public static Examen trouverParId(int id) throws SQLException {
-        String sql = "SELECT id, nom, coefficient, date, id_matiere FROM examen WHERE id = ?";
+    public static Note trouverParIdEtudiantExamen(int id_etudiant, int id_examen) throws SQLException {
+        String sql = "SELECT id_etudiant, id_examen, note, date FROM note WHERE id_etudiant = ? AND id_examen = ?";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
+            stmt.setInt(1, id_etudiant);
+            stmt.setInt(2, id_examen);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
@@ -48,33 +49,15 @@ public class Examen {
     }
 
     /**
-     * Trouver tous les examens d'une matière
+     * Trouver toutes les notes
      */
-    public static List<Examen> trouverParMatiere(int idMatiere) throws SQLException {
-        List<Examen> liste = new ArrayList<>();
-        String sql = "SELECT id, nom, coefficient, date, id_matiere FROM examen WHERE id_matiere = ? ORDER BY date";
-        try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idMatiere);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                liste.add(creerDepuisResultSet(rs));
-            }
-        }
-        return liste;
-    }
-
-    /**
-     * Trouver tous les examens
-     */
-    public static List<Examen> trouverTous() throws SQLException {
-        List<Examen> liste = new ArrayList<>();
-        String sql = "SELECT id, nom, coefficient, date, id_matiere FROM examen ORDER BY date DESC";
+    public static List<Note> trouverToutes() throws SQLException {
+        List<Note> liste = new ArrayList<>();
+        String sql = "SELECT id_etudiant, id_examen, note, date FROM note ORDER BY date";
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
-
+            
             while (rs.next()) {
                 liste.add(creerDepuisResultSet(rs));
             }
@@ -82,7 +65,8 @@ public class Examen {
         return liste;
     }
 
-    // ==================== Méthodes de persistence (Active Record) ====================
+     // ==================== Méthodes de persistence (Active Record) ====================
+
     /**
      * Sauvegarder la spécialité (INSERT automatique)
      */
@@ -99,13 +83,13 @@ public class Examen {
      */
     private boolean insert() throws SQLException {
         // Ici, le tag est fourni par l'objet et non généré par la BDD
-        String sql = "INSERT INTO examen (nom, coefficient, date, id_matiere) VALUES (?, ?, CURRENT_DATE, ?)";
+        String sql = "INSERT INTO note (id_etudiant, id_examen, note, date) VALUES (?, ?, ?, CURRENT_DATE)";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, this.nom);
-            stmt.setInt(2, this.coefficient);
-            stmt.setInt(3, this.id_matiere);
+            stmt.setInt(1, this.id_etudiant);
+            stmt.setInt(2, this.id_examen);
+            stmt.setInt(3, this.valeur);
 
             int rowsInserted = stmt.executeUpdate();
             
@@ -119,15 +103,13 @@ public class Examen {
      
     //Mettre à jour une spécialité existante
     private boolean update() throws SQLException {
-        String sql = "UPDATE examen SET nom = ?, coefficient = ?, date = ?, id_matiere = ? WHERE id = ?";
+        String sql = "UPDATE note SET id_etudiant = ?, id_examen = ?, note = ?, date = CURRENT_DATE WHERE id_etudiant = ? AND id_examen = ?";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, this.nom);
-            stmt.setInt(2, this.coefficient);
-            stmt.setObject(3, this.date);
-            stmt.setInt(4, this.id_matiere);
-            stmt.setInt(5, this.id);
+            stmt.setInt(1, this.id_etudiant);
+            stmt.setInt(2, this.id_examen);
+            stmt.setInt(3, this.valeur);
 
             return stmt.executeUpdate() > 0;
         }
@@ -141,11 +123,12 @@ public class Examen {
             return false;
         }
 
-        String sql = "DELETE FROM examen WHERE id = ?";
+        String sql = "DELETE FROM note WHERE id_etudiant = ? AND id_examen = ?";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, this.id);
+            stmt.setInt(1, this.id_etudiant);
+            stmt.setInt(2, this.id_examen);
             boolean success = stmt.executeUpdate() > 0;
             if (success) {
                 this.persisted = false;
@@ -162,12 +145,12 @@ public class Examen {
             return false;
         }
 
-        Examen fresh = trouverParId(this.id);
+        Note fresh = trouverParIdEtudiantExamen(this.id_etudiant, this.id_examen);
         if (fresh != null) {
-            this.nom = fresh.nom;
-            this.coefficient = fresh.coefficient;
+            this.id_etudiant = fresh.id_etudiant;
+            this.id_examen = fresh.id_examen;
+            this.valeur = fresh.valeur;
             this.date = fresh.date;
-            this.id_matiere = fresh.id_matiere;
             return true;
         }
         return false;
@@ -178,15 +161,14 @@ public class Examen {
     /**
      * Hydrater un objet depuis un ResultSet
      */
-    private static Examen creerDepuisResultSet(ResultSet rs) throws SQLException {
-        Examen exam = new Examen();
-        exam.id = rs.getInt("id");
-        exam.nom = rs.getString("nom");
-        exam.coefficient = rs.getInt("coefficient");
-        exam.date = rs.getDate("date").toLocalDate();
-        exam.id_matiere = rs.getInt("id_matiere");
-        exam.persisted = true;
-        return exam;
+    private static Note creerDepuisResultSet(ResultSet rs) throws SQLException {
+        Note note = new Note();
+        note.id_etudiant = rs.getInt("id_etudiant");
+        note.id_examen = rs.getInt("id_examen");
+        note.valeur = rs.getInt("note");
+        note.date = rs.getDate("date").toLocalDate();
+        note.persisted = true;
+        return note;
     }
 
     /**
@@ -197,31 +179,28 @@ public class Examen {
     }
 
     // Getters et Setters
-    public int getId() {
-        return id;
+    public int getIdEtudiant() {
+        return id_etudiant;
     }
-    public String getNom() {
-        return nom;
+    public void setIdEtudiant(int id_etudiant) {
+        this.id_etudiant = id_etudiant;
     }
-    public void setNom(String nom) {
-        this.nom = nom;
+    public int getIdExamen() {
+        return id_examen;
     }
-    public int getCoefficient() {
-        return coefficient;
+    public void setIdExamen(int id_examen) {
+        this.id_examen = id_examen;
     }
-    public void setCoefficient(int coefficient) {
-        this.coefficient = coefficient;
+    public int getValeur() {
+        return valeur;
+    }
+    public void setValeur(int valeur) {
+        this.valeur = valeur;
     }
     public LocalDate getDate() {
         return date;
     }
     public void setDate(LocalDate date) {
         this.date = date;
-    }
-    public int getId_matiere() {
-        return id_matiere;
-    }
-    public void setId_matiere(int id_matiere) {
-        this.id_matiere = id_matiere;
     }
 }
