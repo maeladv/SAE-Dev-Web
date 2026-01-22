@@ -74,8 +74,9 @@ public class Controller extends HttpServlet {
                 }
                 view = "/WEB-INF/views/admin.jsp";
                 break;
-            case "/admin/specialites":
-                if (!Role.estAdmin(request.getSession(false))) {
+            case "/gestion/specialites":
+                jakarta.servlet.http.HttpSession session = request.getSession(false);
+                if (!Role.estAdmin(session) && !Role.estProfesseur(session)) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
                     return;
                 }
@@ -126,6 +127,24 @@ public class Controller extends HttpServlet {
             case "/forgot-password":
                 view = "/WEB-INF/views/forgot-password.jsp";
                 break;
+            case "/professeur":
+                System.out.println("DEBUG: Route /professeur atteinte");
+                jakarta.servlet.http.HttpSession profSession = request.getSession(false);
+                if (profSession != null) {
+                    Utilisateur profUser = (Utilisateur) profSession.getAttribute("user");
+                    System.out.println("DEBUG: User in session: " + (profUser != null ? profUser.getemail() : "null"));
+                    System.out.println("DEBUG: Role in session: " + (profUser != null ? "'" + profUser.getRole() + "'" : "null"));
+                    System.out.println("DEBUG: estProfesseur result: " + Role.estProfesseur(profSession));
+                }
+                if (!Role.estProfesseur(request.getSession(false))) {
+                    System.out.println("DEBUG: Redirection vers /login car estProfesseur=false");
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                // Rediriger vers la page de gestion des spécialités
+                System.out.println("DEBUG: Redirection vers /gestion/specialites");
+                response.sendRedirect(request.getContextPath() + "/app/gestion/specialites");
+                return;
             case "/admin/creer-compte":
                 if (!Role.estAdmin(request.getSession(false))) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
@@ -136,7 +155,7 @@ public class Controller extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/app/gestion/specialites");
                 return;
             case "/etudiant":
-                if (!estEtudiant(request.getSession(false))) {
+                if (!Role.estEtudiant(request.getSession(false))) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
                     return;
                 }

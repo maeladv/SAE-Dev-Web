@@ -27,4 +27,16 @@ public class Role {
         }
         return false;
     }
+
+    public static boolean estProfesseur(HttpSession session) {
+        if (session == null) {
+            return false;
+        }
+        Object userObj = session.getAttribute("user");
+        if (userObj instanceof Utilisateur) {
+            Utilisateur utilisateur = (Utilisateur) userObj;
+            return "professeur".equalsIgnoreCase(utilisateur.getRole());
+        }
+        return false;
+    }
 }

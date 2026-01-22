@@ -203,7 +203,7 @@ public class Specialite {
     public static void creationSpecialiteParAdmin(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
         if (!Role.estAdmin(request.getSession(false))) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            util.Json.envoyerJsonError(response, "Accès refusé", HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
@@ -212,8 +212,7 @@ public class Specialite {
         String nom = request.getParameter("nom");
 
         if (tag == null || tag.isEmpty() || anneeStr == null || anneeStr.isEmpty() || nom == null || nom.isEmpty()) {
-            request.setAttribute("error", "Tous les champs sont requis");
-            request.getRequestDispatcher("/WEB-INF/views/creerSpecialite.jsp").forward(request, response);
+            util.Json.envoyerJsonError(response, "Tous les champs sont requis", HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
@@ -222,22 +221,35 @@ public class Specialite {
             model.Specialite spec = new model.Specialite(tag, annee, nom);
             
             if (spec.save()) {
-                request.setAttribute("success", "Spécialité créée avec succès");
+                util.Json.envoyerJsonSuccess(response, "Spécialité créée avec succès", request.getContextPath() + "/app/gestion/specialites");
             } else {
-                request.setAttribute("error", "Erreur lors de la création de la spécialité");
+                util.Json.envoyerJsonError(response, "Erreur lors de la création de la spécialité", HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
         } catch (NumberFormatException e) {
-            request.setAttribute("error", "L'année doit être un nombre valide");
+            util.Json.envoyerJsonError(response, "L'année doit être un nombre valide", HttpServletResponse.SC_BAD_REQUEST);
         } catch (SQLException e) {
-            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+            util.Json.envoyerJsonError(response, "Erreur BD: " + e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
-        
-        request.getRequestDispatcher("/WEB-INF/views/creerSpecialite.jsp").forward(request, response);
     }
 
     public static String afficherSpecialites(HttpServletRequest request) {
         try {
-            request.setAttribute("specialites", model.Specialite.trouverToutes());
+            jakarta.servlet.http.HttpSession session = request.getSession(false);
+            boolean isAdmin = Role.estAdmin(session);
+            boolean isProfesseur = Role.estProfesseur(session);
+            
+            // Récupérer les spécialités selon le rôle
+            if (isAdmin) {
+                request.setAttribute("specialites", model.Specialite.trouverToutes());
+                request.setAttribute("userRole", "admin");
+            } else if (isProfesseur) {
+                Utilisateur prof = (Utilisateur) session.getAttribute("user");
+                if (prof != null) {
+                    request.setAttribute("specialites", model.Specialite.trouverParProfesseur(prof.getId()));
+                    request.setAttribute("userRole", "professeur");
+                }
+            }
+            
             return "/WEB-INF/views/listeSpecialites.jsp";
         } catch (SQLException e) {
             request.setAttribute("error", "Erreur lors du chargement des spécialités : " + e.getMessage());
@@ -256,7 +268,7 @@ public class Specialite {
             if (s != null) {
                 s.supprimer();
             }
-            response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+            response.sendRedirect(request.getContextPath() + "/app/gestion/specialites");
         } catch (Exception e) {
             request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
@@ -271,20 +283,23 @@ public class Specialite {
         try {
             int id = Integer.parseInt(request.getParameter("id"));
             String nom = request.getParameter("nom");
-            String tag = request.getParameter("tag");
-            int annee = Integer.parseInt(request.getParameter("annee"));
+            
+            if (nom == null || nom.isEmpty()) {
+                util.Json.envoyerJsonError(response, "Le nom est requis", HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
             
             model.Specialite s = model.Specialite.trouverParId(id);
             if (s != null) {
                 s.setNom(nom);
-                s.setTag(tag);
-                s.setAnnee(annee);
+                // Note: Le tag et l'année ne sont pas modifiables
                 s.save();
+                util.Json.envoyerJsonSuccess(response, "Spécialité modifiée avec succès", request.getContextPath() + "/app/gestion/specialites");
+            } else {
+                util.Json.envoyerJsonError(response, "Spécialité non trouvée", HttpServletResponse.SC_NOT_FOUND);
             }
-            response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
         } catch (Exception e) {
-            request.setAttribute("error", "Erreur lors de la modification : " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+            util.Json.envoyerJsonError(response, "Erreur lors de la modification : " + e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
