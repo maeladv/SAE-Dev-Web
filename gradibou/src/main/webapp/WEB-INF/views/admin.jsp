@@ -48,7 +48,10 @@
                                     <li class="dropdown-option" role="option" data-value="me" data-label="ME">ME</li>
                                 </ul>
                             </div>
-                            <button class="btn  btn-with-icon" onclick="openModal('csvUploadModal')">
+                            <button class="btn btn-secondary btn-with-icon" type="button" onclick="resetFilters()">
+                                <img src="<%= request.getContextPath() %>/static/icons/black/xmark.svg" alt="Réinitialiser les filtres">
+                            </button>
+                            <button class="btn btn-tertiary btn-with-icon" onclick="openModal('csvUploadModal')">
                                 Importer depuis un .csv
                                 <img src="/gradibou/static/icons/black/file-csv.svg" alt="Importer icone">
                             </button>
@@ -167,7 +170,7 @@
                                     <td>202</td>
                                     <td>Brown</td>
                                     <td>Emily</td>
-                                    <td><span class="role-badge role-etudiant">Étudiant</span></td>
+                                    <td><span class="role-badge role-etudiant">Etudiant</span></td>
                                     <td>emily.brown@insa-hdf.fr</td>
                                     <td>22300765</td>
                                     <td><span class="specialite-badge spe-iia">IIA</span></td>

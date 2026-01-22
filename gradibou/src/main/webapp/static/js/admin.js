@@ -119,6 +119,7 @@ function initDropdowns() {
             option.addEventListener('click', event => {
                 event.stopPropagation();
                 selectDropdownOption(dropdown, option);
+                applyFilters();
             });
         });
     });
@@ -152,6 +153,53 @@ function selectDropdownOption(dropdown, option) {
 
     dropdown.dataset.value = value;
     closeAllDropdowns();
+}
+
+/**
+ * Applique les filtres rôle / spécialité sur les lignes du tableau
+ */
+function applyFilters() {
+    const roleFilter = document.querySelector('.dropdown[data-dropdown="role"]')?.dataset.value || '';
+    const speFilter = document.querySelector('.dropdown[data-dropdown="specialite"]')?.dataset.value || '';
+
+    const rows = document.querySelectorAll('#usersTableBody tr');
+
+    rows.forEach(row => {
+        const cells = row.getElementsByTagName('td');
+        const roleCell = cells[3];
+        const speCell = cells[6];
+
+        const roleText = roleCell ? roleCell.textContent.trim().toLowerCase() : '';
+        const speText = speCell ? speCell.textContent.trim().toLowerCase() : '';
+
+        const roleMatch = !roleFilter || roleText.includes(roleFilter);
+        const speMatch = !speFilter || speText.includes(speFilter);
+
+        row.style.display = roleMatch && speMatch ? '' : 'none';
+    });
+}
+
+/**
+ * Réinitialise les filtres rôle / spécialité et affiche toutes les lignes
+ */
+function resetFilters() {
+    const roleDropdown = document.querySelector('.dropdown[data-dropdown="role"]');
+    const speDropdown = document.querySelector('.dropdown[data-dropdown="specialite"]');
+
+    if (roleDropdown) {
+        roleDropdown.dataset.value = '';
+        const roleLabel = roleDropdown.querySelector('.dropdown-label');
+        if (roleLabel) roleLabel.textContent = 'Choisir un rôle';
+    }
+
+    if (speDropdown) {
+        speDropdown.dataset.value = '';
+        const speLabel = speDropdown.querySelector('.dropdown-label');
+        if (speLabel) speLabel.textContent = 'Choisir une spécialité';
+    }
+
+    closeAllDropdowns();
+    applyFilters();
 }
 
 /**
