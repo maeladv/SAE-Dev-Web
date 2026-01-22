@@ -41,6 +41,9 @@
         <% } %>
 
         <form class="profile-container" id="profileForm" method="post" action="<%= request.getContextPath() %>/app/moncompte">
+            <!-- Champ caché pour la date de naissance (non modifiable dans ce formulaire) -->
+            <input type="hidden" name="dateNaissance" value="<%= user.getDateNaissance() %>">
+            
             <!-- Colonne Gauche: Votre GradiCompte -->
             <section class="profile-sidebar">
                 <h2 class="sidebar-title">Votre GradiCompte</h2>
