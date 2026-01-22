@@ -53,6 +53,34 @@ public class Controller extends HttpServlet {
                 }
                 view = "/WEB-INF/views/admin.jsp";
                 break;
+            case "/admin/specialites":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = afficherSpecialites(request);
+                break;
+            case "/admin/matieres":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = afficherMatieres(request);
+                break;
+            case "/admin/examens":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = afficherExamens(request);
+                break;
+            case "/admin/notes":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = afficherNotes(request);
+                break;
             case "/complete-profil":
                 String token = request.getParameter("token");
                 if (token == null || token.isEmpty()) {
@@ -556,6 +584,65 @@ public class Controller extends HttpServlet {
             envoyerJsonError(response, "ID utilisateur invalide", 400);
         } catch (Exception e) {
             envoyerJsonError(response, "Erreur: " + e.getMessage(), 500);
+        }
+    }
+
+    private String afficherSpecialites(HttpServletRequest request) {
+        try {
+            request.setAttribute("specialites", model.Specialite.trouverToutes());
+            return "/WEB-INF/views/listeSpecialites.jsp";
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur lors du chargement des spécialités : " + e.getMessage());
+            return "/WEB-INF/views/error.jsp";
+        }
+    }
+
+    private String afficherMatieres(HttpServletRequest request) {
+        try {
+            String idSpecStr = request.getParameter("specId");
+            if (idSpecStr != null && !idSpecStr.isEmpty()) {
+                int idSpec = Integer.parseInt(idSpecStr);
+                request.setAttribute("matieres", model.Matiere.trouverParSpecialite(idSpec));
+                request.setAttribute("specialite", model.Specialite.trouverParId(idSpec));
+            } else {
+                request.setAttribute("matieres", model.Matiere.trouverToutes());
+            }
+            return "/WEB-INF/views/listeMatieres.jsp";
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur : " + e.getMessage());
+            return "/WEB-INF/views/error.jsp";
+        }
+    }
+
+    private String afficherExamens(HttpServletRequest request) {
+        try {
+            String idMatStr = request.getParameter("matId");
+            if (idMatStr != null && !idMatStr.isEmpty()) {
+                int idMat = Integer.parseInt(idMatStr);
+                request.setAttribute("examens", model.Examen.trouverParMatiere(idMat));
+                request.setAttribute("matiere", model.Matiere.trouverParId(idMat));
+            } else {
+                request.setAttribute("examens", model.Examen.trouverTous());
+            }
+            return "/WEB-INF/views/listeExamens.jsp";
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur : " + e.getMessage());
+            return "/WEB-INF/views/error.jsp";
+        }
+    }
+
+    private String afficherNotes(HttpServletRequest request) {
+        try {
+            String idExamStr = request.getParameter("examId");
+            if (idExamStr != null && !idExamStr.isEmpty()) {
+                int idExam = Integer.parseInt(idExamStr);
+                request.setAttribute("notes", model.Note.trouverParExamen(idExam));
+                request.setAttribute("examen", model.Examen.trouverParId(idExam));
+            }
+            return "/WEB-INF/views/listeNotes.jsp";
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur : " + e.getMessage());
+            return "/WEB-INF/views/error.jsp";
         }
     }
 

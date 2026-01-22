@@ -38,11 +38,12 @@
             <select id="examen" name="examenId" required>
                 <option value="">-- Choisir un examen --</option>
                 <% 
+                String selectedExamenId = request.getParameter("idExamen");
                 List<Examen> examens = (List<Examen>) request.getAttribute("examens");
                 if (examens != null) {
                     for (Examen e : examens) {
                 %>
-                    <option value="<%= e.getId() %>"><%= e.getNom() %> (Coeff: <%= e.getCoefficient() %>)</option>
+                    <option value="<%= e.getId() %>" <%= (selectedExamenId != null && selectedExamenId.equals(String.valueOf(e.getId()))) ? "selected" : "" %>><%= e.getNom() %> (Coeff: <%= e.getCoefficient() %>)</option>
                 <% 
                     }
                 }
