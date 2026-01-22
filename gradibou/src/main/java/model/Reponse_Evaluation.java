@@ -674,6 +674,110 @@ public class Reponse_Evaluation {
         }
     }
 
+    public static void chargerStatistiquesEvaluation(HttpServletRequest request) throws SQLException {
+        String evalIdStr = request.getParameter("evaluationId");
+        if (evalIdStr == null || evalIdStr.isEmpty()) {
+            request.setAttribute("error", "ID évaluation manquant");
+            return;
+        }
+        
+        try {
+            int evalId = Integer.parseInt(evalIdStr);
+            Evaluation evaluation = Evaluation.trouverParId(evalId);
+            
+            if (evaluation == null) {
+                request.setAttribute("error", "Évaluation non trouvée");
+                return;
+            }
+            
+            request.setAttribute("evaluation", evaluation);
+            
+            // Statistiques globales
+            int tauxGlobal = calculerTauxReponseGlobal(evalId);
+            double moyenneGlobale = calculerMoyenneGeneraleGlobale(evalId);
+            request.setAttribute("tauxGlobal", tauxGlobal);
+            request.setAttribute("moyenneGlobale", moyenneGlobale);
+            
+            // Spécialités avec plus/moins de réponses
+            int[] specialitePlusMoins = recupererIdSpecialitesAvecPlusEtMoinsDeResponses(evalId);
+            java.util.Map<String, Object> specialitePlusInfo = new java.util.HashMap<>();
+            if (specialitePlusMoins[0] > 0) {
+                Specialite specPlus = Specialite.trouverParId(specialitePlusMoins[0]);
+                specialitePlusInfo.put("plusId", specialitePlusMoins[0]);
+                specialitePlusInfo.put("plusNom", specPlus != null ? specPlus.getNom() : "Inconnue");
+            }
+            if (specialitePlusMoins[1] > 0) {
+                Specialite specMoins = Specialite.trouverParId(specialitePlusMoins[1]);
+                specialitePlusInfo.put("moinsId", specialitePlusMoins[1]);
+                specialitePlusInfo.put("moinsNom", specMoins != null ? specMoins.getNom() : "Inconnue");
+            }
+            request.setAttribute("specialitePlusMoins", specialitePlusInfo);
+            
+            // Statistiques par spécialité
+            java.util.Map<String, Object> specialiteStats = new java.util.HashMap<>();
+            java.util.List<Specialite> specialites = Specialite.trouverToutes();
+            for (Specialite spec : specialites) {
+                int taux = calculerTauxReponseParSpecialite(evalId, spec.getId());
+                double moyenne = calculerMoyenneGeneraleParSpecialite(evalId, spec.getId());
+                
+                java.util.Map<String, Object> stats = new java.util.HashMap<>();
+                stats.put("tauxReponse", taux);
+                stats.put("moyenne", moyenne);
+                specialiteStats.put(spec.getNom(), stats);
+            }
+            request.setAttribute("specialiteStats", specialiteStats);
+            
+            // Statistiques par matière
+            java.util.List<java.util.Map<String, Object>> matiereStats = new java.util.ArrayList<>();
+            java.util.List<Matiere> matieres = Matiere.trouverToutes();
+            for (Matiere mat : matieres) {
+                int taux = calculerTauxReponseParMatiere(evalId, mat.getId());
+                double qualiteSupport = calculerMoyenneQualiteSupportParMatiere(evalId, mat.getId());
+                double qualiteEquipe = calculerMoyenneQualiteEquipeParMatiere(evalId, mat.getId());
+                double qualiteMateriel = calculerMoyenneQualiteMaterielParMatiere(evalId, mat.getId());
+                double pertinenceExamen = calculerMoyennePertinenceExamenParMatiere(evalId, mat.getId());
+                double utilitePourFormation = calculerProportionOuiUtilitePourFormationParMatiere(evalId, mat.getId());
+                
+                java.util.Map<String, Object> stats = new java.util.HashMap<>();
+                stats.put("matiereNom", mat.getNom());
+                stats.put("tauxReponse", taux);
+                stats.put("qualiteSupport", qualiteSupport);
+                stats.put("qualiteEquipe", qualiteEquipe);
+                stats.put("qualiteMateriel", qualiteMateriel);
+                stats.put("pertinenceExamen", pertinenceExamen);
+                stats.put("utilitePourFormation", utilitePourFormation);
+                
+                matiereStats.add(stats);
+            }
+            request.setAttribute("matiereStats", matiereStats);
+            
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "ID évaluation invalide");
+        }
+    }
+
+    public static void chargerDonneesReponseEvaluation(HttpServletRequest request) throws SQLException {
+        String evalIdStr = request.getParameter("evaluationId");
+        String matiereIdStr = request.getParameter("matiereId");
+        
+        if (evalIdStr == null || matiereIdStr == null) {
+            request.setAttribute("error", "Paramètres manquants");
+            return;
+        }
+        
+        try {
+            int evalId = Integer.parseInt(evalIdStr);
+            int matiereId = Integer.parseInt(matiereIdStr);
+            
+            request.setAttribute("evaluation", Evaluation.trouverParId(evalId));
+            request.setAttribute("matiere", Matiere.trouverParId(matiereId));
+            request.setAttribute("evaluationId", evalId);
+            request.setAttribute("matiereId", matiereId);
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "IDs invalides");
+        }
+    }
+
     // Getters et Setters
     public int getId() {
         return id;

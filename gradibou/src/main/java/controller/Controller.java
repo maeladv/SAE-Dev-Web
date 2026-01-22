@@ -233,18 +233,7 @@ public class Controller extends HttpServlet {
                     return;
                 }
                 try {
-                    String evalIdStr = request.getParameter("evaluationId");
-                    String matiereIdStr = request.getParameter("matiereId");
-                    
-                    if (evalIdStr != null && matiereIdStr != null) {
-                        int evalId = Integer.parseInt(evalIdStr);
-                        int matiereId = Integer.parseInt(matiereIdStr);
-                        
-                        request.setAttribute("evaluation", model.Evaluation.trouverParId(evalId));
-                        request.setAttribute("matiere", model.Matiere.trouverParId(matiereId));
-                        request.setAttribute("evaluationId", evalId);
-                        request.setAttribute("matiereId", matiereId);
-                    }
+                    Reponse_Evaluation.chargerDonneesReponseEvaluation(request);
                 } catch (SQLException e) {
                     request.setAttribute("error", "Erreur lors du chargement de l'évaluation: " + e.getMessage());
                 }
@@ -269,79 +258,7 @@ public class Controller extends HttpServlet {
                     return;
                 }
                 try {
-                    String evalIdStr = request.getParameter("evaluationId");
-                    if (evalIdStr != null && !evalIdStr.isEmpty()) {
-                        int evalId = Integer.parseInt(evalIdStr);
-                        model.Evaluation evaluation = model.Evaluation.trouverParId(evalId);
-                        
-                        if (evaluation != null) {
-                            request.setAttribute("evaluation", evaluation);
-                            
-                            // Statistiques globales
-                            int tauxGlobal = model.Reponse_Evaluation.calculerTauxReponseGlobal(evalId);
-                            double moyenneGlobale = model.Reponse_Evaluation.calculerMoyenneGeneraleGlobale(evalId);
-                            
-                            request.setAttribute("tauxGlobal", tauxGlobal);
-                            request.setAttribute("moyenneGlobale", moyenneGlobale);
-                            
-                            // Spécialités avec plus/moins de réponses
-                            int[] specialitePlusMoins = model.Reponse_Evaluation.recupererIdSpecialitesAvecPlusEtMoinsDeResponses(evalId);
-                            java.util.Map<String, Object> specialitePlusInfo = new java.util.HashMap<>();
-                            if (specialitePlusMoins[0] > 0) {
-                                model.Specialite specPlus = model.Specialite.trouverParId(specialitePlusMoins[0]);
-                                specialitePlusInfo.put("plusId", specialitePlusMoins[0]);
-                                specialitePlusInfo.put("plusNom", specPlus != null ? specPlus.getNom() : "Inconnue");
-                            }
-                            if (specialitePlusMoins[1] > 0) {
-                                model.Specialite specMoins = model.Specialite.trouverParId(specialitePlusMoins[1]);
-                                specialitePlusInfo.put("moinsId", specialitePlusMoins[1]);
-                                specialitePlusInfo.put("moinsNom", specMoins != null ? specMoins.getNom() : "Inconnue");
-                            }
-                            request.setAttribute("specialitePlusMoins", specialitePlusInfo);
-                            
-                            // Statistiques par spécialité
-                            java.util.Map<String, Object> specialiteStats = new java.util.HashMap<>();
-                            java.util.List<model.Specialite> specialites = model.Specialite.trouverToutes();
-                            for (model.Specialite spec : specialites) {
-                                int taux = model.Reponse_Evaluation.calculerTauxReponseParSpecialite(evalId, spec.getId());
-                                double moyenne = model.Reponse_Evaluation.calculerMoyenneGeneraleParSpecialite(evalId, spec.getId());
-                                
-                                java.util.Map<String, Object> stats = new java.util.HashMap<>();
-                                stats.put("tauxReponse", taux);
-                                stats.put("moyenne", moyenne);
-                                specialiteStats.put(spec.getNom(), stats);
-                            }
-                            request.setAttribute("specialiteStats", specialiteStats);
-                            
-                            // Statistiques par matière
-                            java.util.List<java.util.Map<String, Object>> matiereStats = new java.util.ArrayList<>();
-                            java.util.List<model.Matiere> matieres = model.Matiere.trouverToutes();
-                            for (model.Matiere mat : matieres) {
-                                int taux = model.Reponse_Evaluation.calculerTauxReponseParMatiere(evalId, mat.getId());
-                                double qualiteSupport = model.Reponse_Evaluation.calculerMoyenneQualiteSupportParMatiere(evalId, mat.getId());
-                                double qualiteEquipe = model.Reponse_Evaluation.calculerMoyenneQualiteEquipeParMatiere(evalId, mat.getId());
-                                double qualiteMateriel = model.Reponse_Evaluation.calculerMoyenneQualiteMaterielParMatiere(evalId, mat.getId());
-                                double pertinenceExamen = model.Reponse_Evaluation.calculerMoyennePertinenceExamenParMatiere(evalId, mat.getId());
-                                double utilitePourFormation = model.Reponse_Evaluation.calculerProportionOuiUtilitePourFormationParMatiere(evalId, mat.getId());
-                                
-                                java.util.Map<String, Object> stats = new java.util.HashMap<>();
-                                stats.put("matiereNom", mat.getNom());
-                                stats.put("tauxReponse", taux);
-                                stats.put("qualiteSupport", qualiteSupport);
-                                stats.put("qualiteEquipe", qualiteEquipe);
-                                stats.put("qualiteMateriel", qualiteMateriel);
-                                stats.put("pertinenceExamen", pertinenceExamen);
-                                stats.put("utilitePourFormation", utilitePourFormation);
-                                
-                                matiereStats.add(stats);
-                            }
-                            request.setAttribute("matiereStats", matiereStats);
-                        } else {
-                            request.setAttribute("error", "Évaluation non trouvée");
-                        }
-                    } else {
-                        request.setAttribute("error", "ID évaluation manquant");
-                    }
+                    Reponse_Evaluation.chargerStatistiquesEvaluation(request);
                 } catch (SQLException e) {
                     request.setAttribute("error", "Erreur BD: " + e.getMessage());
                 }
