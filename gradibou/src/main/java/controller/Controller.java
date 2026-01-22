@@ -786,6 +786,7 @@ public class Controller extends HttpServlet {
                 request.setAttribute("specialite", model.Specialite.trouverParId(idSpec));
             } else {
                 request.setAttribute("matieres", model.Matiere.trouverToutes());
+                request.setAttribute("specialite", null);
             }
             request.setAttribute("professeurs", model.Utilisateur.trouverTousLesProfesseurs());
             return "/WEB-INF/views/listeMatieres.jsp";
@@ -953,7 +954,6 @@ public class Controller extends HttpServlet {
             if (m != null) {
                 m.setNom(nom);
                 m.setSemestre(semestre);
-                m.setCoefficient(coefficient);
                 m.setProfId(profId);
                 m.save();
             }
@@ -1086,10 +1086,11 @@ public class Controller extends HttpServlet {
         int idSpecialite = etudiant.getIdSpecialite();
 
         // Récupérer toutes les évaluations et les matières de la spécialité
-        String sql = "SELECT e.id, e.date_debut, e.date_fin, e.semestre, m.id as matiere_id, m.nom as matiere_nom " +
-                     "FROM evaluation e, matiere m " +
-                     "WHERE m.id_specialite = ? " +
-                     "ORDER BY e.date_fin DESC";
+        String sql = "SELECT DISTINCT e.id, e.date_debut, e.date_fin, e.semestre, m.id as matiere_id, m.nom as matiere_nom " +
+                 "FROM evaluation e, matiere m " +
+                 "WHERE m.id_specialite = ? " +
+                 "AND m.semestre = e.semestre " +
+                 "ORDER BY e.date_fin DESC";
         
         try (java.sql.Connection conn = util.DatabaseManager.obtenirConnexion();
              java.sql.PreparedStatement stmt = conn.prepareStatement(sql)) {

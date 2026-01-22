@@ -60,8 +60,8 @@ public class Matiere {
         String sql = "SELECT id, nom, semestre, id_specialite, id_prof FROM matiere ORDER BY nom";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
             
             while (rs.next()) {
                 liste.add(creerDepuisResultSet(rs));
@@ -75,10 +75,10 @@ public class Matiere {
      */
     public static List<Matiere> trouverParSpecialite(int specialiteId) throws SQLException {
         List<Matiere> liste = new ArrayList<>();
-        String sql = "SELECT id, nom, semestre, coefficient, id_specialite, id_prof FROM matiere WHERE id_specialite = ? ORDER BY nom";
+        String sql = "SELECT id, nom, semestre, id_specialite, id_prof FROM matiere WHERE id_specialite = ? ORDER BY nom";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, specialiteId);
             ResultSet rs = stmt.executeQuery();
             

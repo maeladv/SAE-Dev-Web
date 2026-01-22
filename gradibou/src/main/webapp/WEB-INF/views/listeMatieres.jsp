@@ -54,10 +54,10 @@
                 for (Matiere m : matieres) {
         %>
             <li>
-                <span><%= m.getNom() %> (S<%= m.getSemestre() %> - Coeff: <%= m.getCoefficient() %>)</span>
+                <span><%= m.getNom() %> (Semestre <%= m.getSemestre() %>)</span>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <a href="<%= request.getContextPath() %>/app/admin/examens?matId=<%= m.getId() %>">Voir les examens &rarr;</a>
-                    <button type="button" onclick="openEditModal('<%= m.getId() %>', '<%= m.getNom().replace("'", "\\'") %>', '<%= m.getSemestre() %>', '<%= m.getCoefficient() %>', '<%= m.getProfId() %>')" style="background-color: #ffc107; color: black; border: 1px solid #ffca2c; padding: 5px 10px; font-size: 0.8em; cursor: pointer; border-radius: 4px;">Modifier</button>
+                    <button type="button" onclick="openEditModal('<%= m.getId() %>', '<%= m.getNom().replace("'", "\\'") %>', '<%= m.getSemestre() %>', '<%= m.getProfId() %>')" style="background-color: #ffc107; color: black; border: 1px solid #ffca2c; padding: 5px 10px; font-size: 0.8em; cursor: pointer; border-radius: 4px;">Modifier</button>
                     <form action="<%= request.getContextPath() %>/app/admin/supprimer-matiere" method="post" style="margin: 0;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette matière ?');">
                         <input type="hidden" name="id" value="<%= m.getId() %>">
                         <input type="hidden" name="specId" value="<%= spec != null ? spec.getId() : "" %>">
@@ -103,10 +103,6 @@
                     <input type="number" id="edit-semestre" name="semestre" required>
                 </div>
                 <div class="form-group">
-                    <label for="edit-coefficient">Coefficient:</label>
-                    <input type="number" id="edit-coefficient" name="coefficient" required>
-                </div>
-                <div class="form-group">
                     <label for="edit-profId">Professeur:</label>
                     <select id="edit-profId" name="profId" required style="width: 100%; padding: 8px;">
                         <% 
@@ -132,7 +128,6 @@
             document.getElementById("edit-id").value = id;
             document.getElementById("edit-nom").value = nom;
             document.getElementById("edit-semestre").value = semestre;
-            document.getElementById("edit-coefficient").value = coeff;
             document.getElementById("edit-profId").value = profId;
             modal.style.display = "block";
         }
