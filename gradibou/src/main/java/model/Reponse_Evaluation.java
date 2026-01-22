@@ -641,7 +641,7 @@ public class Reponse_Evaluation {
             }
 
             // Vérifier si c'est un GET (affichage du formulaire) ou POST (soumission)
-            if (qualiteSupportStr == null) {
+            if ("GET".equalsIgnoreCase(request.getMethod())) {
                 // GET - Afficher le formulaire
                 request.setAttribute("evaluation", evaluation);
                 request.setAttribute("matiere", matiere);
@@ -700,11 +700,23 @@ public class Reponse_Evaluation {
                 request.getRequestDispatcher("/WEB-INF/views/repondreEvaluation.jsp").forward(request, response);
             }
         } catch (NumberFormatException e) {
-            request.setAttribute("error", "Format numérique invalide");
-            request.getRequestDispatcher("/WEB-INF/views/evaluations.jsp").forward(request, response);
+            request.setAttribute("error", "Format numérique invalide. Veuillez vérifier vos réponses.");
+            request.setAttribute("evaluation", model.Evaluation.trouverParId(Integer.parseInt(evaluationIdStr)));
+            request.setAttribute("matiere", model.Matiere.trouverParId(Integer.parseInt(matiereIdStr)));
+            request.setAttribute("evaluationId", evaluationIdStr);
+            request.setAttribute("matiereId", matiereIdStr);
+            request.getRequestDispatcher("/WEB-INF/views/repondreEvaluation.jsp").forward(request, response);
         } catch (SQLException e) {
-            request.setAttribute("error", "Erreur BD: " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/evaluations.jsp").forward(request, response);
+            request.setAttribute("error", "Erreur lors de l'enregistrement: " + e.getMessage());
+            try {
+                request.setAttribute("evaluation", model.Evaluation.trouverParId(Integer.parseInt(evaluationIdStr)));
+                request.setAttribute("matiere", model.Matiere.trouverParId(Integer.parseInt(matiereIdStr)));
+                request.setAttribute("evaluationId", evaluationIdStr);
+                request.setAttribute("matiereId", matiereIdStr);
+            } catch (Exception ex) {
+                // Si on ne peut pas recharger les données, on redirige vers la liste
+            }
+            request.getRequestDispatcher("/WEB-INF/views/repondreEvaluation.jsp").forward(request, response);
         }
     }
 

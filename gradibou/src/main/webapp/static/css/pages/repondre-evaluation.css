@@ -1,0 +1,126 @@
+/* Page Répondre Évaluation (EVE Étudiants) */
+
+.re-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 40px;
+}
+
+.re-message {
+  width: 100%;
+  background: var(--gradibou-blanc);
+  border-radius: 12px;
+  padding: 20px;
+}
+.re-message .error { 
+  color: #721c24;
+  background: #f8d7da; 
+  padding: 16px 20px; 
+  border-radius: 8px; 
+  border-left: 4px solid var(--gradibou-status-error);
+  font-weight: 500;
+  font-size: 1rem;
+}
+.re-message .success { 
+  color: #155724; 
+  background: #d4edda; 
+  padding: 16px 20px; 
+  border-radius: 8px;
+  border-left: 4px solid #28a745;
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.re-header-card {
+  width: 100%;
+  background: var(--gradibou-blanc);
+  border-radius: 24px;
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sem-chip {
+  background: var(--color-gris-contour);
+  color: var(--color-gris-texte);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.re-title {
+  flex: 1 0 0;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.re-form {
+  width: 550px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.re-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.re-label {
+  font-weight: 700;
+  color: var(--gradibou-noir);
+  font-size: 16px;
+}
+
+/* Pills */
+.pill-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.pill-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pill-input { 
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.pill {
+  background: var(--gradibou-blanc);
+  border: 1px solid var(--color-gris-contour);
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
+  font-weight: 700;
+  color: var(--gradibou-noir);
+  cursor: pointer;
+  min-width: 44px;
+  text-align: center;
+  flex: 1;
+}
+
+.pill-block { width: 100%; text-align: left; }
+
+.pill-input:checked + .pill {
+  background: var(--gradibou-rose);
+  color: var(--gradibou-blanc);
+}
+
+.re-submit { width: 276px; }
+
