@@ -1,0 +1,254 @@
+/* Page Admin - Gestion des comptes */
+
+.admin-page {
+    background-color: #ffffff;
+}
+
+.admin-main {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Barre d'outils */
+.admin-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 2rem;
+}
+
+.admin-toolbar h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--noir);
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.admin-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Filtres dropdown */
+.filter-dropdown {
+    padding: 0.75rem 1rem;
+    border: 1px solid #d9d9d9;
+    border-radius: var(--radius-sm);
+    background-color: #ffffff;
+    color: var(--noir);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-dropdown:hover {
+    border-color: var(--primary);
+}
+
+.filter-dropdown:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(252, 165, 59, 0.1);
+}
+
+/* Boutons avec icônes */
+.btn-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-with-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-ghost {
+    background-color: transparent;
+    color: var(--noir);
+    border: 1px solid #d9d9d9;
+}
+
+.btn-ghost:hover {
+    background-color: #f5f5f5;
+    border-color: var(--noir);
+}
+
+/* Conteneur du tableau */
+.users-table-container {
+    background-color: #ffffff;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Tableau des utilisateurs */
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.users-table thead {
+    background-color: #ffffff;
+}
+
+.users-table thead th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #6b6f76;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.users-table tbody tr {
+    background-color: #ffffff;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.users-table tbody tr.table-row-alt {
+    background-color: #f5f5f5;
+}
+
+.users-table tbody tr:hover {
+    background-color: #fef9f3;
+}
+
+.users-table tbody td {
+    padding: 1rem;
+    color: var(--noir);
+    vertical-align: middle;
+}
+
+/* Badges de rôle */
+.role-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.role-badge.role-admin {
+    background-color: #fee;
+    color: #fe3232;
+}
+
+.role-badge.role-prof {
+    background-color: #e8f0fa;
+    color: #2d65c6;
+}
+
+.role-badge.role-etudiant {
+    background-color: #f0f0f1;
+    color: #6b6f76;
+}
+
+/* Badges de spécialité */
+.specialite-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.specialite-badge.spe-icy {
+    background-color: #e0f2fe;
+    color: #0369a1;
+}
+
+.specialite-badge.spe-iia {
+    background-color: #fef3c7;
+    color: #b45309;
+}
+
+.specialite-badge.spe-gcb {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+.specialite-badge.spe-me {
+    background-color: #f3e8ff;
+    color: #7e22ce;
+}
+
+/* Actions du tableau */
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.action-btn {
+    padding: 0.5rem;
+    border: 1px solid #d9d9d9;
+    border-radius: var(--radius-sm);
+    background-color: #ffffff;
+    color: #6b6f76;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn:hover {
+    background-color: #f5f5f5;
+    border-color: var(--noir);
+    color: var(--noir);
+}
+
+.action-btn.action-btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+}
+
+.action-btn.action-btn-primary:hover {
+    background-color: #e69735;
+    border-color: #e69735;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .users-table-container {
+        overflow-x: auto;
+    }
+    
+    .users-table {
+        min-width: 1000px;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .admin-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .admin-actions > * {
+        width: 100%;
+    }
+    
+    .admin-main {
+        padding: 1rem;
+    }
+}
