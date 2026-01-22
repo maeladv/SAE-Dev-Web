@@ -29,7 +29,7 @@
         <form id="creerUtilisateurForm" method="post" action="<%= request.getContextPath() %>/app/admin/creer-utilisateur">
             <input type="text" name="nom" placeholder="Nom" required>
             <input type="text" name="prenom" placeholder="Prénom" required>
-            <input type="email" name="email" placeholder="Email" required>
+            <input type="email" name="email" placeholder="email" required>
             <input type="date" name="dateNaissance" required>
             
             <select name="role" id="roleSelect" required onchange="toggleINE()">
@@ -63,10 +63,13 @@
         document.getElementById('creerUtilisateurForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const formData = new FormData(this);
+            const formData = new URLSearchParams(new FormData(this));
             
             fetch('<%= request.getContextPath() %>/app/admin/creer-utilisateur', {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
                 body: formData
             })
             .then(response => response.json())
@@ -77,7 +80,7 @@
                     messageDiv.innerHTML = `
                         <div class="success">
                             <p><strong>${data.message}</strong></p>
-                            <p><strong>Email :</strong> ${data.utilisateur.email}</p>
+                            <p><strong>email :</strong> ${data.utilisateur.email}</p>
                             <p><strong>Lien d'activation :</strong></p>
                             <div class="link-box">
                                 <a href="${data.lien}" target="_blank">${data.lien}</a>

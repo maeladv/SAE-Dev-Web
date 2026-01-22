@@ -23,7 +23,7 @@
     <% } %>
 
     <form method="post" action="<%= request.getContextPath() %>/app/login">
-        <input type="email" name="email" placeholder="Email" required>
+        <input type="email" name="email" placeholder="email" required>
         <input type="password" name="motDePasse" placeholder="Mot de passe" required>
         <button type="submit">Se connecter</button>
     </form>

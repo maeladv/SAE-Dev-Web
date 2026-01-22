@@ -7,14 +7,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import util.DatabaseManager;
 
 public class Matiere {
     private int id;
     private String nom;
     private int semestre;
-    private int coefficient;
     private int specialiteId;
     private int profId;
     private boolean persisted = false;
@@ -22,18 +20,16 @@ public class Matiere {
     // Constructeurs
     public Matiere() {}
 
-    public Matiere(String nom, int semestre, int coefficient, int specialiteId, int profId) {
+    public Matiere(String nom, int semestre, int specialiteId, int profId) {
         this.nom = nom;
         this.semestre = semestre;
-        this.coefficient = coefficient;
         this.specialiteId = specialiteId;
         this.profId = profId;
     }
 
-    public Matiere(String nom, int semestre, int coefficient, int specialiteId) {
+    public Matiere(String nom, int semestre, int specialiteId) {
         this.nom = nom;
         this.semestre = semestre;
-        this.coefficient = coefficient;
         this.specialiteId = specialiteId;
     }
 
@@ -43,7 +39,7 @@ public class Matiere {
      * Trouver une spécialité par ID
      */
     public static Matiere trouverParId(int id) throws SQLException {
-        String sql = "SELECT id, nom, semestre, coefficient, id_specialite, id_prof FROM matiere WHERE id = ?";
+        String sql = "SELECT id, nom, semestre, id_specialite, id_prof FROM matiere WHERE id = ?";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -61,7 +57,7 @@ public class Matiere {
      */
     public static List<Matiere> trouverToutes() throws SQLException {
         List<Matiere> liste = new ArrayList<>();
-        String sql = "SELECT id, nom, semestre, coefficient, id_specialite, id_prof FROM matiere ORDER BY nom";
+        String sql = "SELECT id, nom, semestre, id_specialite, id_prof FROM matiere ORDER BY nom";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -92,15 +88,14 @@ public class Matiere {
      */
     private boolean insert() throws SQLException {
         // Ici, le tag est fourni par l'objet et non généré par la BDD
-        String sql = "INSERT INTO matiere (nom, semestre, coefficient, id_specialite, id_prof) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO matiere (nom, semestre, id_specialite, id_prof) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, this.nom);
             stmt.setInt(2, this.semestre);
-            stmt.setInt(3, this.coefficient);
-            stmt.setInt(4, this.specialiteId);
-            stmt.setInt(5, this.profId);
+            stmt.setInt(3, this.specialiteId);
+            stmt.setInt(4, this.profId);
 
             int rowsInserted = stmt.executeUpdate();
             
@@ -114,16 +109,15 @@ public class Matiere {
 
      //Mettre à jour une spécialité existante
     private boolean update() throws SQLException {
-        String sql = "UPDATE matiere SET nom = ?, semestre = ?, coefficient = ?, id_specialite = ?, id_prof = ? WHERE id = ?";
+        String sql = "UPDATE matiere SET nom = ?, semestre = ?, id_specialite = ?, id_prof = ? WHERE id = ?";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, this.nom);
             stmt.setInt(2, this.semestre);
-            stmt.setInt(3, this.coefficient);
-            stmt.setInt(4, this.specialiteId);
-            stmt.setInt(5, this.profId);
-            stmt.setInt(6, this.id);
+            stmt.setInt(3, this.specialiteId);
+            stmt.setInt(4, this.profId);
+            stmt.setInt(5, this.id);
 
             return stmt.executeUpdate() > 0;
         }
@@ -163,7 +157,6 @@ public class Matiere {
             this.id = fresh.id;
             this.nom = fresh.nom;
             this.semestre = fresh.semestre;
-            this.coefficient = fresh.coefficient;
             this.specialiteId = fresh.specialiteId;
             this.profId = fresh.profId;
             return true;
@@ -182,7 +175,6 @@ public class Matiere {
         matiere.id = rs.getInt("id");
         matiere.nom = rs.getString("nom");
         matiere.semestre = rs.getInt("semestre");
-        matiere.coefficient = rs.getInt("coefficient");
         matiere.specialiteId = rs.getInt("id_specialite");
         matiere.profId = rs.getInt("id_prof");
         matiere.persisted = true;
@@ -211,12 +203,6 @@ public class Matiere {
     }
     public void setSemestre(int semestre) {
         this.semestre = semestre;
-    }
-    public int getCoefficient() {
-        return coefficient;
-    }
-    public void setCoefficient(int coefficient) {
-        this.coefficient = coefficient;
     }
     public int getSpecialiteId() {
         return specialiteId;

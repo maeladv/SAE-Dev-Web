@@ -126,6 +126,146 @@ public class Controller extends HttpServlet {
                 }
                 view = "/WEB-INF/views/creerNote.jsp";
                 break;
+            case "/admin/creer-evaluation":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = "/WEB-INF/views/creerEvaluation.jsp";
+                break;
+            case "/etudiant/evaluations":
+                if (!estEtudiant(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                try {
+                    Utilisateur etudiant = (Utilisateur) request.getSession().getAttribute("user");
+                    request.setAttribute("evaluations", obtenirEvaluationsDisponibles(etudiant.getId()));
+                } catch (SQLException e) {
+                    request.setAttribute("error", "Erreur lors du chargement des évaluations: " + e.getMessage());
+                }
+                view = "/WEB-INF/views/evaluations.jsp";
+                break;
+            case "/etudiant/repondre-evaluation":
+                if (!estEtudiant(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                try {
+                    String evalIdStr = request.getParameter("evaluationId");
+                    String matiereIdStr = request.getParameter("matiereId");
+                    
+                    if (evalIdStr != null && matiereIdStr != null) {
+                        int evalId = Integer.parseInt(evalIdStr);
+                        int matiereId = Integer.parseInt(matiereIdStr);
+                        
+                        request.setAttribute("evaluation", model.Evaluation.trouverParId(evalId));
+                        request.setAttribute("matiere", model.Matiere.trouverParId(matiereId));
+                        request.setAttribute("evaluationId", evalId);
+                        request.setAttribute("matiereId", matiereId);
+                    }
+                } catch (SQLException e) {
+                    request.setAttribute("error", "Erreur lors du chargement de l'évaluation: " + e.getMessage());
+                }
+                view = "/WEB-INF/views/repondreEvaluation.jsp";
+                break;
+            case "/admin/resultats-evaluations":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                try {
+                    request.setAttribute("evaluations", model.Evaluation.trouverToutes());
+                } catch (SQLException e) {
+                    request.setAttribute("error", "Erreur lors du chargement des évaluations: " + e.getMessage());
+                }
+                view = "/WEB-INF/views/resultatEvaluations.jsp";
+                break;
+                
+            case "/admin/resultats-evaluation":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                try {
+                    String evalIdStr = request.getParameter("evaluationId");
+                    if (evalIdStr != null && !evalIdStr.isEmpty()) {
+                        int evalId = Integer.parseInt(evalIdStr);
+                        model.Evaluation evaluation = model.Evaluation.trouverParId(evalId);
+                        
+                        if (evaluation != null) {
+                            request.setAttribute("evaluation", evaluation);
+                            
+                            // Statistiques globales
+                            int tauxGlobal = model.Reponse_Evaluation.calculerTauxReponseGlobal(evalId);
+                            double moyenneGlobale = model.Reponse_Evaluation.calculerMoyenneGeneraleGlobale(evalId);
+                            
+                            request.setAttribute("tauxGlobal", tauxGlobal);
+                            request.setAttribute("moyenneGlobale", moyenneGlobale);
+                            
+                            // Spécialités avec plus/moins de réponses
+                            int[] specialitePlusMoins = model.Reponse_Evaluation.recupererIdSpecialitesAvecPlusEtMoinsDeResponses(evalId);
+                            java.util.Map<String, Object> specialitePlusInfo = new java.util.HashMap<>();
+                            if (specialitePlusMoins[0] > 0) {
+                                model.Specialite specPlus = model.Specialite.trouverParId(specialitePlusMoins[0]);
+                                specialitePlusInfo.put("plusId", specialitePlusMoins[0]);
+                                specialitePlusInfo.put("plusNom", specPlus != null ? specPlus.getNom() : "Inconnue");
+                            }
+                            if (specialitePlusMoins[1] > 0) {
+                                model.Specialite specMoins = model.Specialite.trouverParId(specialitePlusMoins[1]);
+                                specialitePlusInfo.put("moinsId", specialitePlusMoins[1]);
+                                specialitePlusInfo.put("moinsNom", specMoins != null ? specMoins.getNom() : "Inconnue");
+                            }
+                            request.setAttribute("specialitePlusMoins", specialitePlusInfo);
+                            
+                            // Statistiques par spécialité
+                            java.util.Map<String, Object> specialiteStats = new java.util.HashMap<>();
+                            java.util.List<model.Specialite> specialites = model.Specialite.trouverToutes();
+                            for (model.Specialite spec : specialites) {
+                                int taux = model.Reponse_Evaluation.calculerTauxReponseParSpecialite(evalId, spec.getId());
+                                double moyenne = model.Reponse_Evaluation.calculerMoyenneGeneraleParSpecialite(evalId, spec.getId());
+                                
+                                java.util.Map<String, Object> stats = new java.util.HashMap<>();
+                                stats.put("tauxReponse", taux);
+                                stats.put("moyenne", moyenne);
+                                specialiteStats.put(spec.getNom(), stats);
+                            }
+                            request.setAttribute("specialiteStats", specialiteStats);
+                            
+                            // Statistiques par matière
+                            java.util.List<java.util.Map<String, Object>> matiereStats = new java.util.ArrayList<>();
+                            java.util.List<model.Matiere> matieres = model.Matiere.trouverToutes();
+                            for (model.Matiere mat : matieres) {
+                                int taux = model.Reponse_Evaluation.calculerTauxReponseParMatiere(evalId, mat.getId());
+                                double qualiteSupport = model.Reponse_Evaluation.calculerMoyenneQualiteSupportParMatiere(evalId, mat.getId());
+                                double qualiteEquipe = model.Reponse_Evaluation.calculerMoyenneQualiteEquipeParMatiere(evalId, mat.getId());
+                                double qualiteMateriel = model.Reponse_Evaluation.calculerMoyenneQualiteMaterielParMatiere(evalId, mat.getId());
+                                double pertinenceExamen = model.Reponse_Evaluation.calculerMoyennePertinenceExamenParMatiere(evalId, mat.getId());
+                                double utilitePourFormation = model.Reponse_Evaluation.calculerProportionOuiUtilitePourFormationParMatiere(evalId, mat.getId());
+                                
+                                java.util.Map<String, Object> stats = new java.util.HashMap<>();
+                                stats.put("matiereNom", mat.getNom());
+                                stats.put("tauxReponse", taux);
+                                stats.put("qualiteSupport", qualiteSupport);
+                                stats.put("qualiteEquipe", qualiteEquipe);
+                                stats.put("qualiteMateriel", qualiteMateriel);
+                                stats.put("pertinenceExamen", pertinenceExamen);
+                                stats.put("utilitePourFormation", utilitePourFormation);
+                                
+                                matiereStats.add(stats);
+                            }
+                            request.setAttribute("matiereStats", matiereStats);
+                        } else {
+                            request.setAttribute("error", "Évaluation non trouvée");
+                        }
+                    } else {
+                        request.setAttribute("error", "ID évaluation manquant");
+                    }
+                } catch (SQLException e) {
+                    request.setAttribute("error", "Erreur BD: " + e.getMessage());
+                }
+                view = "/WEB-INF/views/detailsResultatEvaluation.jsp";
+                break;
             case "/logout":
                 request.getSession().invalidate();
                 try {
@@ -162,6 +302,18 @@ public class Controller extends HttpServlet {
         return false;
     }
 
+    private boolean estEtudiant(HttpSession session) {
+        if (session == null) {
+            return false;
+        }
+        Object userObj = session.getAttribute("user");
+        if (userObj instanceof Utilisateur) {
+            Utilisateur utilisateur = (Utilisateur) userObj;
+            return "etudiant".equalsIgnoreCase(utilisateur.getRole());
+        }
+        return false;
+    }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
@@ -187,6 +339,12 @@ public class Controller extends HttpServlet {
                 case "/admin/creer-note":
                     creationNoteParAdmin(request, response);
                     break;
+                case "/admin/creer-evaluation":
+                    creationEvaluationParAdmin(request, response);
+                    break;
+                case "/etudiant/repondre-evaluation":
+                    etudiantRepondreEvaluation(request, response);
+                    break;
                 case "/admin/maj-mdp":
                     creerLienPourMAJMotDePasse(request, response);
                     break;
@@ -208,17 +366,17 @@ public class Controller extends HttpServlet {
         String motDePasse = request.getParameter("motDePasse");
 
         if (email == null || email.isEmpty() || motDePasse == null || motDePasse.isEmpty()) {
-            request.setAttribute("error", "Email et mot de passe requis");
+            request.setAttribute("error", "email et mot de passe requis");
             request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
             return;
         }
 
-        Utilisateur utilisateur = Utilisateur.trouverParEmailEtMotDePasse(email, motDePasse);
+        Utilisateur utilisateur = Utilisateur.trouverParemailEtMotDePasse(email, motDePasse);
         if (utilisateur != null) {
             request.getSession().setAttribute("user", utilisateur);
             response.sendRedirect(request.getContextPath() + "/app/" + utilisateur.getRole());
         } else {
-            request.setAttribute("error", "Email ou mot de passe incorrect");
+            request.setAttribute("error", "email ou mot de passe incorrect");
             request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
         }
     }
@@ -387,14 +545,13 @@ public class Controller extends HttpServlet {
         // Traitement du formulaire (POST)
         String nom = request.getParameter("nom");
         String semestreStr = request.getParameter("semestre");
-        String coefficientStr = request.getParameter("coefficient");
         String specialiteIdStr = request.getParameter("specialiteId");
         String profIdStr = request.getParameter("profId");
 
         try {
             // Check if all fields (including profId) are present
             if (nom == null || nom.isEmpty() || semestreStr == null || semestreStr.isEmpty() || 
-                coefficientStr == null || coefficientStr.isEmpty() || specialiteIdStr == null || specialiteIdStr.isEmpty() ||
+                specialiteIdStr == null || specialiteIdStr.isEmpty() ||
                 profIdStr == null || profIdStr.isEmpty()) {
                 request.setAttribute("error", "Tous les champs sont requis, y compris le professeur.");
                 request.getRequestDispatcher("/WEB-INF/views/creerMatiere.jsp").forward(request, response);
@@ -402,11 +559,10 @@ public class Controller extends HttpServlet {
             }
 
             int semestre = Integer.parseInt(semestreStr);
-            int coefficient = Integer.parseInt(coefficientStr);
             int specialiteId = Integer.parseInt(specialiteIdStr);
             int profId = Integer.parseInt(profIdStr);
 
-            model.Matiere matiere = new model.Matiere(nom, semestre, coefficient, specialiteId, profId);
+            model.Matiere matiere = new model.Matiere(nom, semestre, specialiteId, profId);
             
             if (matiere.save()) {
                 request.setAttribute("success", "Matière créée avec succès");
@@ -533,13 +689,13 @@ public class Controller extends HttpServlet {
             return;
         }
 
-        String mailUtilisateur = request.getParameter("email");
-        if (mailUtilisateur == null || mailUtilisateur.isEmpty()) {
-            envoyerJsonError(response, "Email utilisateur requis", 400);
+        String emailUtilisateur = request.getParameter("email");
+        if (emailUtilisateur == null || emailUtilisateur.isEmpty()) {
+            envoyerJsonError(response, "email utilisateur requis", 400);
             return;
         }
 
-        Utilisateur utilisateur = Utilisateur.trouverParEmail(mailUtilisateur);
+        Utilisateur utilisateur = Utilisateur.trouverParemail(emailUtilisateur);
         if (utilisateur == null) {
             envoyerJsonError(response, "Utilisateur non trouvé", 404);
             return;
@@ -575,5 +731,204 @@ public class Controller extends HttpServlet {
             "{\"success\": false, \"message\": \"%s\"}", 
             message
         ));
+    }
+
+    private void creationEvaluationParAdmin(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        if (!estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        String dateDebutStr = request.getParameter("date_debut");
+        String dateFinStr = request.getParameter("date_fin");
+        String semestreStr = request.getParameter("semestre");
+
+        try {
+            if (dateDebutStr == null || dateDebutStr.isEmpty() || dateFinStr == null || dateFinStr.isEmpty() || 
+                semestreStr == null || semestreStr.isEmpty()) {
+                request.setAttribute("error", "Tous les champs sont requis.");
+                request.getRequestDispatcher("/WEB-INF/views/creerEvaluation.jsp").forward(request, response);
+                return;
+            }
+
+            int semestre = Integer.parseInt(semestreStr);
+            
+            // Convertir les dates du format datetime-local
+            java.time.LocalDateTime dateDebut = java.time.LocalDateTime.parse(dateDebutStr);
+            java.time.LocalDateTime dateFin = java.time.LocalDateTime.parse(dateFinStr);
+
+            model.Evaluation evaluation = new model.Evaluation(dateDebut, dateFin, semestre);
+            evaluation.save();
+            
+            request.setAttribute("success", "Évaluation créée avec succès (ID: " + evaluation.getId() + ")");
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Format numérique invalide");
+        } catch (java.time.format.DateTimeParseException e) {
+            request.setAttribute("error", "Format de date invalide");
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+        }
+        
+        request.getRequestDispatcher("/WEB-INF/views/creerEvaluation.jsp").forward(request, response);
+    }
+
+    private java.util.List<java.util.Map<String, Object>> obtenirEvaluationsDisponibles(int idEtudiant) throws SQLException {
+        java.util.List<java.util.Map<String, Object>> evaluations = new java.util.ArrayList<>();
+        
+        // Récupérer la spécialité de l'étudiant
+        Utilisateur etudiant = Utilisateur.trouverParId(idEtudiant);
+        if (etudiant == null || etudiant.getIdSpecialite() <= 0) {
+            return evaluations;
+        }
+
+        int idSpecialite = etudiant.getIdSpecialite();
+
+        // Récupérer toutes les évaluations et les matières de la spécialité
+        String sql = "SELECT e.id, e.date_debut, e.date_fin, e.semestre, m.id as matiere_id, m.nom as matiere_nom " +
+                     "FROM evaluation e, matiere m " +
+                     "WHERE m.id_specialite = ? " +
+                     "ORDER BY e.date_fin DESC";
+        
+        try (java.sql.Connection conn = util.DatabaseManager.obtenirConnexion();
+             java.sql.PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idSpecialite);
+            java.sql.ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                java.util.Map<String, Object> eval = new java.util.HashMap<>();
+                int evalId = rs.getInt("id");
+                int matiereId = rs.getInt("matiere_id");
+                
+                eval.put("evaluation_id", evalId);
+                eval.put("matiere_id", matiereId);
+                eval.put("matiere_nom", rs.getString("matiere_nom"));
+                eval.put("date_debut", rs.getObject("date_debut"));
+                eval.put("date_fin", rs.getObject("date_fin"));
+                eval.put("semestre", rs.getInt("semestre"));
+                
+                // Vérifier si l'étudiant a déjà répondu
+                boolean aRepondu = model.A_Repondu_Evaluation.aRepondu(idEtudiant, matiereId, evalId);
+                
+                // Vérifier si l'évaluation est toujours ouverte
+                java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                java.time.LocalDateTime dateFin = rs.getObject("date_fin", java.time.LocalDateTime.class);
+                
+                String status;
+                if (aRepondu) {
+                    status = "answered";
+                } else if (now.isAfter(dateFin)) {
+                    status = "closed";
+                } else {
+                    status = "open";
+                }
+                
+                eval.put("status", status);
+                
+                // Calculer le taux de réponse
+                try {
+                    int tauxReponse = model.Reponse_Evaluation.calculerTauxReponseParMatiere(evalId, matiereId);
+                    eval.put("taux_reponse", tauxReponse);
+                } catch (Exception e) {
+                    eval.put("taux_reponse", 0);
+                }
+                
+                evaluations.add(eval);
+            }
+        }
+        
+        return evaluations;
+    }
+
+    private void etudiantRepondreEvaluation(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (!estEtudiant(session)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        Utilisateur etudiant = (Utilisateur) session.getAttribute("user");
+        
+        String evaluationIdStr = request.getParameter("evaluationId");
+        String matiereIdStr = request.getParameter("matiereId");
+        String qualiteSupportStr = request.getParameter("qualite_support");
+
+        try {
+            if (evaluationIdStr == null || evaluationIdStr.isEmpty() || matiereIdStr == null || matiereIdStr.isEmpty()) {
+                request.setAttribute("error", "Paramètres manquants");
+                request.getRequestDispatcher("/WEB-INF/views/evaluations.jsp").forward(request, response);
+                return;
+            }
+
+            int evaluationId = Integer.parseInt(evaluationIdStr);
+            int matiereId = Integer.parseInt(matiereIdStr);
+
+            // Vérifier si c'est un GET (affichage du formulaire) ou POST (soumission)
+            if (qualiteSupportStr == null) {
+                // GET - Afficher le formulaire
+                request.setAttribute("evaluation", model.Evaluation.trouverParId(evaluationId));
+                request.setAttribute("matiere", model.Matiere.trouverParId(matiereId));
+                request.setAttribute("evaluationId", evaluationId);
+                request.setAttribute("matiereId", matiereId);
+                request.getRequestDispatcher("/WEB-INF/views/repondreEvaluation.jsp").forward(request, response);
+            } else {
+                // POST - Traiter la soumission
+                String qualiteEquipeStr = request.getParameter("qualite_equipe");
+                String qualiteMaterielStr = request.getParameter("qualite_materiel");
+                String pertinenceExamenStr = request.getParameter("pertinence_examen");
+                String tempsParSemaineStr = request.getParameter("temps_par_semaine");
+                String utiliteStr = request.getParameter("utilite_pour_formation");
+                String commentaires = request.getParameter("commentaires");
+
+                // Validation des champs obligatoires
+                if (qualiteSupportStr == null || qualiteSupportStr.isEmpty() ||
+                    qualiteEquipeStr == null || qualiteEquipeStr.isEmpty() ||
+                    qualiteMaterielStr == null || qualiteMaterielStr.isEmpty() ||
+                    pertinenceExamenStr == null || pertinenceExamenStr.isEmpty() ||
+                    tempsParSemaineStr == null || tempsParSemaineStr.isEmpty() ||
+                    utiliteStr == null || utiliteStr.isEmpty()) {
+                    request.setAttribute("error", "Tous les champs obligatoires doivent être remplis");
+                    request.setAttribute("evaluation", model.Evaluation.trouverParId(evaluationId));
+                    request.setAttribute("matiere", model.Matiere.trouverParId(matiereId));
+                    request.setAttribute("evaluationId", evaluationId);
+                    request.setAttribute("matiereId", matiereId);
+                    request.getRequestDispatcher("/WEB-INF/views/repondreEvaluation.jsp").forward(request, response);
+                    return;
+                }
+
+                // Créer la réponse d'évaluation
+                model.Reponse_Evaluation reponse = new model.Reponse_Evaluation(
+                    Integer.parseInt(qualiteSupportStr),
+                    Integer.parseInt(qualiteEquipeStr),
+                    Integer.parseInt(qualiteMaterielStr),
+                    Integer.parseInt(pertinenceExamenStr),
+                    Integer.parseInt(tempsParSemaineStr),
+                    Integer.parseInt(utiliteStr),
+                    commentaires,
+                    matiereId,
+                    evaluationId
+                );
+                
+                reponse.insert();
+
+                // Marquer que l'étudiant a répondu
+                model.A_Repondu_Evaluation aRepondu = new model.A_Repondu_Evaluation(
+                    etudiant.getId(),
+                    matiereId,
+                    evaluationId
+                );
+                aRepondu.insert();
+
+                request.setAttribute("success", "Votre réponse a été enregistrée avec succès !");
+                request.getRequestDispatcher("/WEB-INF/views/repondreEvaluation.jsp").forward(request, response);
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Format numérique invalide");
+            request.getRequestDispatcher("/WEB-INF/views/evaluations.jsp").forward(request, response);
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/evaluations.jsp").forward(request, response);
+        }
     }
 }

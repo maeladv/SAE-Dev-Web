@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import util.DatabaseManager;
 
@@ -119,6 +121,30 @@ public class Evaluation {
             }
         }
         return null;
+    }
+
+    /**
+     * Trouver toutes les évaluations
+     */
+    public static List<Evaluation> trouverToutes() throws SQLException {
+        List<Evaluation> liste = new ArrayList<>();
+        String sql = "SELECT id, date_debut, date_fin, semestre FROM evaluation ORDER BY date_fin DESC";
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            
+            while (rs.next()) {
+                Evaluation eval = new Evaluation(
+                    rs.getObject("date_debut", LocalDateTime.class),
+                    rs.getObject("date_fin", LocalDateTime.class),
+                    rs.getInt("semestre")
+                );
+                eval.id = rs.getInt("id");
+                eval.persisted = true;
+                liste.add(eval);
+            }
+        }
+        return liste;
     }
 
     // Getters et Setters

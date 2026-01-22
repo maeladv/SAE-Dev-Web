@@ -199,7 +199,7 @@ public class Reponse_Evaluation {
         return (repondu * 100) / total;
     }
 
-    public int[] recupererIdSpecialitesAvecPlusEtMoinsDeResponses(int id_evaluation) throws SQLException {
+    public static int[] recupererIdSpecialitesAvecPlusEtMoinsDeResponses(int id_evaluation) throws SQLException {
         String sqlSpecialites = "SELECT id FROM specialite";
         
         int specialitePlusId = -1;

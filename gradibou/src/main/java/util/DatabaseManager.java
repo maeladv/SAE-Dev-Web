@@ -60,7 +60,7 @@ public class DatabaseManager {
             "id SERIAL PRIMARY KEY," +
             "nom VARCHAR(50) NOT NULL," +
             "prenom VARCHAR(50) NOT NULL," +
-            "mail VARCHAR(100) NOT NULL UNIQUE," +
+            "email VARCHAR(100) NOT NULL UNIQUE," +
             "date_naissance DATE," +
             "mot_de_passe VARCHAR(255)," +
             "role VARCHAR(50) NOT NULL" +

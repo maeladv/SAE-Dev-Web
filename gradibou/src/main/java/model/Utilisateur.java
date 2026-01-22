@@ -39,7 +39,7 @@ public class Utilisateur {
      * Trouver un utilisateur par ID
      */
     public static Utilisateur trouverParId(int id) throws SQLException {
-        String sql = "SELECT id, nom, prenom, mail, date_naissance, mot_de_passe, role FROM utilisateur WHERE id = ?";
+        String sql = "SELECT id, nom, prenom, email, date_naissance, mot_de_passe, role FROM utilisateur WHERE id = ?";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -56,8 +56,8 @@ public class Utilisateur {
     /**
      * Trouver un utilisateur par email
      */
-    public static Utilisateur trouverParEmail(String email) throws SQLException {
-        String sql = "SELECT id, nom, prenom, mail, date_naissance, mot_de_passe, role FROM utilisateur WHERE mail = ?";
+    public static Utilisateur trouverParemail(String email) throws SQLException {
+        String sql = "SELECT id, nom, prenom, email, date_naissance, mot_de_passe, role FROM utilisateur WHERE email = ?";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -74,8 +74,8 @@ public class Utilisateur {
     /**
      * Trouver un utilisateur par email et mot de passe
      */
-    public static Utilisateur trouverParEmailEtMotDePasse(String email, String motDePasse) throws SQLException {
-        Utilisateur utilisateur = trouverParEmail(email);
+    public static Utilisateur trouverParemailEtMotDePasse(String email, String motDePasse) throws SQLException {
+        Utilisateur utilisateur = trouverParemail(email);
         if (utilisateur != null) {
             if (org.mindrot.jbcrypt.BCrypt.checkpw(motDePasse, utilisateur.motDePasse)) {
                 return utilisateur;
@@ -89,7 +89,7 @@ public class Utilisateur {
      */
     public static List<Utilisateur> trouverTousLesProfesseurs() throws SQLException {
         List<Utilisateur> liste = new ArrayList<>();
-        String sql = "SELECT id, nom, prenom, mail, date_naissance, mot_de_passe, role FROM utilisateur WHERE role = 'professeur' ORDER BY nom, prenom";
+        String sql = "SELECT id, nom, prenom, email, date_naissance, mot_de_passe, role FROM utilisateur WHERE role = 'professeur' ORDER BY nom, prenom";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -107,7 +107,7 @@ public class Utilisateur {
      */
     public static List<Utilisateur> trouverTousLesEtudiants() throws SQLException {
         List<Utilisateur> liste = new ArrayList<>();
-        String sql = "SELECT id, nom, prenom, mail, date_naissance, mot_de_passe, role FROM utilisateur WHERE role = 'etudiant' ORDER BY nom, prenom";
+        String sql = "SELECT id, nom, prenom, email, date_naissance, mot_de_passe, role FROM utilisateur WHERE role = 'etudiant' ORDER BY nom, prenom";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -124,7 +124,7 @@ public class Utilisateur {
      * Vérifier si un email existe
      */
     public static boolean emailExiste(String email) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM utilisateur WHERE mail = ?";
+        String sql = "SELECT COUNT(*) FROM utilisateur WHERE email = ?";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -176,7 +176,7 @@ public class Utilisateur {
      * Insérer un nouvel utilisateur en base de données
      */
     private boolean insert() throws SQLException {
-        String sql = "INSERT INTO utilisateur (nom, prenom, mail, date_naissance, mot_de_passe, role) " +
+        String sql = "INSERT INTO utilisateur (nom, prenom, email, date_naissance, mot_de_passe, role) " +
                     "VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
@@ -206,7 +206,7 @@ public class Utilisateur {
      * Mettre à jour un utilisateur existant
      */
     private boolean update() throws SQLException {
-        String sql = "UPDATE utilisateur SET nom = ?, prenom = ?, mail = ?, date_naissance = ?, role = ? " +
+        String sql = "UPDATE utilisateur SET nom = ?, prenom = ?, email = ?, date_naissance = ?, role = ? " +
                      "WHERE id = ?";
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
@@ -296,14 +296,14 @@ public class Utilisateur {
     // ==================== Méthodes utilitaires ====================
 
     /**
-     * Hydrater un objet depuis un ResultSet
+     * Creer un objet depuis un ResultSet
      */
     private static Utilisateur creerDepuisResultSet(ResultSet rs) throws SQLException {
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.id = rs.getInt("id");
         utilisateur.nom = rs.getString("nom");
         utilisateur.prenom = rs.getString("prenom");
-        utilisateur.email = rs.getString("mail");
+        utilisateur.email = rs.getString("email");
         utilisateur.dateNaissance = rs.getDate("date_naissance").toLocalDate();
         utilisateur.motDePasse = rs.getString("mot_de_passe");
         utilisateur.role = rs.getString("role");
@@ -343,8 +343,8 @@ public class Utilisateur {
     public String getPrenom() { return prenom; }
     public void setPrenom(String prenom) { this.prenom = prenom; }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public String getemail() { return email; }
+    public void setemail(String email) { this.email = email; }
 
     public LocalDate getDateNaissance() { return dateNaissance; }
     public void setDateNaissance(LocalDate dateNaissance) { this.dateNaissance = dateNaissance; }
@@ -354,4 +354,19 @@ public class Utilisateur {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    // Fonction pour recuperer la specialite d'un etudiant
+    public int getIdSpecialite() throws SQLException {
+        String sql = "SELECT id_specialite FROM etudiant WHERE id_utilisateur = ?";
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, this.id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id_specialite");
+            }
+        }
+        return -1;
+    }
 }

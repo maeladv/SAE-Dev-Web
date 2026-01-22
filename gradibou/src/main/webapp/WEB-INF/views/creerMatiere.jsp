@@ -39,9 +39,6 @@
 
             <label for="semestre">Semestre</label>
             <input type="number" id="semestre" name="semestre" min="1" max="10" placeholder="Semestre" required>
-
-            <label for="coefficient">Coefficient</label>
-            <input type="number" id="coefficient" name="coefficient" min="1" placeholder="Coefficient" required>
             
             <label for="specialite">Spécialité</label>
             <select id="specialite" name="specialiteId" required>
