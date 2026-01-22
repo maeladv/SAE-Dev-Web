@@ -47,16 +47,16 @@
                 <% if ("etudiant".equals(userRole)) { %>
                     <a href="#">Evaluation des enseignements</a>
                     <a href="#">Mes notes</a>
-                    <a href="#">Mon compte</a>
+                    <a href="<%= request.getContextPath() %>/app/moncompte">Mon compte</a>
                 <% } else if ("professeur".equals(userRole)) { %>
                     <a href="#">Evaluations de mes enseignements</a>
                     <a href="#">Mes matières</a>
-                    <a href="#">Mon compte</a>
+                    <a href="<%= request.getContextPath() %>/app/moncompte">Mon compte</a>
                 <% } else if ("admin".equals(userRole)) { %>
                     <a href="#">Évaluation des enseignements</a>
                     <a href="<%= request.getContextPath() %>/app/gestion/specialites">Spécialités</a>
                     <a href="<%= request.getContextPath() %>/app/admin">Comptes</a>
-                    <a href="#">Mon compte</a>
+                    <a href="<%= request.getContextPath() %>/app/moncompte">Mon compte</a>
                 <% } %>
             </nav>
             <div class="header-cta">

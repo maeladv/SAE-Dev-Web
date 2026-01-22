@@ -666,7 +666,91 @@ public class Utilisateur {
         }
     }
 
+    /**
+     * Modifier son propre profil (utilisateur connecté)
+     */
+    public static void modifierMonProfil(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        Utilisateur currentUser = (Utilisateur) request.getSession().getAttribute("user");
+        
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/app/login");
+            return;
+        }
+
+        String nom = request.getParameter("nom");
+        String prenom = request.getParameter("prenom");
+        String email = request.getParameter("email");
+        String dateNaissanceStr = request.getParameter("dateNaissance");
+        String motDePasse = request.getParameter("motDePasse");
+        String confirmPassword = request.getParameter("confirmPassword");
+
+        try {
+            // Validation des champs obligatoires
+            if (nom == null || nom.trim().isEmpty() || prenom == null || prenom.trim().isEmpty() ||
+                email == null || email.trim().isEmpty() || dateNaissanceStr == null || dateNaissanceStr.isEmpty()) {
+                request.setAttribute("error", "Tous les champs requis doivent être remplis");
+                request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+                return;
+            }
+
+            // Validation du mot de passe si fourni
+            if (motDePasse != null && !motDePasse.trim().isEmpty()) {
+                if (motDePasse.length() < 6) {
+                    request.setAttribute("error", "Le mot de passe doit contenir au moins 6 caractères");
+                    request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+                    return;
+                }
+                
+                if (confirmPassword == null || !motDePasse.equals(confirmPassword)) {
+                    request.setAttribute("error", "Les mots de passe ne correspondent pas");
+                    request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+                    return;
+                }
+            }
+
+            // Vérifier que l'email n'existe pas ailleurs (sauf pour l'utilisateur actuel)
+            Utilisateur userWithEmail = Utilisateur.trouverParemail(email);
+            if (userWithEmail != null && userWithEmail.getId() != currentUser.getId()) {
+                request.setAttribute("error", "Cet email est déjà utilisé");
+                request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+                return;
+            }
+
+            // Mettre à jour les informations
+            currentUser.setNom(nom.trim());
+            currentUser.setPrenom(prenom.trim());
+            currentUser.setemail(email.trim());
+            currentUser.setDateNaissance(java.time.LocalDate.parse(dateNaissanceStr));
+            
+            // Mettre à jour le mot de passe si fourni
+            if (motDePasse != null && !motDePasse.trim().isEmpty()) {
+                currentUser.mettreAJourMotDePasse(motDePasse);
+            }
+            
+            // Sauvegarder
+            currentUser.save();
+            
+            // Mettre à jour la session
+            request.getSession().setAttribute("user", currentUser);
+            
+            request.setAttribute("success", "Profil mis à jour avec succès !");
+            request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+            
+        } catch (java.time.format.DateTimeParseException e) {
+            request.setAttribute("error", "Format de date invalide");
+            request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur base de données: " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur: " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+        }
+    }
+
     // ==================== GETTERS & SETTERS ====================
+
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }

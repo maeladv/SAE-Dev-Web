@@ -404,6 +404,13 @@ public class Controller extends HttpServlet {
                     util.Json.envoyerJsonError(response, "Erreur: " + e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 }
                 return;
+            case "/moncompte":
+                if (!Role.estConnecte(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = "/WEB-INF/views/moncompte.jsp";
+                break;
             case "/logout":
                 request.getSession().invalidate();
                 try {
@@ -466,6 +473,9 @@ public class Controller extends HttpServlet {
                     break;
                 case "/complete-profil":
                     Utilisateur.completerProfil(request, response);
+                    break;
+                case "/moncompte":
+                    Utilisateur.modifierMonProfil(request, response);
                     break;
                 case "/admin/supprimer-specialite":
                     Specialite.supprimerSpecialite(request, response);

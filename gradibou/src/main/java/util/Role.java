@@ -39,4 +39,12 @@ public class Role {
         }
         return false;
     }
+
+    public static boolean estConnecte(HttpSession session) {
+        if (session == null) {
+            return false;
+        }
+        Object userObj = session.getAttribute("user");
+        return userObj instanceof Utilisateur;
+    }
 }
