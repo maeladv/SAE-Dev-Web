@@ -129,6 +129,29 @@ public class Utilisateur {
     }
 
     /**
+     * Trouver tous les étudiants d'une spécialité
+     */
+    public static List<Utilisateur> trouverEtudiantsParSpecialite(int idSpecialite) throws SQLException {
+        List<Utilisateur> liste = new ArrayList<>();
+        String sql = "SELECT u.id, u.nom, u.prenom, u.email, u.date_naissance, u.mot_de_passe, u.role " +
+                     "FROM utilisateur u " +
+                     "JOIN etudiant e ON u.id = e.id_utilisateur " +
+                     "WHERE e.id_specialite = ? " +
+                     "ORDER BY u.nom, u.prenom";
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idSpecialite);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    liste.add(creerDepuisResultSet(rs));
+                }
+            }
+        }
+        return liste;
+    }
+
+    /**
      * Trouver tous les utilisateurs (admin uniquement)
      */
     public static List<Utilisateur> trouverTousLesUtilisateurs() throws SQLException {

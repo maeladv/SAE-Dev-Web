@@ -297,9 +297,12 @@ public class Matiere {
                 int idSpec = Integer.parseInt(idSpecStr);
                 request.setAttribute("matieres", model.Matiere.trouverParSpecialite(idSpec));
                 request.setAttribute("specialite", model.Specialite.trouverParId(idSpec));
+                // Load students for this specialty
+                request.setAttribute("students", model.Utilisateur.trouverEtudiantsParSpecialite(idSpec));
             } else {
                 request.setAttribute("matieres", model.Matiere.trouverToutes());
                 request.setAttribute("specialite", null);
+                request.setAttribute("students", new java.util.ArrayList<>());
             }
             request.setAttribute("professeurs", model.Utilisateur.trouverTousLesProfesseurs());
             return "/WEB-INF/views/listeMatieres.jsp";
@@ -314,22 +317,43 @@ public class Matiere {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
+        boolean isAjax = "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"));
         try {
-            int id = Integer.parseInt(request.getParameter("id"));
-            model.Matiere m = model.Matiere.trouverParId(id);
-            if (m != null) {
-                m.supprimer();
+            String idStr = request.getParameter("id");
+            if (idStr == null || idStr.isEmpty()) {
+                if (isAjax) {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Paramètre id manquant");
+                } else {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                }
+                return;
             }
-            // Redirection intelligente : on essaie de revenir à la liste filtrée si on a l'info
-            String specId = request.getParameter("specId");
-            if (specId != null && !specId.isEmpty()) {
-                response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specId);
+
+            int id = Integer.parseInt(idStr);
+            model.Matiere m = model.Matiere.trouverParId(id);
+            int redirectSpecId = (m != null) ? m.getSpecialiteId() : -1;
+            if (m != null) {
+                if (!m.supprimer()) {
+                    throw new SQLException("Suppression de la matière échouée");
+                }
+            }
+
+            if (isAjax) {
+                response.setStatus(HttpServletResponse.SC_NO_CONTENT); // 204 pour fetch
             } else {
-                response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+                if (redirectSpecId > 0) {
+                    response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + redirectSpecId);
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+                }
             }
         } catch (Exception e) {
-            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+            if (isAjax) {
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erreur lors de la suppression : " + e.getMessage());
+            } else {
+                request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+                request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+            }
         }
     }
 

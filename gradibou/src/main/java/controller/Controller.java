@@ -82,6 +82,27 @@ public class Controller extends HttpServlet {
                 }
                 view = Specialite.afficherSpecialites(request);
                 break;
+            case "/admin/specialite-details":
+                if (!Role.estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                try {
+                    String specIdParam = request.getParameter("specId");
+                    if (specIdParam != null && !specIdParam.isEmpty()) {
+                        int specId = Integer.parseInt(specIdParam);
+                        Specialite spec = Specialite.trouverParId(specId);
+                        request.setAttribute("specialite", spec);
+                        java.util.List<Matiere> matieres = Matiere.trouverParSpecialite(specId);
+                        request.setAttribute("matieres", matieres);
+                        java.util.List<Utilisateur> students = Utilisateur.trouverEtudiantsParSpecialite(specId);
+                        request.setAttribute("students", students);
+                    }
+                } catch (SQLException e) {
+                    request.setAttribute("error", "Erreur lors du chargement: " + e.getMessage());
+                }
+                view = "/WEB-INF/views/admin-specialite-details.jsp";
+                break;
             case "/admin/matieres":
                 if (!Role.estAdmin(request.getSession(false))) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
