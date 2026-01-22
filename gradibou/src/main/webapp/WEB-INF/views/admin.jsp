@@ -25,19 +25,29 @@
                     <div class="admin-toolbar">
                         <h1>Comptes Gradibou</h1>
                         <div class="admin-actions">
-                            <select class="filter-dropdown">
-                                <option value="">Rôle</option>
-                                <option value="admin">Administrateur</option>
-                                <option value="professeur">Professeur</option>
-                                <option value="etudiant">Étudiant</option>
-                            </select>
-                            <select class="filter-dropdown">
-                                <option value="">Spécialité</option>
-                                <option value="icy">ICY</option>
-                                <option value="iia">IIA</option>
-                                <option value="gcb">GCB</option>
-                                <option value="me">ME</option>
-                            </select>
+                            <div class="dropdown" data-dropdown="role">
+                                <button type="button" class="dropdown-toggle" aria-haspopup="listbox" aria-expanded="false">
+                                    <span class="dropdown-label">Choisir un rôle</span>
+                                    <span class="dropdown-icon">▾</span>
+                                </button>
+                                <ul class="dropdown-menu" role="listbox">
+                                    <li class="dropdown-option" role="option" data-value="admin" data-label="Administrateur" data-role="admin">Administrateur</li>
+                                    <li class="dropdown-option" role="option" data-value="professeur" data-label="Professeur" data-role="prof">Professeur</li>
+                                    <li class="dropdown-option" role="option" data-value="etudiant" data-label="Étudiant" data-role="etudiant">Étudiant</li>
+                                </ul>
+                            </div>
+                            <div class="dropdown" data-dropdown="specialite">
+                                <button type="button" class="dropdown-toggle" aria-haspopup="listbox" aria-expanded="false">
+                                    <span class="dropdown-label">Choisir une spécialité</span>
+                                    <span class="dropdown-icon">▾</span>
+                                </button>
+                                <ul class="dropdown-menu" role="listbox">
+                                    <li class="dropdown-option" role="option" data-value="icy" data-label="ICY">ICY</li>
+                                    <li class="dropdown-option" role="option" data-value="iia" data-label="IIA">IIA</li>
+                                    <li class="dropdown-option" role="option" data-value="gcb" data-label="GCB">GCB</li>
+                                    <li class="dropdown-option" role="option" data-value="me" data-label="ME">ME</li>
+                                </ul>
+                            </div>
                             <button class="btn  btn-with-icon" onclick="openModal('csvUploadModal')">
                                 Importer depuis un .csv
                                 <img src="/gradibou/static/icons/black/file-csv.svg" alt="Importer icone">

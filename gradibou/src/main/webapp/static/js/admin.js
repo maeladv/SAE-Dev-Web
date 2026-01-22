@@ -88,4 +88,82 @@ document.addEventListener('DOMContentLoaded', function() {
             indicator.style.opacity = '0.3';
         }
     });
+
+    initDropdowns();
 });
+
+/**
+ * Initialisation des dropdowns personnalisés (rôle et spécialité)
+ */
+function initDropdowns() {
+    const dropdowns = document.querySelectorAll('.dropdown');
+
+    dropdowns.forEach(dropdown => {
+        const toggle = dropdown.querySelector('.dropdown-toggle');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        const options = dropdown.querySelectorAll('.dropdown-option');
+
+        if (!toggle || !menu || !options.length) return;
+
+        toggle.addEventListener('click', event => {
+            event.stopPropagation();
+            const isOpen = dropdown.classList.contains('open');
+            closeAllDropdowns();
+            if (!isOpen) {
+                dropdown.classList.add('open');
+                toggle.setAttribute('aria-expanded', 'true');
+            }
+        });
+
+        options.forEach(option => {
+            option.addEventListener('click', event => {
+                event.stopPropagation();
+                selectDropdownOption(dropdown, option);
+            });
+        });
+    });
+
+    document.addEventListener('click', closeAllDropdowns);
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') closeAllDropdowns();
+    });
+}
+
+/**
+ * Sélection d'une option dans un dropdown
+ * @param {HTMLElement} dropdown
+ * @param {HTMLElement} option
+ */
+function selectDropdownOption(dropdown, option) {
+    const toggle = dropdown.querySelector('.dropdown-toggle');
+    const labelSpan = dropdown.querySelector('.dropdown-label');
+    const value = option.getAttribute('data-value');
+    const label = option.getAttribute('data-label') || option.textContent.trim();
+    const role = option.getAttribute('data-role');
+
+    if (!toggle || !labelSpan) return;
+
+    if (role) {
+        // Affichage d'un pill coloré pour les rôles
+        labelSpan.innerHTML = `<span class="role-badge role-${role}">${label.toUpperCase()}</span>`;
+    } else {
+        labelSpan.textContent = label;
+    }
+
+    dropdown.dataset.value = value;
+    closeAllDropdowns();
+}
+
+/**
+ * Ferme tous les dropdowns ouverts
+ */
+function closeAllDropdowns() {
+    const dropdowns = document.querySelectorAll('.dropdown');
+    dropdowns.forEach(dropdown => {
+        const toggle = dropdown.querySelector('.dropdown-toggle');
+        dropdown.classList.remove('open');
+        if (toggle) {
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+    });
+}
