@@ -26,7 +26,7 @@
 %>
 <header class="site-header" data-role="<%= userRole %>">
     <a class="brand" href="<%= request.getContextPath() %>/app/">
-        <img src="https://www.figma.com/api/mcp/asset/254d3b6e-e5ea-46c1-ae6d-55e9947e4239" alt="Logo Gradibou">
+        <img src="/gradibou/static/images/logo/logo-gradibou.svg" alt="Logo Gradibou">
     </a>
     
     <div class="nav-actions">

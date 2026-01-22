@@ -35,7 +35,7 @@
                     <p class="form-feedback" aria-live="polite">&nbsp;</p>
                 </div>
                 <div class="form-actions">
-                    <a class="btn btn-ghost" href="<%= request.getContextPath() %>/app/login">
+                    <a class="btn " href="<%= request.getContextPath() %>/app/login">
                         Retourner à la connexion
                     </a>
                     <button class="btn btn-primary btn-with-icon" type="submit">

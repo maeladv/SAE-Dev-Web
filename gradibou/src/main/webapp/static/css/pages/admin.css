@@ -68,16 +68,6 @@
     height: 20px;
 }
 
-.btn-ghost {
-    background-color: transparent;
-    color: var(--noir);
-    border: 1px solid #d9d9d9;
-}
-
-.btn-ghost:hover {
-    background-color: #f5f5f5;
-    border-color: var(--noir);
-}
 
 /* Conteneur du tableau */
 .users-table-container {
@@ -109,6 +99,29 @@
     border-bottom: 1px solid #e5e5e5;
 }
 
+.users-table thead th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s, color 0.2s;
+    position: relative;
+}
+
+.users-table thead th.sortable:hover {
+    background-color: #f5f5f5;
+    color: var(--gradibou-noir);
+}
+
+.users-table thead th.sortable .sort-indicator {
+    margin-left: 0.5rem;
+    font-size: 0.7rem;
+    opacity: 0.3;
+    transition: opacity 0.2s;
+}
+
+.users-table thead th.sortable:hover .sort-indicator {
+    opacity: 0.6;
+}
+
 .users-table tbody tr {
     background-color: #ffffff;
     border-bottom: 1px solid #f5f5f5;
@@ -132,26 +145,30 @@
 .role-badge {
     display: inline-block;
     padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
+    border-radius: 8px;
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.025em;
+
+    /* defaut */
+    background-color: var(--gradibou-status-waiting);
+    color: var(--gradibou-blanc);
 }
 
 .role-badge.role-admin {
-    background-color: #fee;
-    color: #fe3232;
+    color: var(--gradibou-blanc);
+    background-color: var(--gradibou-role-admin);
 }
 
 .role-badge.role-prof {
-    background-color: #e8f0fa;
-    color: #2d65c6;
+    background-color: var(--gradibou-role-prof);
+    color: var(--gradibou-blanc);
 }
 
 .role-badge.role-etudiant {
-    background-color: #f0f0f1;
-    color: #6b6f76;
+    background-color: var(--gradibou-role-etudiant);
+    color: var(--gradibou-blanc);
 }
 
 /* Badges de spécialité */
@@ -160,29 +177,29 @@
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.025em;
 }
 
 .specialite-badge.spe-icy {
-    background-color: #e0f2fe;
-    color: #0369a1;
+    background-color: rgba(var(--gradibou-spe-icy) / 0.2);
+    color: rgb(var(--gradibou-spe-icy));
 }
 
 .specialite-badge.spe-iia {
-    background-color: #fef3c7;
-    color: #b45309;
+    background-color: rgba(var(--gradibou-spe-iia) / 0.2);
+    color: rgb(var(--gradibou-spe-iia));
 }
 
 .specialite-badge.spe-gcb {
-    background-color: #dcfce7;
-    color: #15803d;
+    background-color: rgba(var(--gradibou-spe-gcb) / 0.2);
+    color: rgb(var(--gradibou-spe-gcb));
 }
 
 .specialite-badge.spe-me {
-    background-color: #f3e8ff;
-    color: #7e22ce;
+    background-color: rgba(var(--gradibou-spe-me) / 0.2);
+    color: rgb(var(--gradibou-spe-me));
 }
 
 /* Actions du tableau */

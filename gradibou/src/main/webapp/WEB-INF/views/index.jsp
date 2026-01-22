@@ -29,7 +29,7 @@
         </div>
         
         <div class="home-cta-buttons">
-            <a href="<%= request.getContextPath() %>/app/login" class="btn btn-ghost">
+            <a href="<%= request.getContextPath() %>/app/login" class="btn ">
                 Accéder à l'espace enseignant
             </a>
             <a href="<%= request.getContextPath() %>/app/login" class="btn btn-primary btn-dark btn-with-icon">

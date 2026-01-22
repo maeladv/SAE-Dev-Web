@@ -38,7 +38,7 @@
     margin: 0;
     font-size: 32px;
     font-weight: 700;
-    color: var(--color-noir);
+    color: var(--gradibou-noir);
     text-align: center;
 }
 
@@ -58,7 +58,7 @@
 .field-label {
     font-size: 14px;
     font-weight: 700;
-    color: var(--color-noir);
+    color: var(--gradibou-noir);
     margin-bottom: 0;
 }
 

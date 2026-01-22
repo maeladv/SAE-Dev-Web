@@ -42,19 +42,19 @@
 
 .hero-logo-grad {
     font-weight: 700;
-    color: var(--color-rose-principal);
+    color: var(--gradibou-rose);
 }
 
 .hero-logo-ibou {
     font-weight: 300;
-    color: var(--color-noir);
+    color: var(--gradibou-noir);
 }
 
 .hero-subtitle {
     font-family: 'Roboto', sans-serif;
     font-weight: 700;
     font-size: 20px;
-    color: var(--color-noir);
+    color: var(--gradibou-noir);
     text-align: center;
     margin: 0;
     width: 100%;
@@ -69,7 +69,7 @@
 
 /* Variant du bouton dark */
 .btn-dark {
-    background: var(--color-noir);
+    background: var(--gradibou-noir);
     color: var(--color-blanc);
 }
 
