@@ -1,0 +1,136 @@
+/* Page Evaluations (EVE Étudiants) */
+
+.eva-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 60px 40px;
+}
+
+.eva-hero {
+  width: 100%;
+  text-align: center;
+}
+
+.eva-hero h1 {
+  font-size: 48px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.eva-hero .subtitle {
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--color-gris-texte);
+}
+
+.eva-banner {
+  width: 100%;
+  background: var(--gradibou-blanc);
+  border: 1px solid var(--color-gris-contour);
+  border-radius: 16px;
+  padding: 20px 16px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--gradibou-noir);
+}
+
+.eva-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eva-item {
+  background: var(--gradibou-blanc);
+  border-radius: 24px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eva-sem {
+  background: var(--color-gris-contour);
+  color: var(--color-gris-texte);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.eva-title {
+  flex: 1 0 0;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.eva-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Boutons d'état personnalisés pour cette page */
+.btn-success {
+  background: var(--gradibou-status-success);
+  color: var(--color-blanc);
+  box-shadow: var(--shadow-elev);
+}
+
+.btn-answered {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #f4f4f6;
+  color: #3b4354;
+  border: 1px solid #e1e4ea;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: default;
+}
+
+.btn-answered svg {
+  width: 16px;
+  height: 16px;
+  color: #29b36b;
+}
+
+.btn-disabled {
+  background: #6c757d;
+  color: #fff;
+  cursor: not-allowed;
+}
+
+/* Messages */
+.eva-message {
+  width: 100%;
+  background: var(--gradibou-blanc);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.eva-message .error {
+  color: var(--gradibou-status-error);
+  background: #f8d7da;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.eva-message .success {
+  color: #155724;
+  background: #d4edda;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.no-evaluations {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+}
