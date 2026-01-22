@@ -121,6 +121,25 @@ public class Utilisateur {
     }
 
     /**
+     * Trouver tous les utilisateurs (admin uniquement)
+     */
+    public static List<Utilisateur> trouverTousLesUtilisateurs() throws SQLException {
+        
+        List<Utilisateur> liste = new ArrayList<>();
+        String sql = "SELECT id, nom, prenom, email, date_naissance, mot_de_passe, role FROM utilisateur ORDER BY id";
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            
+            while (rs.next()) {
+                liste.add(creerDepuisResultSet(rs));
+            }
+        }
+        return liste;
+    }
+
+    /**
      * Vérifier si un email existe
      */
     public static boolean emailExiste(String email) throws SQLException {

@@ -58,6 +58,14 @@ public class Controller extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/app/login");
                     return;
                 }
+                try {
+                    // Charger la liste de tous les utilisateurs pour le tableau
+                    java.util.List<Utilisateur> utilisateurs = Utilisateur.trouverTousLesUtilisateurs();
+                    request.setAttribute("utilisateurs", utilisateurs);
+                } catch (SQLException e) {
+                    System.err.println("Erreur lors du chargement des utilisateurs: " + e.getMessage());
+                    request.setAttribute("error", "Erreur lors du chargement de la liste des utilisateurs");
+                }
                 view = "/WEB-INF/views/admin.jsp";
                 break;
             case "/admin/specialites":
