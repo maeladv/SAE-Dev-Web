@@ -4,10 +4,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.time.LocalDate;
-
 
 import util.DatabaseManager;
 
@@ -65,6 +64,25 @@ public class Note {
         return liste;
     }
 
+    /**
+     * Trouver les notes d'un examen
+     */
+    public static List<Note> trouverParExamen(int idExamen) throws SQLException {
+        List<Note> liste = new ArrayList<>();
+        String sql = "SELECT id_etudiant, id_examen, note, date FROM note WHERE id_examen = ? ORDER BY id_etudiant";
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idExamen);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                liste.add(creerDepuisResultSet(rs));
+            }
+        }
+        return liste;
+    }
+
      // ==================== Méthodes de persistence (Active Record) ====================
 
     /**
@@ -110,6 +128,8 @@ public class Note {
             stmt.setInt(1, this.id_etudiant);
             stmt.setInt(2, this.id_examen);
             stmt.setInt(3, this.valeur);
+            stmt.setInt(4, this.id_etudiant);
+            stmt.setInt(5, this.id_examen);
 
             return stmt.executeUpdate() > 0;
         }

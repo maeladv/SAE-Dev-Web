@@ -45,6 +45,6 @@
     </div>
 
     <!-- Bouton Retour -->
-    <a href="<%= request.getContextPath() %>/app/admin" class="button">Retour au tableau de bord</a>
+    <a href="<%= request.getContextPath() %>/app/admin/specialites" class="button">Retour à la liste</a>
 </body>
 </html>

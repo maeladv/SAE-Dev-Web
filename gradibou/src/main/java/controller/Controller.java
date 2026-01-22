@@ -53,6 +53,34 @@ public class Controller extends HttpServlet {
                 }
                 view = "/WEB-INF/views/admin.jsp";
                 break;
+            case "/admin/specialites":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = afficherSpecialites(request);
+                break;
+            case "/admin/matieres":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = afficherMatieres(request);
+                break;
+            case "/admin/examens":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = afficherExamens(request);
+                break;
+            case "/admin/notes":
+                if (!estAdmin(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = afficherNotes(request);
+                break;
             case "/complete-profil":
                 String token = request.getParameter("token");
                 if (token == null || token.isEmpty()) {
@@ -350,6 +378,30 @@ public class Controller extends HttpServlet {
                     break;
                 case "/complete-profil":
                     completerProfil(request, response);
+                    break;
+                case "/admin/supprimer-specialite":
+                    supprimerSpecialite(request, response);
+                    break;
+                case "/admin/supprimer-matiere":
+                    supprimerMatiere(request, response);
+                    break;
+                case "/admin/supprimer-examen":
+                    supprimerExamen(request, response);
+                    break;
+                case "/admin/supprimer-note":
+                    supprimerNote(request, response);
+                    break;
+                case "/admin/modifier-specialite":
+                    modifierSpecialite(request, response);
+                    break;
+                case "/admin/modifier-matiere":
+                    modifierMatiere(request, response);
+                    break;
+                case "/admin/modifier-examen":
+                    modifierExamen(request, response);
+                    break;
+                case "/admin/modifier-note":
+                    modifierNote(request, response);
                     break;
                 default:
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -712,6 +764,255 @@ public class Controller extends HttpServlet {
             envoyerJsonError(response, "ID utilisateur invalide", 400);
         } catch (Exception e) {
             envoyerJsonError(response, "Erreur: " + e.getMessage(), 500);
+        }
+    }
+
+    private String afficherSpecialites(HttpServletRequest request) {
+        try {
+            request.setAttribute("specialites", model.Specialite.trouverToutes());
+            return "/WEB-INF/views/listeSpecialites.jsp";
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur lors du chargement des spécialités : " + e.getMessage());
+            return "/WEB-INF/views/error.jsp";
+        }
+    }
+
+    private String afficherMatieres(HttpServletRequest request) {
+        try {
+            String idSpecStr = request.getParameter("specId");
+            if (idSpecStr != null && !idSpecStr.isEmpty()) {
+                int idSpec = Integer.parseInt(idSpecStr);
+                request.setAttribute("matieres", model.Matiere.trouverParSpecialite(idSpec));
+                request.setAttribute("specialite", model.Specialite.trouverParId(idSpec));
+            } else {
+                request.setAttribute("matieres", model.Matiere.trouverToutes());
+            }
+            request.setAttribute("professeurs", model.Utilisateur.trouverTousLesProfesseurs());
+            return "/WEB-INF/views/listeMatieres.jsp";
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur : " + e.getMessage());
+            return "/WEB-INF/views/error.jsp";
+        }
+    }
+
+    private String afficherExamens(HttpServletRequest request) {
+        try {
+            String idMatStr = request.getParameter("matId");
+            if (idMatStr != null && !idMatStr.isEmpty()) {
+                int idMat = Integer.parseInt(idMatStr);
+                request.setAttribute("examens", model.Examen.trouverParMatiere(idMat));
+                request.setAttribute("matiere", model.Matiere.trouverParId(idMat));
+            } else {
+                request.setAttribute("examens", model.Examen.trouverTous());
+            }
+            return "/WEB-INF/views/listeExamens.jsp";
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur : " + e.getMessage());
+            return "/WEB-INF/views/error.jsp";
+        }
+    }
+
+    private String afficherNotes(HttpServletRequest request) {
+        try {
+            String idExamStr = request.getParameter("examId");
+            if (idExamStr != null && !idExamStr.isEmpty()) {
+                int idExam = Integer.parseInt(idExamStr);
+                request.setAttribute("notes", model.Note.trouverParExamen(idExam));
+                request.setAttribute("examen", model.Examen.trouverParId(idExam));
+            }
+            return "/WEB-INF/views/listeNotes.jsp";
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur : " + e.getMessage());
+            return "/WEB-INF/views/error.jsp";
+        }
+    }
+
+    private void supprimerSpecialite(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            model.Specialite s = model.Specialite.trouverParId(id);
+            if (s != null) {
+                s.supprimer();
+            }
+            response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    private void supprimerMatiere(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            model.Matiere m = model.Matiere.trouverParId(id);
+            if (m != null) {
+                m.supprimer();
+            }
+            // Redirection intelligente : on essaie de revenir à la liste filtrée si on a l'info
+            String specId = request.getParameter("specId");
+            if (specId != null && !specId.isEmpty()) {
+                response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specId);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    private void supprimerExamen(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            model.Examen e = model.Examen.trouverParId(id);
+            int matId = -1;
+            if (e != null) {
+                matId = e.getId_matiere();
+                e.supprimer();
+            }
+            if (matId != -1) {
+                response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matId);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    private void supprimerNote(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!estAdmin(request.getSession(false))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        try {
+            int etudiantId = Integer.parseInt(request.getParameter("etudiantId"));
+            int examenId = Integer.parseInt(request.getParameter("examenId"));
+            model.Note n = model.Note.trouverParIdEtudiantExamen(etudiantId, examenId);
+            if (n != null) {
+                n.supprimer();
+            }
+            response.sendRedirect(request.getContextPath() + "/app/admin/notes?examId=" + examenId);
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    private void modifierSpecialite(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!estAdmin(request.getSession(false))) {
+             response.sendError(HttpServletResponse.SC_FORBIDDEN);
+             return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            String nom = request.getParameter("nom");
+            String tag = request.getParameter("tag");
+            int annee = Integer.parseInt(request.getParameter("annee"));
+            
+            model.Specialite s = model.Specialite.trouverParId(id);
+            if (s != null) {
+                s.setNom(nom);
+                s.setTag(tag);
+                s.setAnnee(annee);
+                s.save();
+            }
+            response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la modification : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    private void modifierMatiere(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!estAdmin(request.getSession(false))) {
+             response.sendError(HttpServletResponse.SC_FORBIDDEN);
+             return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            String nom = request.getParameter("nom");
+            int semestre = Integer.parseInt(request.getParameter("semestre"));
+            int coefficient = Integer.parseInt(request.getParameter("coefficient"));
+            int profId = Integer.parseInt(request.getParameter("profId"));
+            
+            model.Matiere m = model.Matiere.trouverParId(id);
+            if (m != null) {
+                m.setNom(nom);
+                m.setSemestre(semestre);
+                m.setCoefficient(coefficient);
+                m.setProfId(profId);
+                m.save();
+            }
+            String specId = request.getParameter("specId");
+            if (specId != null && !specId.isEmpty()) {
+                response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specId);
+            } else {
+                 response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+            }
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la modification : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    private void modifierExamen(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!estAdmin(request.getSession(false))) {
+             response.sendError(HttpServletResponse.SC_FORBIDDEN);
+             return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            String nom = request.getParameter("nom");
+            int coefficient = Integer.parseInt(request.getParameter("coefficient"));
+             // Date n'est pas modifiable dans cette version simplifiée ou on garde l'existante
+            
+            model.Examen e = model.Examen.trouverParId(id);
+            if (e != null) {
+                e.setNom(nom);
+                e.setCoefficient(coefficient);
+                e.save();
+            }
+            int matId = e != null ? e.getId_matiere() : -1;
+            response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matId);
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la modification : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    private void modifierNote(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        if (!estAdmin(request.getSession(false))) {
+             response.sendError(HttpServletResponse.SC_FORBIDDEN);
+             return;
+        }
+        try {
+            int etudiantId = Integer.parseInt(request.getParameter("etudiantId"));
+            int examenId = Integer.parseInt(request.getParameter("examenId"));
+            int valeur = Integer.parseInt(request.getParameter("note"));
+            
+            model.Note n = model.Note.trouverParIdEtudiantExamen(etudiantId, examenId);
+            if (n != null) {
+                n.setValeur(valeur);
+                n.save();
+            }
+            response.sendRedirect(request.getContextPath() + "/app/admin/notes?examId=" + examenId);
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur lors de la modification : " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
         }
     }
 
