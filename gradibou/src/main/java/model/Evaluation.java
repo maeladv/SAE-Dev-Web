@@ -206,10 +206,10 @@ public class Evaluation {
         int idSpecialite = etudiant.getIdSpecialite();
 
         // Récupérer toutes les évaluations et les matières de la spécialité
-        String sql = "SELECT DISTINCT e.id, e.date_debut, e.date_fin, e.semestre, m.id as matiere_id, m.nom as matiere_nom " +
+        String sql = "SELECT DISTINCT e.id, e.date_debut, e.date_fin, e.semestre, " +
+                 "m.id as matiere_id, m.nom as matiere_nom, m.semestre as matiere_semestre " +
                  "FROM evaluation e, matiere m " +
                  "WHERE m.id_specialite = ? " +
-                 "AND m.semestre = e.semestre " +
                  "ORDER BY e.date_fin DESC";
         
         try (java.sql.Connection conn = util.DatabaseManager.obtenirConnexion();
@@ -228,18 +228,25 @@ public class Evaluation {
                 eval.put("date_debut", rs.getObject("date_debut"));
                 eval.put("date_fin", rs.getObject("date_fin"));
                 eval.put("semestre", rs.getInt("semestre"));
+                eval.put("matiere_semestre", rs.getInt("matiere_semestre"));
                 
                 // Vérifier si l'étudiant a déjà répondu
                 boolean aRepondu = model.A_Repondu_Evaluation.aRepondu(idEtudiant, matiereId, evalId);
                 
                 // Vérifier si l'évaluation est toujours ouverte
                 java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                java.time.LocalDateTime dateDebut = rs.getObject("date_debut", java.time.LocalDateTime.class);
                 java.time.LocalDateTime dateFin = rs.getObject("date_fin", java.time.LocalDateTime.class);
+                int semestreEval = rs.getInt("semestre");
+                int semestreMat = rs.getInt("matiere_semestre");
+
+                boolean semestreMismatch = semestreEval != semestreMat;
+                boolean horsIntervalle = now.isBefore(dateDebut) || now.isAfter(dateFin);
                 
                 String status;
                 if (aRepondu) {
                     status = "answered";
-                } else if (now.isAfter(dateFin)) {
+                } else if (semestreMismatch || horsIntervalle) {
                     status = "closed";
                 } else {
                     status = "open";

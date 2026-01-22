@@ -67,6 +67,7 @@
   font-weight: 600;
 }
 
+
 .eva-actions {
   display: flex;
   align-items: center;
@@ -79,26 +80,6 @@
   background: var(--gradibou-status-success);
   color: var(--color-blanc);
   box-shadow: var(--shadow-elev);
-}
-
-.btn-answered {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: #f4f4f6;
-  color: #3b4354;
-  border: 1px solid #e1e4ea;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: default;
-}
-
-.btn-answered svg {
-  width: 16px;
-  height: 16px;
-  color: #29b36b;
 }
 
 .btn-disabled {

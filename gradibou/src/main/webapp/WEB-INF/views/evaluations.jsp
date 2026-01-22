@@ -23,10 +23,37 @@
         <div class="eva-message"><div class="success"><%= request.getAttribute("success") %></div></div>
     <% } %>
 
+    <%
+        java.util.List<Map<String, Object>> evaluations =
+            (java.util.List<Map<String, Object>>) request.getAttribute("evaluations");
+        java.util.List<Map<String, Object>> openEvaluations = new java.util.ArrayList<>();
+        java.util.List<Map<String, Object>> answeredEvaluations = new java.util.ArrayList<>();
+        if (evaluations != null) {
+            for (Map<String, Object> e : evaluations) {
+                Object st = e.get("status");
+                if (st == null) continue;
+                String s = st.toString();
+                if ("open".equals(s)) {
+                    openEvaluations.add(e);
+                } else if ("answered".equals(s)) {
+                    answeredEvaluations.add(e);
+                }
+            }
+        }
+
+        String sessionSubtitle = "Aucune session d'évaluation en cours";
+        if (!openEvaluations.isEmpty()) {
+            Map<String, Object> firstOpen = openEvaluations.get(0);
+            Object sem = firstOpen.get("semestre");
+            Object dateFin = firstOpen.get("date_fin");
+            sessionSubtitle = "Évaluations en cours pour le SEMESTRE " + sem + " - Vous avez jusqu'au " + dateFin;
+        }
+    %>
+
     <main class="eva-main">
         <section class="eva-hero">
             <h1>Espace d’évaluation des enseignements</h1>
-            <p class="subtitle">Retrouvez ici les évaluations disponibles et leurs échéances</p>
+            <p class="subtitle"><%= sessionSubtitle %></p>
         </section>
 
         <div class="eva-banner">
@@ -35,40 +62,41 @@
 
         <section class="eva-list">
             <%
-                java.util.List<Map<String, Object>> evaluations = 
-                    (java.util.List<Map<String, Object>>) request.getAttribute("evaluations");
-                if (evaluations != null && !evaluations.isEmpty()) {
-                    for (Map<String, Object> eval : evaluations) {
-                        String status = (String) eval.get("status");
-                        boolean canAnswer = "open".equals(status);
-                        boolean answered = "answered".equals(status);
+                if (!openEvaluations.isEmpty()) {
+                    for (Map<String, Object> eval : openEvaluations) {
             %>
             <div class="eva-item">
                 <div class="eva-sem">S<%= eval.get("semestre") %></div>
                 <div class="eva-title"><%= ((String)eval.get("matiere_nom")).toUpperCase() %></div>
                 <div class="eva-actions">
-                    <% if (canAnswer) { %>
-                        <form method="get" action="<%= request.getContextPath() %>/app/etudiant/repondre-evaluation" style="margin:0;">
-                            <input type="hidden" name="evaluationId" value="<%= eval.get("evaluation_id") %>">
-                            <input type="hidden" name="matiereId" value="<%= eval.get("matiere_id") %>">
-                            <button type="submit" class="btn btn-primary">Évaluer →</button>
-                        </form>
-                    <% } else if (answered) { %>
-                        <button class="btn-answered" disabled aria-label="Évaluation déjà envoyée">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.25 7.333a1 1 0 0 1-1.422.012l-3.25-3.188a1 1 0 0 1 1.404-1.424l2.53 2.482 6.541-6.612a1 1 0 0 1 1.441-.017Z" clip-rule="evenodd"/>
-                            </svg>
-                            Déjà répondu
-                        </button>
-                    <% } else { %>
-                        <button class="btn btn-disabled" disabled>Fermée</button>
-                    <% } %>
+                    <form method="get" action="<%= request.getContextPath() %>/app/etudiant/repondre-evaluation" style="margin:0;">
+                        <input type="hidden" name="evaluationId" value="<%= eval.get("evaluation_id") %>">
+                        <input type="hidden" name="matiereId" value="<%= eval.get("matiere_id") %>">
+                        <button type="submit" class="btn btn-primary">Évaluer →</button>
+                    </form>
                 </div>
             </div>
-            <%      }
-                } else { %>
-                <div class="no-evaluations">Aucune évaluation disponible pour le moment.</div>
-            <% } %>
+            <%
+                    }
+                    for (Map<String, Object> eval : answeredEvaluations) {
+            %>
+            <div class="eva-item">
+                <div class="eva-sem">S<%= eval.get("semestre") %></div>
+                <div class="eva-title"><%= ((String)eval.get("matiere_nom")).toUpperCase() %></div>
+                <div class="eva-actions">
+                    <button class="btn btn-success" disabled aria-label="Évaluation déjà envoyée">
+                        Déjà répondu
+                    </button>
+                </div>
+            </div>
+            <%
+                    }
+                } else {
+            %>
+                <div class="no-evaluations">Aucune évaluation en cours pour le moment.</div>
+            <%
+                }
+            %>
         </section>
     </main>
 </div>
