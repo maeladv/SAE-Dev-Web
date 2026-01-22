@@ -15,7 +15,7 @@
 
 	/* rôles */
 	--gradibou-role-admin: rgb(254, 50, 50);
-	--gradibou-role-prof: rgb(45, 101, 198);
+	--gradibou-role-professeur: rgb(45, 101, 198);
 	--gradibou-role-etudiant: rgb(107, 111, 118);
 
 	/* états */

@@ -230,8 +230,8 @@
     background-color: var(--gradibou-role-admin);
 }
 
-.role-badge.role-prof {
-    background-color: var(--gradibou-role-prof);
+.role-badge.role-professeur {
+    background-color: var(--gradibou-role-professeur);
     color: var(--gradibou-blanc);
 }
 

@@ -64,6 +64,29 @@ public class Specialite {
         return liste;
     }
 
+    /**
+     * Trouver les spécialités où un professeur enseigne
+     */
+    public static List<Specialite> trouverParProfesseur(int idProf) throws SQLException {
+        List<Specialite> liste = new ArrayList<>();
+        String sql = "SELECT DISTINCT s.id, s.tag, s.annee, s.nom " +
+                     "FROM specialite s " +
+                     "JOIN matiere m ON m.id_specialite = s.id " +
+                     "WHERE m.id_prof = ? " +
+                     "ORDER BY s.nom";
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idProf);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                liste.add(creerDepuisResultSet(rs));
+            }
+        }
+        return liste;
+    }
+
     
     // ==================== Méthodes de persistence (Active Record) ====================
 
@@ -175,6 +198,50 @@ public class Specialite {
      */
     public boolean estPersiste() {
         return persisted;
+    }
+
+    /**
+     * Compter le nombre d'étudiants dans cette spécialité
+     */
+    public int compterEtudiants() throws SQLException {
+        if (!persisted) {
+            return 0;
+        }
+        
+        String sql = "SELECT COUNT(*) FROM etudiant WHERE id_specialite = ?";
+        
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, this.id);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Compter le nombre de professeurs enseignant dans cette spécialité
+     */
+    public int compterProfesseurs() throws SQLException {
+        if (!persisted) {
+            return 0;
+        }
+        
+        String sql = "SELECT COUNT(DISTINCT id_prof) FROM matiere WHERE id_specialite = ? AND id_prof IS NOT NULL";
+        
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, this.id);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
     }
 
 

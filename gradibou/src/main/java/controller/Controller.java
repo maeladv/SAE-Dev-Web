@@ -68,8 +68,9 @@ public class Controller extends HttpServlet {
                 }
                 view = "/WEB-INF/views/admin.jsp";
                 break;
-            case "/admin/specialites":
-                if (!estAdmin(request.getSession(false))) {
+            case "/gestion/specialites":
+                HttpSession session = request.getSession(false);
+                if (!estAdmin(session) && !estProfesseur(session)) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
                     return;
                 }
@@ -120,6 +121,32 @@ public class Controller extends HttpServlet {
             case "/forgot-password":
                 view = "/WEB-INF/views/forgot-password.jsp";
                 break;
+            case "/professeur":
+                System.out.println("DEBUG: Route /professeur atteinte");
+                HttpSession profSession = request.getSession(false);
+                if (profSession != null) {
+                    Utilisateur profUser = (Utilisateur) profSession.getAttribute("user");
+                    System.out.println("DEBUG: User in session: " + (profUser != null ? profUser.getemail() : "null"));
+                    System.out.println("DEBUG: Role in session: " + (profUser != null ? "'" + profUser.getRole() + "'" : "null"));
+                    System.out.println("DEBUG: estProfesseur result: " + estProfesseur(profSession));
+                }
+                if (!estProfesseur(request.getSession(false))) {
+                    System.out.println("DEBUG: Redirection vers /login car estProfesseur=false");
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                // Rediriger vers la page de gestion des spécialités
+                System.out.println("DEBUG: Redirection vers /gestion/specialites");
+                response.sendRedirect(request.getContextPath() + "/app/gestion/specialites");
+                return;
+            case "/etudiant":
+                if (!estEtudiant(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                // Rediriger vers la page des évaluations
+                response.sendRedirect(request.getContextPath() + "/app/etudiant/evaluations");
+                return;
             case "/admin/creer-specialite":
                 if (!estAdmin(request.getSession(false))) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
@@ -355,6 +382,18 @@ public class Controller extends HttpServlet {
         return false;
     }
 
+    private boolean estProfesseur(HttpSession session) {
+        if (session == null) {
+            return false;
+        }
+        Object userObj = session.getAttribute("user");
+        if (userObj instanceof Utilisateur) {
+            Utilisateur utilisateur = (Utilisateur) userObj;
+            return "professeur".equalsIgnoreCase(utilisateur.getRole());
+        }
+        return false;
+    }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
@@ -439,7 +478,9 @@ public class Controller extends HttpServlet {
         Utilisateur utilisateur = Utilisateur.trouverParemailEtMotDePasse(email, motDePasse);
         if (utilisateur != null) {
             request.getSession().setAttribute("user", utilisateur);
-            response.sendRedirect(request.getContextPath() + "/app/" + utilisateur.getRole());
+            String role = utilisateur.getRole();
+            System.out.println("DEBUG LOGIN: User=" + utilisateur.getemail() + ", Role='" + role + "', Redirecting to: /app/" + role);
+            response.sendRedirect(request.getContextPath() + "/app/" + role);
         } else {
             request.setAttribute("error", "email ou mot de passe incorrect");
             request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
@@ -558,7 +599,7 @@ public class Controller extends HttpServlet {
     private void creationSpecialiteParAdmin(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
         if (!estAdmin(request.getSession(false))) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            envoyerJsonError(response, "Accès refusé", HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
@@ -567,8 +608,7 @@ public class Controller extends HttpServlet {
         String nom = request.getParameter("nom");
 
         if (tag == null || tag.isEmpty() || anneeStr == null || anneeStr.isEmpty() || nom == null || nom.isEmpty()) {
-            request.setAttribute("error", "Tous les champs sont requis");
-            request.getRequestDispatcher("/WEB-INF/views/creerSpecialite.jsp").forward(request, response);
+            envoyerJsonError(response, "Tous les champs sont requis", HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
@@ -577,17 +617,15 @@ public class Controller extends HttpServlet {
             model.Specialite spec = new model.Specialite(tag, annee, nom);
             
             if (spec.save()) {
-                request.setAttribute("success", "Spécialité créée avec succès");
+                envoyerJsonSuccess(response, "Spécialité créée avec succès", request.getContextPath() + "/app/gestion/specialites");
             } else {
-                request.setAttribute("error", "Erreur lors de la création de la spécialité");
+                envoyerJsonError(response, "Erreur lors de la création de la spécialité", HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
         } catch (NumberFormatException e) {
-            request.setAttribute("error", "L'année doit être un nombre valide");
+            envoyerJsonError(response, "L'année doit être un nombre valide", HttpServletResponse.SC_BAD_REQUEST);
         } catch (SQLException e) {
-            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+            envoyerJsonError(response, "Erreur BD: " + e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
-        
-        request.getRequestDispatcher("/WEB-INF/views/creerSpecialite.jsp").forward(request, response);
     }
 
     private void creationMatiereParAdmin(HttpServletRequest request, HttpServletResponse response) 
@@ -779,7 +817,20 @@ public class Controller extends HttpServlet {
 
     private String afficherSpecialites(HttpServletRequest request) {
         try {
-            request.setAttribute("specialites", model.Specialite.trouverToutes());
+            HttpSession session = request.getSession();
+            boolean isAdmin = estAdmin(session);
+            boolean isProfesseur = estProfesseur(session);
+            
+            // Récupérer les spécialités selon le rôle
+            if (isAdmin) {
+                request.setAttribute("specialites", model.Specialite.trouverToutes());
+                request.setAttribute("userRole", "admin");
+            } else if (isProfesseur) {
+                Integer userId = (Integer) session.getAttribute("userId");
+                request.setAttribute("specialites", model.Specialite.trouverParProfesseur(userId));
+                request.setAttribute("userRole", "professeur");
+            }
+            
             return "/WEB-INF/views/listeSpecialites.jsp";
         } catch (SQLException e) {
             request.setAttribute("error", "Erreur lors du chargement des spécialités : " + e.getMessage());
@@ -840,7 +891,7 @@ public class Controller extends HttpServlet {
 
     private void supprimerSpecialite(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         if (!estAdmin(request.getSession(false))) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            envoyerJsonError(response, "Accès refusé", HttpServletResponse.SC_FORBIDDEN);
             return;
         }
         try {
@@ -848,11 +899,12 @@ public class Controller extends HttpServlet {
             model.Specialite s = model.Specialite.trouverParId(id);
             if (s != null) {
                 s.supprimer();
+                envoyerJsonSuccess(response, "Spécialité supprimée avec succès", request.getContextPath() + "/app/gestion/specialites");
+            } else {
+                envoyerJsonError(response, "Spécialité non trouvée", HttpServletResponse.SC_NOT_FOUND);
             }
-            response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
         } catch (Exception e) {
-            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+            envoyerJsonError(response, "Erreur lors de la suppression : " + e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -872,7 +924,7 @@ public class Controller extends HttpServlet {
             if (specId != null && !specId.isEmpty()) {
                 response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specId);
             } else {
-                response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+                response.sendRedirect(request.getContextPath() + "/app/gestion/specialites");
             }
         } catch (Exception e) {
             request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
@@ -896,7 +948,7 @@ public class Controller extends HttpServlet {
             if (matId != -1) {
                 response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matId);
             } else {
-                response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+                response.sendRedirect(request.getContextPath() + "/app/gestion/specialites");
             }
         } catch (Exception e) {
             request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
@@ -925,26 +977,29 @@ public class Controller extends HttpServlet {
 
     private void modifierSpecialite(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         if (!estAdmin(request.getSession(false))) {
-             response.sendError(HttpServletResponse.SC_FORBIDDEN);
-             return;
+            envoyerJsonError(response, "Accès refusé", HttpServletResponse.SC_FORBIDDEN);
+            return;
         }
         try {
             int id = Integer.parseInt(request.getParameter("id"));
             String nom = request.getParameter("nom");
-            String tag = request.getParameter("tag");
-            int annee = Integer.parseInt(request.getParameter("annee"));
+            
+            if (nom == null || nom.isEmpty()) {
+                envoyerJsonError(response, "Le nom est requis", HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
             
             model.Specialite s = model.Specialite.trouverParId(id);
             if (s != null) {
                 s.setNom(nom);
-                s.setTag(tag);
-                s.setAnnee(annee);
+                // Note: Le tag et l'année ne sont pas modifiables
                 s.save();
+                envoyerJsonSuccess(response, "Spécialité modifiée avec succès", request.getContextPath() + "/app/gestion/specialites");
+            } else {
+                envoyerJsonError(response, "Spécialité non trouvée", HttpServletResponse.SC_NOT_FOUND);
             }
-            response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
         } catch (Exception e) {
-            request.setAttribute("error", "Erreur lors de la modification : " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+            envoyerJsonError(response, "Erreur lors de la modification : " + e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -971,7 +1026,7 @@ public class Controller extends HttpServlet {
             if (specId != null && !specId.isEmpty()) {
                 response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specId);
             } else {
-                 response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
+                 response.sendRedirect(request.getContextPath() + "/app/gestion/specialites");
             }
         } catch (Exception e) {
             request.setAttribute("error", "Erreur lors de la modification : " + e.getMessage());

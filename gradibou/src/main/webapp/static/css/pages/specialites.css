@@ -1,0 +1,225 @@
+/* ========== Page Liste des Spécialités ========== */
+
+.specialites-main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 60px 40px;
+}
+
+/* Toolbar */
+.specialites-toolbar {
+    background-color: var(--color-blanc);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.specialites-toolbar h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gradibou-noir);
+    margin: 0;
+}
+
+/* Table Container */
+.specialites-table-container {
+    background-color: var(--color-blanc);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+/* Table Styles */
+.specialites-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.specialites-table thead {
+    background-color: #fafafa;
+}
+
+.specialites-table thead th {
+    padding: 10px 20px;
+    text-align: left;
+    font-weight: 900;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--color-gris-texte);
+    letter-spacing: 0.05em;
+}
+
+.specialites-table thead th:first-child {
+    padding-top: 10px;
+}
+
+.specialites-table thead tr::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 1px;
+    background-color: var(--color-gris-contour);
+    margin-top: 10px;
+}
+
+.specialites-table tbody tr {
+    border-bottom: none;
+}
+
+.specialites-table tbody tr:nth-child(even) {
+    background-color: #f5f5f5;
+}
+
+.specialites-table tbody td {
+    padding: 16px 20px;
+    vertical-align: middle;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--gradibou-noir);
+}
+
+/* Tag Badges */
+.specialite-tag-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.specialite-tag-badge.tag-icy {
+    background-color: rgba(139, 57, 190, 0.2);
+    color: rgb(139, 57, 190);
+}
+
+.specialite-tag-badge.tag-iia {
+    background-color: rgba(33, 112, 36, 0.2);
+    color: rgb(33, 112, 36);
+}
+
+.specialite-tag-badge.tag-gcb {
+    background-color: rgba(23, 119, 117, 0.2);
+    color: rgb(23, 119, 117);
+}
+
+.specialite-tag-badge.tag-me {
+    background-color: rgba(52, 91, 163, 0.2);
+    color: rgb(52, 91, 163);
+}
+
+.specialite-tag-badge.tag-mt {
+    background-color: rgba(155, 32, 32, 0.2);
+    color: rgb(155, 32, 32);
+}
+
+/* Année Badge */
+.annee-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    background-color: var(--color-gris-contour);
+    color: var(--color-gris-texte);
+}
+
+/* Actions Column */
+.specialites-table-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.specialites-table-actions button,
+.specialites-table-actions a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 44px;
+    padding: 12px 16px;
+    border: none;
+    background-color: transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.specialites-table-actions button:hover,
+.specialites-table-actions a:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.specialites-table-actions button.btn-primary,
+.specialites-table-actions a.btn-primary {
+    background-color: var(--gradibou-rose);
+    box-shadow: var(--shadow-elev);
+}
+
+.specialites-table-actions button.btn-primary:hover,
+.specialites-table-actions a.btn-primary:hover {
+    background-color: #e03d6f;
+}
+
+.specialites-table-actions img {
+    width: 20px;
+    height: 20px;
+}
+
+/* Modal Specific Styles for Specialites */
+#createSpecialiteModal .modal,
+#editSpecialiteModal .modal,
+#deleteSpecialiteModal .modal {
+    max-width: 600px;
+}
+
+#createSpecialiteModal .modal-form-grid,
+#editSpecialiteModal .modal-form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Empty State */
+.specialites-empty {
+    padding: 40px;
+    text-align: center;
+    color: var(--color-gris-texte);
+    font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .specialites-table-container {
+        overflow-x: auto;
+    }
+    
+    .specialites-table {
+        min-width: 1000px;
+    }
+}
+
+@media (max-width: 768px) {
+    .specialites-main {
+        padding: 20px;
+    }
+    
+    .specialites-toolbar {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+    
+    .specialites-toolbar button {
+        width: 100%;
+    }
+}

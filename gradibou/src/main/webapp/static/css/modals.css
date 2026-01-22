@@ -243,7 +243,7 @@
     background-color: #fe3232;
 }
 
-.dropdown-item.role-prof {
+.dropdown-item.role-professeur {
     background-color: #2d65c6;
 }
 
@@ -267,7 +267,7 @@
     background-color: #fe3232;
 }
 
-.role-badge-selected.role-prof {
+.role-badge-selected.role-professeur {
     background-color: #2d65c6;
 }
 

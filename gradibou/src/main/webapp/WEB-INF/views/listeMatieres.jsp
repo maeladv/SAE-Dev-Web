@@ -84,7 +84,7 @@
         </form>
     </div>
     
-    <a href="<%= request.getContextPath() %>/app/admin/specialites" class="back-link">&larr; Retour aux spécialités</a>
+    <a href="<%= request.getContextPath() %>/app/gestion/specialites" class="back-link">&larr; Retour aux spécialités</a>
 
     <!-- Edit Modal -->
     <div id="editModal" class="modal">
