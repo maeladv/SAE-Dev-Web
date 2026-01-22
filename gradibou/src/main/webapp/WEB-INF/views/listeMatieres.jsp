@@ -143,11 +143,11 @@
                                 <div class="student-email"><%= s.getemail() %></div>
                             </div>
                             <div class="student-actions">
-                                <button class="btn btn-tertiary" title="Éditer">
-                                    <img src="<%= request.getContextPath() %>/static/icons/black/pen.svg" alt="Éditer">
-                                </button>
                                 <button class="btn btn-tertiary" title="Supprimer" onclick="confirmRemoveStudent('<%= s.getemail() %>', '<%= s.getPrenom() %> <%= s.getNom() %>')">
                                     <img src="<%= request.getContextPath() %>/static/icons/black/trash.svg" alt="Supprimer">
+                                </button>
+                                <button class="btn btn-primary" title="Voir les notes" onclick="viewStudentGrades(<%= s.getId() %>)">
+                                    <img src="<%= request.getContextPath() %>/static/icons/white/user-graduate.svg" alt="Voir les notes">
                                 </button>
                             </div>
                         </div>
@@ -502,6 +502,10 @@
 
         function viewExams(matiereId) {
             window.location.href = contextPath + '/app/admin/examens?matId=' + matiereId;
+        }
+
+        function viewStudentGrades(studentId) {
+            window.location.href = contextPath + '/app/admin/notes?studentId=' + studentId;
         }
 
         // Close modal when clicking overlay
