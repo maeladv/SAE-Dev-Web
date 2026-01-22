@@ -339,10 +339,35 @@ public class Matiere {
 
     public static String afficherMatieres(HttpServletRequest request) {
         try {
+            HttpSession session = request.getSession(false);
+            boolean isAdmin = Role.estAdmin(session);
+            boolean isProfesseur = Role.estProfesseur(session);
+            
             String idSpecStr = request.getParameter("specId");
             if (idSpecStr != null && !idSpecStr.isEmpty()) {
                 int idSpec = Integer.parseInt(idSpecStr);
-                request.setAttribute("matieres", model.Matiere.trouverParSpecialite(idSpec));
+                
+                // Récupérer toutes les matières de la spécialité
+                java.util.List<Matiere> matieres = model.Matiere.trouverParSpecialite(idSpec);
+                
+                // Si professeur, filtrer pour ne garder que ses matières
+                if (isProfesseur && !isAdmin) {
+                    Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                    if (currentUser != null) {
+                        int profId = currentUser.getId();
+                        matieres = matieres.stream()
+                            .filter(m -> m.getProfId() == profId)
+                            .collect(java.util.stream.Collectors.toList());
+                        
+                        // Si le professeur n'a aucune matière dans cette spécialité, refuser l'accès
+                        if (matieres.isEmpty()) {
+                            request.setAttribute("error", "Accès refusé : vous n'avez aucune matière dans cette spécialité");
+                            return "/WEB-INF/views/error.jsp";
+                        }
+                    }
+                }
+                
+                request.setAttribute("matieres", matieres);
                 request.setAttribute("specialite", model.Specialite.trouverParId(idSpec));
                 // Load students for this specialty
                 request.setAttribute("students", model.Utilisateur.trouverEtudiantsParSpecialite(idSpec));
@@ -351,6 +376,10 @@ public class Matiere {
                 request.setAttribute("specialite", null);
                 request.setAttribute("students", new java.util.ArrayList<>());
             }
+            
+            // Passer le rôle à la JSP pour affichage conditionnel
+            request.setAttribute("isAdmin", isAdmin);
+            request.setAttribute("isProfesseur", isProfesseur);
             request.setAttribute("professeurs", model.Utilisateur.trouverTousLesProfesseurs());
             return "/WEB-INF/views/listeMatieres.jsp";
         } catch (Exception e) {
@@ -389,7 +418,7 @@ public class Matiere {
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT); // 204 pour fetch
             } else {
                 if (redirectSpecId > 0) {
-                    response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + redirectSpecId);
+                    response.sendRedirect(request.getContextPath() + "/app/gestion/specialite/details?specId=" + redirectSpecId);
                 } else {
                     response.sendRedirect(request.getContextPath() + "/app/admin/specialites");
                 }
@@ -446,7 +475,7 @@ public class Matiere {
             }
             
             if (!isAjax) {
-                response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + m.getSpecialiteId());
+                response.sendRedirect(request.getContextPath() + "/app/gestion/specialite/details?specId=" + m.getSpecialiteId());
             }
         } catch (Exception e) {
             if (isAjax) {

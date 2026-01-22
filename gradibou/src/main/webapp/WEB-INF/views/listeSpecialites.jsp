@@ -89,7 +89,7 @@
                                         <img src="<%= request.getContextPath() %>/static/icons/black/trash.svg" alt="Supprimer">
                                     </button>
                                     <% } %>
-                                    <a href="<%= request.getContextPath() %>/app/admin/matieres?specId=<%= s.getId() %>" class="btn-primary" title="Voir les matières">
+                                    <a href="<%= request.getContextPath() %>/app/gestion/specialite/details?specId=<%= s.getId() %>" class="btn-primary" title="Voir les matières">
                                         <img src="<%= request.getContextPath() %>/static/icons/white/eye.svg" alt="Voir">
                                     </a>
                                 </div>

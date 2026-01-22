@@ -882,7 +882,7 @@ public class Utilisateur {
             if (isAjax) {
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             } else {
-                response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specialiteId);
+                response.sendRedirect(request.getContextPath() + "/app/gestion/specialite/details?specId=" + specialiteId);
             }
         } catch (NumberFormatException e) {
             if (isAjax) {
@@ -937,7 +937,7 @@ public class Utilisateur {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     response.getWriter().println("Utilisateur non trouvé");
                 } else {
-                    response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specialiteId);
+                    response.sendRedirect(request.getContextPath() + "/app/gestion/specialite/details?specId=" + specialiteId);
                 }
                 return;
             }
@@ -948,7 +948,7 @@ public class Utilisateur {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     response.getWriter().println("L'utilisateur n'est pas un étudiant");
                 } else {
-                    response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specialiteId);
+                    response.sendRedirect(request.getContextPath() + "/app/gestion/specialite/details?specId=" + specialiteId);
                 }
                 return;
             }
@@ -964,7 +964,7 @@ public class Utilisateur {
             if (isAjax) {
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             } else {
-                response.sendRedirect(request.getContextPath() + "/app/admin/matieres?specId=" + specialiteId);
+                response.sendRedirect(request.getContextPath() + "/app/gestion/specialite/details?specId=" + specialiteId);
             }
         } catch (NumberFormatException e) {
             if (isAjax) {

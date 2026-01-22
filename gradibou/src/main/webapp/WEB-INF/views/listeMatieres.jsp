@@ -29,6 +29,10 @@
             <%
                 Specialite specialite = (Specialite) request.getAttribute("specialite");
                 String tagClass = specialite != null ? "tag-" + specialite.getTag().toLowerCase() : "";
+                Boolean isAdmin = (Boolean) request.getAttribute("isAdmin");
+                Boolean isProfesseur = (Boolean) request.getAttribute("isProfesseur");
+                if (isAdmin == null) isAdmin = false;
+                if (isProfesseur == null) isProfesseur = false;
             %>
             
             <!-- Toolbar -->
@@ -57,10 +61,12 @@
                 <div class="specialite-card">
                     <div class="card-header">
                         <h2>Matières</h2>
+                        <% if (isAdmin) { %>
                         <button class="btn btn-secondary btn-with-icon" onclick="openModal('addMatiereModal')">
                             <img src="<%= request.getContextPath() %>/static/icons/black/circle-plus.svg" alt="Ajouter">
                             Ajouter une matière
                         </button>
+                        <% } %>
                     </div>
                     
                     <div class="matieres-container">
@@ -94,12 +100,14 @@
                                     <span class="matiere-prof"><%= profEmailMap.getOrDefault(m.getProfId(), "") %></span>
                                 </div>
                                 <div class="matiere-actions">
+                                    <% if (isAdmin) { %>
                                     <button class="btn btn-tertiary" title="Modifier" onclick="editMatiere(<%= m.getId() %>, '<%= m.getNom().replace("'", "\\'" ) %>', <%= m.getSemestre() %>, '<%= profEmailMap.getOrDefault(m.getProfId(), "") %>')">
                                         <img src="<%= request.getContextPath() %>/static/icons/black/pen.svg" alt="Modifier">
                                     </button>
                                     <button class="btn btn-tertiary" title="Supprimer" onclick="confirmDeleteMatiere(<%= m.getId() %>, '<%= m.getNom().replace("'", "\\\'" ) %>')">
                                         <img src="<%= request.getContextPath() %>/static/icons/black/trash.svg" alt="Supprimer">
                                     </button>
+                                    <% } %>
                                     <button class="btn btn-primary" onclick="viewExams(<%= m.getId() %>)">
                                         Voir
                                     </button>
@@ -124,10 +132,12 @@
                 <div class="specialite-card">
                     <div class="card-header">
                         <h2>Étudiants (<span id="studentCount">0</span>)</h2>
+                        <% if (isAdmin) { %>
                         <button class="btn btn-secondary btn-with-icon" onclick="openModal('addStudentModal')">
                             <img src="<%= request.getContextPath() %>/static/icons/black/user-plus.svg" alt="Ajouter">
                             Ajouter un étudiant
                         </button>
+                        <% } %>
                     </div>
                     
                     <div class="students-container">
@@ -143,9 +153,11 @@
                                 <div class="student-email"><%= s.getemail() %></div>
                             </div>
                             <div class="student-actions">
+                                <% if (isAdmin) { %>
                                 <button class="btn btn-tertiary" title="Supprimer" onclick="confirmRemoveStudent('<%= s.getemail() %>', '<%= s.getPrenom() %> <%= s.getNom() %>')">
                                     <img src="<%= request.getContextPath() %>/static/icons/black/trash.svg" alt="Supprimer">
                                 </button>
+                                <% } %>
                                 <button class="btn btn-primary" title="Voir les notes" onclick="viewStudentGrades(<%= s.getId() %>)">
                                     <img src="<%= request.getContextPath() %>/static/icons/white/user-graduate.svg" alt="Voir les notes">
                                 </button>

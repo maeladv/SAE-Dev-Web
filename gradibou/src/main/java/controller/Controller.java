@@ -8,6 +8,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import model.Evaluation;
 import model.Examen;
 import model.Lien;
@@ -103,8 +104,9 @@ public class Controller extends HttpServlet {
                 }
                 view = "/WEB-INF/views/admin-specialite-details.jsp";
                 break;
-            case "/admin/matieres":
-                if (!Role.estAdmin(request.getSession(false))) {
+            case "/gestion/specialite/details":
+                HttpSession sess = request.getSession(false);
+                if (!Role.estAdmin(sess) && !Role.estProfesseur(sess)) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
                     return;
                 }

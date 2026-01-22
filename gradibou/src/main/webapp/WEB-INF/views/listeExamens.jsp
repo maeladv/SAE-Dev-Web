@@ -100,7 +100,7 @@
         </form>
     </div>
     
-    <a href="<%= request.getContextPath() %>/app/admin/matieres?specId=<%= mat != null ? mat.getSpecialiteId() : "" %>" class="back-link">
+    <a href="<%= request.getContextPath() %>/app/gestion/specialite/details?specId=<%= mat != null ? mat.getSpecialiteId() : "" %>" class="back-link">
         &larr; Retour aux matières
     </a>
 
