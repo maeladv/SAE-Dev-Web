@@ -403,6 +403,28 @@ Notre démarche s'appuie sur trois axes qui témoignent de la maturité techniqu
 Nous invitons formetement les lecteurs de ce rapports à jeter un coup d'oeil à #link("https://www.figma.com/design/QpvqlQgX5KHlphDzAcWdPm/Maquette-SAE?node-id=20-123&t=ANUNhfVW9MvuBUDI-0")[notre maquette sur figma] et à #link("https://www.figma.com/proto/QpvqlQgX5KHlphDzAcWdPm/Maquette-SAE?node-id=46-440&p=f&t=LEVjaKnMcMwqyAvx-8&scaling=contain&content-scaling=responsive&page-id=0%3A1&starting-point-node-id=26%3A317&show-proto-sidebar=1&hide-ui=1")[notre maquette intéractive sur figma], elles représentent une bonne part de notre travail de réflexion sur la conception de notre application.
 ===
 
+= collaboration dans le groupe
+
+== Notion
+
+Afin d'optimiser notre organisation interne et d'assurer une répartition équitable de la charge de travail, nous avons utilisé Notion. Cet outil nous a permis de piloter l'avancement du projet avec rigueur, en nous appuyant sur deux axes majeurs :
+
+- Une Base de Connaissances : Notion a servi de référentiel pour stocker, structurer et partager l'ensemble des ressources, documentations techniques et comptes-rendus nécessaires à la bonne exécution du projet.
+
+- Un Pilotage Agile via un Tableau Kanban : Pour le suivi opérationnel, nous avons mis en place un tableau de type Kanban. Cet outil nous a permis de lister l'ensemble des tâches, de les assigner clairement aux membres du groupe et de suivre leur cycle de vie (À faire, En attente, En cours, Terminé).
+
+== GitHub
+
+Pour assurer l'intégrité de notre code et optimiser notre travail en équipe, nous avons mis en place un processus de contrôle de version rigoureux via GitHub, inspiré du modèle Feature Branch Workflow.
+
+Cette méthodologie s'est articulée autour de trois bonnes pratiques essentielles :
+
+- Isolement des développements (Feature Branching) : Pour permettre à chaque membre de travailler en parallèle sans risque de conflits, une nouvelle branche a été créée pour chaque nouvelle fonctionnalité développée. Cette approche a garanti que les travaux en cours n'impactent pas le reste de l'application.
+
+- Sanctuarisation de la branche main : Nous avons instauré une règle stricte d'interdiction de coder directement sur la branche principale (main). Celle-ci a été exclusivement réservée à l'accueil des versions testées, stables et fonctionnelles de notre application, garantissant ainsi d'avoir un produit toujours opérationnel.
+
+- Convention de nommage : Afin de garantir la traçabilité des modifications et de faciliter la relecture de l'historique du projet, nous avons adopté un format normalisé pour nos titres de commits (ex: feat:, fix:, refactor:).
+
 = Amélioration prévue
 
 - Envoie des liens de validation de compte et de réinitialisation de mot de passe par mail.
