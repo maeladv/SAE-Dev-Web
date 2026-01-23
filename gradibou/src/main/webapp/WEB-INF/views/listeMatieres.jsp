@@ -133,33 +133,33 @@
                     <div class="card-header">
                         <h2>Étudiants (<span id="studentCount">0</span>)</h2>
                         <% if (isAdmin) { %>
-                        <button class="btn btn-secondary btn-with-icon" onclick="openModal('addStudentModal')">
+                        <button class="btn btn-secondary btn-with-icon" onclick="openModal('addEtudiantModal')">
                             <img src="<%= request.getContextPath() %>/static/icons/black/user-plus.svg" alt="Ajouter">
                             Ajouter un étudiant
                         </button>
                         <% } %>
                     </div>
                     
-                    <div class="students-container">
+                    <div class="etudiants-container">
                         <%
-                            List<Utilisateur> students = (List<Utilisateur>) request.getAttribute("students");
-                            if (students != null && !students.isEmpty()) {
-                                out.print("<script>document.getElementById('studentCount').textContent = '" + students.size() + "';</script>");
-                                for (Utilisateur s : students) {
+                            List<Utilisateur> etudiants = (List<Utilisateur>) request.getAttribute("etudiants");
+                            if (etudiants != null && !etudiants.isEmpty()) {
+                                out.print("<script>document.getElementById('studentCount').textContent = '" + etudiants.size() + "';</script>");
+                                for (Utilisateur s : etudiants) {
                         %>
-                        <div class="student-item">
-                            <div class="student-info">
-                                <div class="student-name"><%= s.getNom() %> <%= s.getPrenom() %></div>
-                                <div class="student-email"><%= s.getemail() %></div>
+                        <div class="etudiant-item">
+                            <div class="etudiant-info">
+                                <div class="etudiant-name"><%= s.getNom() %> <%= s.getPrenom() %></div>
+                                <div class="etudiant-email"><%= s.getemail() %></div>
                             </div>
-                            <div class="student-actions">
+                            <div class="etudiant-actions">
                                 <% if (isAdmin) { %>
-                                <button class="btn btn-tertiary" title="Supprimer" onclick="confirmRemoveStudent('<%= s.getemail() %>', '<%= s.getPrenom() %> <%= s.getNom() %>')">
+                                <button class="btn btn-tertiary" title="Supprimer" onclick="confirmRemoveEtudiant('<%= s.getemail() %>', '<%= s.getPrenom() %> <%= s.getNom() %>')">
                                     <img src="<%= request.getContextPath() %>/static/icons/black/trash.svg" alt="Supprimer">
                                 </button>
                                 <% } %>
-                                <button class="btn btn-primary" title="Voir les notes" onclick="viewStudentGrades(<%= s.getId() %>)">
-                                    <img src="<%= request.getContextPath() %>/static/icons/white/user-graduate.svg" alt="Voir les notes">
+                                <button class="btn btn-primary" title="Voir les notes" onclick="viewnoteEtudiants(<%= s.getId() %>)">
+                                    <img src="<%= request.getContextPath() %>/static/icons/white/utilisateur-graduate.svg" alt="Voir les notes">
                                 </button>
                             </div>
                         </div>
@@ -258,20 +258,20 @@
     </div>
 
     <!-- Modal: Ajouter un étudiant -->
-    <div id="addStudentModal" class="modal-overlay">
+    <div id="addEtudiantModal" class="modal-overlay">
         <div class="modal modal-small">
             <h2 class="modal-title">Ajouter un étudiant</h2>
             <div class="modal-content">
-                <form onsubmit="return submitAddStudent(event)">
+                <form onsubmit="return submitAddEtudiant(event)">
                     <div class="form-group">
-                        <label for="student-email">Adresse email de l'étudiant</label>
-                        <input type="email" id="student-email" name="email" placeholder="Rentrez l'adresse email de l'étudiant à ajouter" class="input-field" required>
+                        <label for="etudiant-email">Adresse email de l'étudiant</label>
+                        <input type="email" id="etudiant-email" name="email" placeholder="Rentrez l'adresse email de l'étudiant à ajouter" class="input-field" required>
                     </div>
-                    <div id="addStudentError" style="display: none; margin-bottom: 1rem; padding: 0.75rem; background-color: #ffe6e6; border-left: 4px solid #fe3232; border-radius: 4px;">
-                        <p id="addStudentErrorText" style="margin: 0; color: #fe3232; font-size: 0.9rem;"></p>
+                    <div id="addEtudiantError" style="display: none; margin-bottom: 1rem; padding: 0.75rem; background-color: #ffe6e6; border-left: 4px solid #fe3232; border-radius: 4px;">
+                        <p id="addEtudiantErrorText" style="margin: 0; color: #fe3232; font-size: 0.9rem;"></p>
                     </div>
                     <div class="modal-actions">
-                        <button type="button" class="btn btn-tertiary" onclick="closeModal('addStudentModal')">Annuler</button>
+                        <button type="button" class="btn btn-tertiary" onclick="closeModal('addEtudiantModal')">Annuler</button>
                         <button type="submit" class="btn btn-primary">Ajouter</button>
                     </div>
                 </form>
@@ -280,17 +280,17 @@
     </div>
 
     <!-- Modal: Confirmation retirer étudiant -->
-    <div id="removeStudentModal" class="modal-overlay">
+    <div id="removeEtudiantModal" class="modal-overlay">
         <div class="modal modal-small">
             <h2 class="modal-title">Retirer l'étudiant de la spécialité ?</h2>
             <div class="modal-content">
                 <p class="modal-message">Êtes-vous sûr·e de vouloir effectuer cette opération ?</p>
-                <div id="removeStudentError" style="display: none; margin-bottom: 1rem; padding: 0.75rem; background-color: #ffe6e6; border-left: 4px solid #fe3232; border-radius: 4px;">
-                    <p id="removeStudentErrorText" style="margin: 0; color: #fe3232; font-size: 0.9rem;"></p>
+                <div id="removeEtudiantError" style="display: none; margin-bottom: 1rem; padding: 0.75rem; background-color: #ffe6e6; border-left: 4px solid #fe3232; border-radius: 4px;">
+                    <p id="removeEtudiantErrorText" style="margin: 0; color: #fe3232; font-size: 0.9rem;"></p>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-tertiary" onclick="closeModal('removeStudentModal')">Annuler</button>
-                    <button type="button" class="btn btn-primary btn-danger" onclick="submitRemoveStudent()">Retirer l'étudiant</button>
+                    <button type="button" class="btn btn-tertiary" onclick="closeModal('removeEtudiantModal')">Annuler</button>
+                    <button type="button" class="btn btn-primary btn-danger" onclick="submitRemoveEtudiant()">Retirer l'étudiant</button>
                 </div>
             </div>
         </div>
@@ -302,7 +302,7 @@
             Specialite spec = (Specialite) request.getAttribute("specialite");
             int specId = (spec != null) ? spec.getId() : -1;
         %>
-        const specialiteId = <%= specId %>;
+        const idspecialite = <%= specId %>;
 
         function openModal(modalId) {
             const modal = document.getElementById(modalId);
@@ -326,8 +326,8 @@
         });
 
         let currentDeleteMatiereId = null;
-        let currentRemoveStudentId = null;
-        let currentRemoveStudentEmail = null;
+        let currentRemoveidUtilisateur = null;
+        let currentRemoveEtudiantEmail = null;
 
         function editMatiere(id, nom, semestre, profEmail) {
             document.getElementById('edit-matiere-id').value = id;
@@ -380,20 +380,20 @@
             }
         }
 
-        function confirmRemoveStudent(email, nom) {
-            currentRemoveStudentEmail = email;
-            openModal('removeStudentModal');
+        function confirmRemoveEtudiant(email, nom) {
+            currentRemoveEtudiantEmail = email;
+            openModal('removeEtudiantModal');
         }
 
-        function submitRemoveStudent() {
-            if (currentRemoveStudentEmail) {
+        function submitRemoveEtudiant() {
+            if (currentRemoveEtudiantEmail) {
                 const params = new URLSearchParams();
-                params.append('email', currentRemoveStudentEmail);
-                params.append('specialiteId', specialiteId);
+                params.append('email', currentRemoveEtudiantEmail);
+                params.append('idspecialite', idspecialite);
                 
                 // Cacher les erreurs précédentes
-                const errorContainer = document.getElementById('removeStudentError');
-                const errorText = document.getElementById('removeStudentErrorText');
+                const errorContainer = document.getElementById('removeEtudiantError');
+                const errorText = document.getElementById('removeEtudiantErrorText');
                 errorContainer.style.display = 'none';
                 errorText.textContent = '';
                 
@@ -405,7 +405,7 @@
                     body: params
                 }).then(response => {
                     if (response.ok) {
-                        closeModal('removeStudentModal');
+                        closeModal('removeEtudiantModal');
                         location.reload();
                     } else {
                         return response.text().then(text => {
@@ -433,7 +433,7 @@
             const params = new URLSearchParams();
             params.append('nom', nom);
             params.append('semestre', semestre);
-            params.append('specialiteId', specialiteId);
+            params.append('idspecialite', idspecialite);
             params.append('profEmail', profEmail);
             
             fetch(contextPath + '/app/admin/creer-matiere', {
@@ -477,7 +477,7 @@
             params.append('nom', nom);
             params.append('semestre', semestre);
             params.append('profEmail', profEmail);
-            params.append('specId', specialiteId);
+            params.append('specId', idspecialite);
             
             fetch(contextPath + '/app/admin/modifier-matiere', {
                 method: 'POST',
@@ -507,18 +507,18 @@
             return false;
         }
 
-        function submitAddStudent(event) {
+        function submitAddEtudiant(event) {
             event.preventDefault();
-            const email = document.getElementById('student-email').value;
+            const email = document.getElementById('etudiant-email').value;
             const form = event.target;
             
             const params = new URLSearchParams();
             params.append('email', email);
-            params.append('specialiteId', specialiteId);
+            params.append('idspecialite', idspecialite);
             
             // Cacher les erreurs précédentes
-            const errorContainer = document.getElementById('addStudentError');
-            const errorText = document.getElementById('addStudentErrorText');
+            const errorContainer = document.getElementById('addEtudiantError');
+            const errorText = document.getElementById('addEtudiantErrorText');
             errorContainer.style.display = 'none';
             errorText.textContent = '';
             
@@ -530,7 +530,7 @@
                 body: params
             }).then(response => {
                 if (response.ok) {
-                    closeModal('addStudentModal');
+                    closeModal('addEtudiantModal');
                     location.reload();
                 } else {
                     return response.text().then(text => {
@@ -547,12 +547,12 @@
             return false;
         }
 
-        function viewExams(matiereId) {
-            window.location.href = contextPath + '/app/admin/examens?matId=' + matiereId;
+        function viewExams(idmatiere) {
+            window.location.href = contextPath + '/app/admin/examens?matId=' + idmatiere;
         }
 
-        function viewStudentGrades(studentId) {
-            window.location.href = contextPath + '/app/admin/notes?studentId=' + studentId;
+        function viewnoteEtudiants(idUtilisateur) {
+            window.location.href = contextPath + '/app/admin/notes?idUtilisateur=' + idUtilisateur;
         }
 
         // Close modal when clicking overlay

@@ -114,9 +114,9 @@ public class Lien {
         }
 
         try {
-            int userId = utilisateur.getId();
+            int idUtilisateur = utilisateur.getId();
 
-            String token = model.Lien.creerLien(userId, 1); // Lien valide 1 jour
+            String token = model.Lien.creerLien(idUtilisateur, 1); // Lien valide 1 jour
             String lienMDP = request.getContextPath() + "/app/complete-profil?token=" + token;
 
             Json.envoyerJsonSuccess(response, "Lien créé avec succès", lienMDP);

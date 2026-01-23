@@ -36,8 +36,8 @@
         <% } %>
 
         <form class="re-form" method="post" action="<%= request.getContextPath() %>/app/etudiant/repondre-evaluation">
-            <input type="hidden" name="evaluationId" value="<%= request.getAttribute("evaluationId") %>">
-            <input type="hidden" name="matiereId" value="<%= request.getAttribute("matiereId") %>">
+            <input type="hidden" name="idEvaluation" value="<%= request.getAttribute("idEvaluation") %>">
+            <input type="hidden" name="idmatiere" value="<%= request.getAttribute("idmatiere") %>">
 
             <div class="re-group">
                 <label class="re-label">Qualité des supports pédagogiques</label>

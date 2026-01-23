@@ -1,0 +1,450 @@
+/* Page Mon Compte - Design Figma */
+
+.moncompte-page {
+    background: var(--color-gris-fond);
+    padding-bottom: 60px;
+}
+
+.moncompte-main {
+    max-width: 100%;
+    margin: 60px auto;
+    padding: 0 40px;
+}
+
+.status-message {
+    padding: 12px 16px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.status-message.error {
+    background: rgba(254, 50, 50, 0.1);
+    color: var(--gradibou-status-error);
+    border-left: 4px solid var(--gradibou-status-error);
+}
+
+.status-message.success {
+    background: rgba(127, 206, 96, 0.1);
+    color: var(--gradibou-status-success);
+    border-left: 4px solid var(--gradibou-status-success);
+}
+
+/* Conteneur principal à 3 colonnes + 1 ligne pour champs spécifiques */
+.profile-container {
+    background: var(--color-blanc);
+    border-radius: 16px;
+    padding: 26px 21px;
+    display: grid;
+    grid-template-columns: 300px 1fr 1fr;
+    gap: 85px;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
+    margin-bottom: 30px;
+}
+
+/* Specific Fields Section (4ème colonne, intégrée dans la grille) */
+.profile-section.specific-fields {
+    grid-column: 1 / -1;
+    padding-top: 24px;
+    margin-top: 24px;
+}
+
+.profile-section.specific-fields .section-title {
+    text-align: left;
+    margin-bottom: 16px;
+}
+
+/* Colonne Gauche: Votre GradiCompte */
+.profile-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 23px;
+}
+
+.sidebar-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gradibou-noir);
+    margin: 0;
+}
+
+.profile-card {
+    background: var(--color-blanc);
+    border-radius: 16px;
+    padding: 16px 19px;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.profile-header {
+    display: flex;
+    gap: 35px;
+    align-items: flex-start;
+}
+
+.profile-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #E8E8E8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.profile-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gradibou-noir);
+    margin: 0;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: white;
+    width: fit-content;
+}
+
+.role-badge.role-admin {
+    background: var(--gradibou-role-admin);
+}
+
+.role-badge.role-professeur {
+    background: var(--gradibou-role-professeur);
+}
+
+.role-badge.role-etudiant {
+    background: var(--gradibou-role-etudiant);
+}
+
+.profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--color-blanc);
+    color: var(--gradibou-noir);
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.action-btn.secondary,
+.action-btn.danger {
+    color: var(--gradibou-noir);
+}
+
+.action-btn.danger {
+    color: var(--gradibou-status-error);
+}
+
+/* Colonnes Milieu et Droite */
+.profile-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gradibou-noir);
+    margin: 0 0 16px 0;
+    text-align: center;
+}
+
+.security .section-title {
+    text-align: center;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.field-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gradibou-noir);
+}
+
+.input-field {
+    background: white;
+    border: 1px solid #E8E8E8;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 16px;
+    color: var(--gradibou-noir);
+    font-family: var(--font-base);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-field::placeholder {
+    color: #878787;
+}
+
+.input-field:disabled {
+    background: var(--color-gris-fond);
+    color: var(--color-gris-texte);
+    cursor: not-allowed;
+}
+
+.input-field.readonly-field {
+    background: white;
+    color: var(--gradibou-noir);
+    cursor: default;
+}
+
+.input-field.readonly-field:focus {
+    outline: none;
+    border-color: #E8E8E8;
+    box-shadow: none;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: var(--gradibou-rose);
+    box-shadow: 0 0 0 3px rgba(250, 70, 126, 0.1);
+}
+
+/* Spécialité badge */
+.specialite-display {
+    padding: 12px 0;
+}
+
+.specialite-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.specialite-badge.spe-icy {
+    background-color: rgba(var(--gradibou-spe-icy) / 0.2);
+    color: rgb(var(--gradibou-spe-icy));
+}
+
+.specialite-badge.spe-iia {
+    background-color: rgba(var(--gradibou-spe-iia) / 0.2);
+    color: rgb(var(--gradibou-spe-iia));
+}
+
+.specialite-badge.spe-gcb {
+    background-color: rgba(var(--gradibou-spe-gcb) / 0.2);
+    color: rgb(var(--gradibou-spe-gcb));
+}
+
+.specialite-badge.spe-me {
+    background-color: rgba(var(--gradibou-spe-me) / 0.2);
+    color: rgb(var(--gradibou-spe-me));
+}
+
+.no-specialite {
+    color: var(--color-gris-texte);
+    font-size: 14px;
+}
+
+/* Boutons */
+.btn-primary {
+    background: var(--gradibou-rose);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    filter: brightness(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(1px);
+}
+
+.btn-icon-right {
+    padding-left: 36px !important;
+    padding-right: 16px !important;
+}
+
+
+.no-specific-fields {
+    color: var(--color-gris-texte);
+    font-size: 16px;
+    padding: 20px;
+    text-align: center;
+}
+
+.dropdown-field {
+    position: relative;
+}
+
+.dropdown-select {
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 8l3 3 3-3" stroke="%231e1e1e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+}
+
+.dropdown-select:disabled {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 8l3 3 3-3" stroke="%23999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .profile-container {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .profile-section.specific-fields {
+        grid-column: 1;
+        padding-top: 24px;
+        margin-top: 24px;
+    }
+
+    .moncompte-main {
+        padding: 0 20px;
+        margin: 40px auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-container {
+        padding: 20px 16px;
+        grid-template-columns: 1fr;
+    }
+
+    .profile-section.specific-fields {
+        grid-column: 1;
+    }
+
+    .sidebar-title,
+    .section-title {
+        font-size: 18px;
+    }
+
+    .profile-header {
+        gap: 20px;
+    }
+
+    .profile-avatar {
+        width: 50px;
+        height: 50px;
+    }
+
+    .profile-name {
+        font-size: 16px;
+    }
+
+    .action-btn {
+        padding: 12px 12px;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        font-size: 14px;
+        padding: 12px 12px !important;
+    }
+
+    .moncompte-main {
+        padding: 0 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding: 16px;
+    }
+
+    .profile-section.specific-fields {
+        grid-column: 1;
+    }
+
+    .sidebar-title,
+    .section-title {
+        font-size: 16px;
+    }
+
+    .profile-header {
+        gap: 15px;
+    }
+
+    .profile-avatar {
+        width: 45px;
+        height: 45px;
+    }
+
+    .profile-name {
+        font-size: 14px;
+    }
+
+    .field-label {
+        font-size: 12px;
+    }
+
+    .input-field {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+
+    .action-btn {
+        font-size: 13px;
+        padding: 10px 10px;
+    }
+
+    .btn-primary {
+        font-size: 13px;
+        padding: 10px 10px !important;
+    }
+}

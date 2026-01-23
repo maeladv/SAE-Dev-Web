@@ -39,7 +39,7 @@ Dialogue de confirmation avant de supprimer un utilisateur.
 
 **Utilisation :**
 ```html
-<button onclick="confirmDelete(userId, userName)">Supprimer</button>
+<button onclick="confirmDelete(idUtilisateur, userName)">Supprimer</button>
 ```
 
 ### 5. Modal de création de spécialité (`createSpecialiteModal`)
@@ -88,7 +88,7 @@ Ferme le modal actuellement ouvert.
 closeModal();
 ```
 
-**`confirmDelete(userId, userName)`**
+**`confirmDelete(idUtilisateur, userName)`**
 Ouvre le modal de confirmation de suppression.
 ```javascript
 confirmDelete(200, 'John Doe');

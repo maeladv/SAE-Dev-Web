@@ -340,14 +340,14 @@ function submitCSVUpload(event) {
     }
 }
 
-function confirmDelete(userId, userName) {
+function confirmDelete(idUtilisateur, userName) {
     // Mettre à jour le titre du modal de confirmation
     const modal = document.getElementById('deleteConfirmModal');
     const title = modal.querySelector('.modal-title');
     title.textContent = `Supprimer l'utilisateur ${userName}`;
     
     // Stocker l'ID de l'utilisateur pour la suppression
-    modal.dataset.userId = userId;
+    modal.dataset.idUtilisateur = idUtilisateur;
     
     // Ouvrir le modal
     modalManager.open('deleteConfirmModal');
@@ -355,11 +355,11 @@ function confirmDelete(userId, userName) {
 
 function executeDelete() {
     const modal = document.getElementById('deleteConfirmModal');
-    const userId = modal.dataset.userId;
+    const idUtilisateur = modal.dataset.idUtilisateur;
     
-    if (userId) {
+    if (idUtilisateur) {
         // Rediriger vers l'URL de suppression ou soumettre un formulaire
-        window.location.href = `${contextPath}/app/admin/supprimer-utilisateur?id=${userId}`;
+        window.location.href = `${contextPath}/app/admin/supprimer-utilisateur?id=${idUtilisateur}`;
     }
 }
 

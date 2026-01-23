@@ -624,8 +624,8 @@ public class Utilisateur {
         }
 
         try {
-            int userId = model.Lien.validerLien(token);
-            if (userId == -1) {
+            int idUtilisateur = model.Lien.validerLien(token);
+            if (idUtilisateur == -1) {
                 request.setAttribute("error", "Lien invalide ou expiré");
                 request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
                 return;
@@ -634,7 +634,7 @@ public class Utilisateur {
             if (motDePasse == null || motDePasse.isEmpty()) {
                 request.setAttribute("error", "Le mot de passe est obligatoire");
                 request.setAttribute("token", token);
-                request.setAttribute("userId", userId);
+                request.setAttribute("idUtilisateur", idUtilisateur);
                 request.getRequestDispatcher("/WEB-INF/views/complete-profil.jsp").forward(request, response);
                 return;
             }
@@ -642,12 +642,12 @@ public class Utilisateur {
             if (!motDePasse.equals(confirmPassword)) {
                 request.setAttribute("error", "Les mots de passe ne correspondent pas");
                 request.setAttribute("token", token);
-                request.setAttribute("userId", userId);
+                request.setAttribute("idUtilisateur", idUtilisateur);
                 request.getRequestDispatcher("/WEB-INF/views/complete-profil.jsp").forward(request, response);
                 return;
             }
 
-            Utilisateur utilisateur = Utilisateur.trouverParId(userId);
+            Utilisateur utilisateur = Utilisateur.trouverParId(idUtilisateur);
             if (utilisateur != null) {
                 if (utilisateur.completerProfil(motDePasse)) {
                     model.Lien.marquerCommeUtilise(token);
@@ -656,7 +656,7 @@ public class Utilisateur {
                 } else {
                     request.setAttribute("error", "Erreur lors de la mise à jour du profil");
                     request.setAttribute("token", token);
-                    request.setAttribute("userId", userId);
+                    request.setAttribute("idUtilisateur", idUtilisateur);
                     request.getRequestDispatcher("/WEB-INF/views/complete-profil.jsp").forward(request, response);
                 }
             }
@@ -666,7 +666,127 @@ public class Utilisateur {
         }
     }
 
+    /**
+     * Modifier son propre profil (utilisateur connecté)
+     */
+    public static void modifierMonProfil(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        Utilisateur currentUser = (Utilisateur) request.getSession().getAttribute("utilisateur");
+        
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/app/login");
+            return;
+        }
+
+        // Déterminer quel utilisateur modifier
+        Utilisateur targetUser = currentUser;
+        String idUtilisateurParam = request.getParameter("idUtilisateur");
+        boolean isAdminModifyingOther = false;
+        
+        if (idUtilisateurParam != null && !idUtilisateurParam.isEmpty()) {
+            // Vérifier que l'utilisateur courant est admin
+            if (util.Role.estAdmin(request.getSession(false))) {
+                int targetidUtilisateur = Integer.parseInt(idUtilisateurParam);
+                targetUser = Utilisateur.trouverParId(targetidUtilisateur);
+                if (targetUser == null) {
+                    request.setAttribute("error", "Utilisateur introuvable");
+                    request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+                    return;
+                }
+                isAdminModifyingOther = true;
+            }
+        }
+
+        String nom = request.getParameter("nom");
+        String prenom = request.getParameter("prenom");
+        String email = request.getParameter("email");
+        String dateNaissanceStr = request.getParameter("dateNaissance");
+        String motDePasse = request.getParameter("motDePasse");
+        String confirmPassword = request.getParameter("confirmPassword");
+
+        try {
+            // Validation des champs obligatoires
+            if (nom == null || nom.trim().isEmpty() || prenom == null || prenom.trim().isEmpty() ||
+                email == null || email.trim().isEmpty() || dateNaissanceStr == null || dateNaissanceStr.isEmpty()) {
+                request.setAttribute("error", "Tous les champs requis doivent être remplis");
+                request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+                return;
+            }
+
+            // Validation du mot de passe si fourni
+            if (motDePasse != null && !motDePasse.trim().isEmpty()) {
+                if (motDePasse.length() < 6) {
+                    request.setAttribute("error", "Le mot de passe doit contenir au moins 6 caractères");
+                    request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+                    return;
+                }
+                
+                if (confirmPassword == null || !motDePasse.equals(confirmPassword)) {
+                    request.setAttribute("error", "Les mots de passe ne correspondent pas");
+                    request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+                    return;
+                }
+            }
+
+            // Vérifier que l'email n'existe pas ailleurs (sauf pour l'utilisateur cible)
+            Utilisateur userWithEmail = Utilisateur.trouverParemail(email);
+            if (userWithEmail != null && userWithEmail.getId() != targetUser.getId()) {
+                request.setAttribute("error", "Cet email est déjà utilisé");
+                if (isAdminModifyingOther) {
+                    request.setAttribute("utilisateurVu", targetUser);
+                }
+                request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+                return;
+            }
+
+            // Mettre à jour les informations
+            targetUser.setNom(nom.trim());
+            targetUser.setPrenom(prenom.trim());
+            targetUser.setemail(email.trim());
+            targetUser.setDateNaissance(java.time.LocalDate.parse(dateNaissanceStr));
+            
+            // Mettre à jour le mot de passe si fourni et si on modifie son propre profil
+            if (!isAdminModifyingOther && motDePasse != null && !motDePasse.trim().isEmpty()) {
+                targetUser.mettreAJourMotDePasse(motDePasse);
+            }
+            
+            // Sauvegarder
+            targetUser.save();
+            
+            // Mettre à jour la session si on modifie son propre profil
+            if (!isAdminModifyingOther) {
+                request.getSession().setAttribute("utilisateur", targetUser);
+            }
+            
+            request.setAttribute("success", "Profil mis à jour avec succès !");
+            if (isAdminModifyingOther) {
+                request.setAttribute("utilisateurVu", targetUser);
+            }
+            request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+            
+        } catch (java.time.format.DateTimeParseException e) {
+            request.setAttribute("error", "Format de date invalide");
+            if (isAdminModifyingOther) {
+                request.setAttribute("utilisateurVu", targetUser);
+            }
+            request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur base de données: " + e.getMessage());
+            if (isAdminModifyingOther) {
+                request.setAttribute("utilisateurVu", targetUser);
+            }
+            request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+        } catch (Exception e) {
+            request.setAttribute("error", "Erreur: " + e.getMessage());
+            if (isAdminModifyingOther) {
+                request.setAttribute("utilisateurVu", targetUser);
+            }
+            request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+        }
+    }
+
     // ==================== GETTERS & SETTERS ====================
+
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -696,8 +816,7 @@ public class Utilisateur {
     }
 
     public String getIne() throws SQLException {
-        return trouverIneEtudiantParId(this.id)
-            .orElse("");
+        return trouverIneEtudiantParId(this.id).orElse("");
     }
 
     public String getSpecialiteTag() throws SQLException {
@@ -739,20 +858,20 @@ public class Utilisateur {
                 return;
             }
 
-            Utilisateur user = Utilisateur.trouverParId(id);
-            if (user != null) {
-                String ancienRole = user.getRole();
+            Utilisateur utilisateur = Utilisateur.trouverParId(id);
+            if (utilisateur != null) {
+                String ancienRole = utilisateur.getRole();
                 
-                user.setNom(nom);
-                user.setPrenom(prenom);
-                user.setemail(email);
-                user.setRole(role);
+                utilisateur.setNom(nom);
+                utilisateur.setPrenom(prenom);
+                utilisateur.setemail(email);
+                utilisateur.setRole(role);
                 
                 // Si le rôle a changé, utiliser updateWithRoleChange()
                 if (!ancienRole.equalsIgnoreCase(role)) {
-                    user.updateWithRoleChange(ancienRole);
+                    utilisateur.updateWithRoleChange(ancienRole);
                 } else {
-                    user.save();
+                    utilisateur.save();
                 }
                 
                 util.Json.envoyerJsonSuccess(response, "Utilisateur modifié avec succès", request.getContextPath() + "/app/admin");
@@ -782,9 +901,9 @@ public class Utilisateur {
             }
             
             int id = Integer.parseInt(idStr);
-            Utilisateur user = Utilisateur.trouverParId(id);
-            if (user != null) {
-                user.supprimer();
+            Utilisateur utilisateur = Utilisateur.trouverParId(id);
+            if (utilisateur != null) {
+                utilisateur.supprimer();
                 util.Json.envoyerJsonSuccess(response, "Utilisateur supprimé avec succès", request.getContextPath() + "/app/admin");
             } else {
                 util.Json.envoyerJsonError(response, "Utilisateur non trouvé", HttpServletResponse.SC_NOT_FOUND);
@@ -798,7 +917,7 @@ public class Utilisateur {
         }
     }
 
-    public static void retirerEtudiantDeSpecialite(String email, int specialiteId) throws SQLException {
+    public static void retirerEtudiantDeSpecialite(String email, int idspecialite) throws SQLException {
         Utilisateur etudiant = Utilisateur.trouverParemail(email);
         if (etudiant == null) {
             throw new SQLException("Étudiant non trouvé");
@@ -815,9 +934,9 @@ public class Utilisateur {
                     "(SELECT id_evaluation FROM a_repondu_evaluation WHERE id_etudiant = ? AND id_matiere IN " +
                     "(SELECT id FROM matiere WHERE id_specialite = ?)))";
             try (PreparedStatement stmt = conn.prepareStatement(deleteReponsesSql)) {
-                stmt.setInt(1, specialiteId);
+                stmt.setInt(1, idspecialite);
                 stmt.setInt(2, idEtudiant);
-                stmt.setInt(3, specialiteId);
+                stmt.setInt(3, idspecialite);
                 stmt.executeUpdate();
             }
             
@@ -826,7 +945,7 @@ public class Utilisateur {
                     "(SELECT id FROM matiere WHERE id_specialite = ?)";
             try (PreparedStatement stmt = conn.prepareStatement(deleteAReponduSql)) {
                 stmt.setInt(1, idEtudiant);
-                stmt.setInt(2, specialiteId);
+                stmt.setInt(2, idspecialite);
                 stmt.executeUpdate();
             }
             
@@ -836,7 +955,7 @@ public class Utilisateur {
                     "(SELECT id FROM matiere WHERE id_specialite = ?))";
             try (PreparedStatement stmt = conn.prepareStatement(deleteNotesSql)) {
                 stmt.setInt(1, idEtudiant);
-                stmt.setInt(2, specialiteId);
+                stmt.setInt(2, idspecialite);
                 stmt.executeUpdate();
             }
             
@@ -863,9 +982,9 @@ public class Utilisateur {
         
         try {
             String email = request.getParameter("email");
-            String specialiteIdStr = request.getParameter("specialiteId");
+            String idspecialiteStr = request.getParameter("idspecialite");
             
-            if (email == null || email.isEmpty() || specialiteIdStr == null || specialiteIdStr.isEmpty()) {
+            if (email == null || email.isEmpty() || idspecialiteStr == null || idspecialiteStr.isEmpty()) {
                 if (isAjax) {
                     response.setContentType("text/plain");
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -876,13 +995,13 @@ public class Utilisateur {
                 return;
             }
             
-            int specialiteId = Integer.parseInt(specialiteIdStr);
-            retirerEtudiantDeSpecialite(email, specialiteId);
+            int idspecialite = Integer.parseInt(idspecialiteStr);
+            retirerEtudiantDeSpecialite(email, idspecialite);
             
             if (isAjax) {
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             } else {
-                response.sendRedirect(request.getContextPath() + "/app/gestion/specialite/details?specId=" + specialiteId);
+                response.sendRedirect(request.getContextPath() + "/app/gestion/specialite/details?specId=" + idspecialite);
             }
         } catch (NumberFormatException e) {
             if (isAjax) {
@@ -915,9 +1034,9 @@ public class Utilisateur {
         
         try {
             String email = request.getParameter("email");
-            String specialiteIdStr = request.getParameter("specialiteId");
+            String idspecialiteStr = request.getParameter("idspecialite");
             
-            if (email == null || email.isEmpty() || specialiteIdStr == null || specialiteIdStr.isEmpty()) {
+            if (email == null || email.isEmpty() || idspecialiteStr == null || idspecialiteStr.isEmpty()) {
                 if (isAjax) {
                     response.setContentType("text/plain");
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -928,27 +1047,27 @@ public class Utilisateur {
                 return;
             }
             
-            int specialiteId = Integer.parseInt(specialiteIdStr);
-            Utilisateur user = Utilisateur.trouverParemail(email);
+            int idspecialite = Integer.parseInt(idspecialiteStr);
+            Utilisateur utilisateur = Utilisateur.trouverParemail(email);
             
-            if (user == null) {
+            if (utilisateur == null) {
                 if (isAjax) {
                     response.setContentType("text/plain");
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     response.getWriter().println("Utilisateur non trouvé");
                 } else {
-                    response.sendRedirect(request.getContextPath() + "/app/gestion/specialite/details?specId=" + specialiteId);
+                    response.sendRedirect(request.getContextPath() + "/app/gestion/specialite/details?specId=" + idspecialite);
                 }
                 return;
             }
             
-            if (!user.getRole().equalsIgnoreCase("etudiant")) {
+            if (!utilisateur.getRole().equalsIgnoreCase("etudiant")) {
                 if (isAjax) {
                     response.setContentType("text/plain");
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     response.getWriter().println("L'utilisateur n'est pas un étudiant");
                 } else {
-                    response.sendRedirect(request.getContextPath() + "/app/gestion/specialite/details?specId=" + specialiteId);
+                    response.sendRedirect(request.getContextPath() + "/app/gestion/specialite/details?specId=" + idspecialite);
                 }
                 return;
             }
@@ -956,15 +1075,15 @@ public class Utilisateur {
             String sql = "UPDATE etudiant SET id_specialite = ? WHERE id_utilisateur = ?";
             try (Connection conn = DatabaseManager.obtenirConnexion();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, specialiteId);
-                stmt.setInt(2, user.id);
+                stmt.setInt(1, idspecialite);
+                stmt.setInt(2, utilisateur.id);
                 stmt.executeUpdate();
             }
             
             if (isAjax) {
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             } else {
-                response.sendRedirect(request.getContextPath() + "/app/gestion/specialite/details?specId=" + specialiteId);
+                response.sendRedirect(request.getContextPath() + "/app/gestion/specialite/details?specId=" + idspecialite);
             }
         } catch (NumberFormatException e) {
             if (isAjax) {

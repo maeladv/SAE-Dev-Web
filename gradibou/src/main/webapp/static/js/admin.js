@@ -338,8 +338,8 @@ function submitCreateAccount(event) {
 /**
  * Édite un utilisateur existant
  */
-function editUser(userId, nom, prenom, email, role) {
-    document.getElementById('editUserId').value = userId;
+function editUser(idUtilisateur, nom, prenom, email, role) {
+    document.getElementById('editidUtilisateur').value = idUtilisateur;
     document.getElementById('editNom').value = nom;
     document.getElementById('editPrenom').value = prenom;
     document.getElementById('editEmail').value = email;
@@ -360,19 +360,19 @@ function editUser(userId, nom, prenom, email, role) {
 function submitEditAccount(event) {
     event.preventDefault();
     
-    const userId = document.getElementById('editUserId').value;
+    const idUtilisateur = document.getElementById('editidUtilisateur').value;
     const nom = document.getElementById('editNom').value.trim();
     const prenom = document.getElementById('editPrenom').value.trim();
     const email = document.getElementById('editEmail').value.trim();
     const role = document.querySelector('.dropdown[data-dropdown="modal-edit-role"]')?.dataset.value;
     
-    if (!userId || !nom || !prenom || !email || !role) {
+    if (!idUtilisateur || !nom || !prenom || !email || !role) {
         showNotification('Veuillez remplir tous les champs obligatoires', 'error');
         return false;
     }
     
     const params = new URLSearchParams();
-    params.append('id', userId);
+    params.append('id', idUtilisateur);
     params.append('nom', nom);
     params.append('prenom', prenom);
     params.append('email', email);
@@ -414,8 +414,8 @@ let userToDelete = null;
 /**
  * Confirme la suppression d'un utilisateur
  */
-function confirmDelete(userId, userName) {
-    userToDelete = userId;
+function confirmDelete(idUtilisateur, userName) {
+    userToDelete = idUtilisateur;
     openModal('deleteConfirmModal');
 }
 
@@ -460,8 +460,8 @@ function executeDelete() {
 /**
  * Copie le lien de réinitialisation du mot de passe
  */
-function copyResetLink(userId) {
-    fetch(contextPath + '/app/admin/get-reset-link?userId=' + encodeURIComponent(userId))
+function copyResetLink(idUtilisateur) {
+    fetch(contextPath + '/app/admin/get-reset-link?idUtilisateur=' + encodeURIComponent(idUtilisateur))
     .then(response => response.text())
     .then(text => {
         try {
@@ -494,4 +494,9 @@ function copyResetLink(userId) {
         console.error('Erreur réseau:', error);
         showNotification('Erreur réseau: ' + error.message, 'error');
     });
+}
+
+function VoirProfilUtilisateur(idUtilisateur) {
+    // Rediriger vers la page de profil de l'utilisateur
+    window.location.href = contextPath + '/app/moncompte?idUtilisateur=' + encodeURIComponent(idUtilisateur);
 }

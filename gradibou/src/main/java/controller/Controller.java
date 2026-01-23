@@ -52,8 +52,8 @@ public class Controller extends HttpServlet {
                 break;
             case "/login":
                 // si l'utilisateur est connecté, on redirige vers sa page d'accueil
-                if (request.getSession(false) != null && request.getSession(false).getAttribute("user") != null) {
-                    Utilisateur utilisateur = (Utilisateur) request.getSession(false).getAttribute("user");
+                if (request.getSession(false) != null && request.getSession(false).getAttribute("utilisateur") != null) {
+                    Utilisateur utilisateur = (Utilisateur) request.getSession(false).getAttribute("utilisateur");
                     response.sendRedirect(request.getContextPath() + "/app/" + utilisateur.getRole());
                     return;
                 }
@@ -89,15 +89,15 @@ public class Controller extends HttpServlet {
                     return;
                 }
                 try {
-                    String specIdParam = request.getParameter("specId");
-                    if (specIdParam != null && !specIdParam.isEmpty()) {
-                        int specId = Integer.parseInt(specIdParam);
-                        Specialite spec = Specialite.trouverParId(specId);
+                    String idSpecialiteParam = request.getParameter("idSpecialite");
+                    if (idSpecialiteParam != null && !idSpecialiteParam.isEmpty()) {
+                        int idSpecialite = Integer.parseInt(idSpecialiteParam);
+                        Specialite spec = Specialite.trouverParId(idSpecialite);
                         request.setAttribute("specialite", spec);
-                        java.util.List<Matiere> matieres = Matiere.trouverParSpecialite(specId);
+                        java.util.List<Matiere> matieres = Matiere.trouverParSpecialite(idSpecialite);
                         request.setAttribute("matieres", matieres);
-                        java.util.List<Utilisateur> students = Utilisateur.trouverEtudiantsParSpecialite(specId);
-                        request.setAttribute("students", students);
+                        java.util.List<Utilisateur> etudiants = Utilisateur.trouverEtudiantsParSpecialite(idSpecialite);
+                        request.setAttribute("etudiants", etudiants);
                     }
                 } catch (SQLException e) {
                     request.setAttribute("error", "Erreur lors du chargement: " + e.getMessage());
@@ -120,10 +120,57 @@ public class Controller extends HttpServlet {
                 view = Examen.afficherExamens(request);
                 break;
             case "/admin/notes":
-                if (!Role.estAdmin(request.getSession(false))) {
+                // Autoriser admin et professeur
+                if (!Role.estAdmin(request.getSession(false)) && !Role.estProfesseur(request.getSession(false))) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
                     return;
                 }
+
+                // Si un idUtilisateur est fourni, afficher la page des notes de cet étudiant
+                try {
+                    String idUtilisateurParam = request.getParameter("idUtilisateur");
+                    if (idUtilisateurParam != null && !idUtilisateurParam.isEmpty()) {
+                        int idUtilisateur = Integer.parseInt(idUtilisateurParam);
+                        // Charger l'étudiant visualisé et ses statistiques
+                        Utilisateur viewed = Utilisateur.trouverParId(idUtilisateur);
+                        if (viewed == null) {
+                            request.setAttribute("error", "Étudiant introuvable");
+                            view = "/WEB-INF/views/error.jsp";
+                            break;
+                        }
+
+                        java.util.Map<String, Object> stats = model.Note.calculerStatistiquesEtudiant(idUtilisateur);
+                        request.setAttribute("notes", model.Note.trouverParEtudiant(idUtilisateur));
+                        request.setAttribute("generalAverage", stats.get("moyenneGenerale"));
+                        request.setAttribute("semesterStats", stats.get("statistiquesSemestres"));
+                        request.setAttribute("subjectAverages", stats.get("moyennesMatieres"));
+                        request.setAttribute("meilleureMatiere", stats.get("meilleureMatiere"));
+                        request.setAttribute("meilleureMatiereMoyenne", stats.get("meilleureMoyenne"));
+                        request.setAttribute("pireMatiere", stats.get("pireMatiere"));
+                        request.setAttribute("pireMatiereMoyenne", stats.get("pireMoyenne"));
+                        request.setAttribute("sem1Subjects", stats.get("matieresSem1"));
+                        request.setAttribute("sem2Subjects", stats.get("matieresSem2"));
+                        request.setAttribute("sem1Groups", stats.get("groupesSem1"));
+                        request.setAttribute("sem2Groups", stats.get("groupesSem2"));
+                        request.setAttribute("sem1Average", stats.get("moyenneSem1"));
+                        request.setAttribute("sem2Average", stats.get("moyenneSem2"));
+                        request.setAttribute("sem1SubjectAverages", stats.get("moyenneMatieresSem1"));
+                        request.setAttribute("sem2SubjectAverages", stats.get("moyenneMatieresSem2"));
+                        request.setAttribute("classementSpecialite", stats.get("classementDansSpecialite"));
+                        request.setAttribute("totalEtudiantsSpecialite", stats.get("totalEtudiantsDansSpecialite"));
+
+                        // Indiquer à la vue quel utilisateur afficher
+                        request.setAttribute("utilisateurvu", viewed);
+                        view = "/WEB-INF/views/mesNotes.jsp";
+                        break;
+                    }
+                } catch (Exception e) {
+                    request.setAttribute("error", "Erreur lors du chargement des notes : " + e.getMessage());
+                    view = "/WEB-INF/views/error.jsp";
+                    break;
+                }
+
+                // Sinon, fallback sur l'affichage des notes par examen
                 view = Note.afficherNotes(request);
                 break;
             case "/complete-profil":
@@ -133,13 +180,13 @@ public class Controller extends HttpServlet {
                     return;
                 }
                 try {
-                    int userId = model.Lien.validerLien(token);
-                    if (userId == -1) {
+                    int idUtilisateur = model.Lien.validerLien(token);
+                    if (idUtilisateur == -1) {
                         request.setAttribute("error", "Lien invalide ou expiré");
                         view = "/WEB-INF/views/error.jsp";
                     } else {
                         request.setAttribute("token", token);
-                        request.setAttribute("userId", userId);
+                        request.setAttribute("idUtilisateur", idUtilisateur);
                         view = "/WEB-INF/views/complete-profil.jsp";
                     }
                 } catch (Exception e) {
@@ -154,7 +201,7 @@ public class Controller extends HttpServlet {
                 System.out.println("DEBUG: Route /professeur atteinte");
                 jakarta.servlet.http.HttpSession profSession = request.getSession(false);
                 if (profSession != null) {
-                    Utilisateur profUser = (Utilisateur) profSession.getAttribute("user");
+                    Utilisateur profUser = (Utilisateur) profSession.getAttribute("utilisateur");
                     System.out.println("DEBUG: User in session: " + (profUser != null ? profUser.getemail() : "null"));
                     System.out.println("DEBUG: Role in session: " + (profUser != null ? "'" + profUser.getRole() + "'" : "null"));
                     System.out.println("DEBUG: estProfesseur result: " + Role.estProfesseur(profSession));
@@ -176,14 +223,6 @@ public class Controller extends HttpServlet {
                 // Rediriger vers la page de gestion des spécialités
                 System.out.println("DEBUG: Redirection vers /gestion/specialites");
                 response.sendRedirect(request.getContextPath() + "/app/gestion/specialites");
-                return;
-            case "/etudiant":
-                if (!Role.estEtudiant(request.getSession(false))) {
-                    response.sendRedirect(request.getContextPath() + "/app/login");
-                    return;
-                }
-                // Rediriger vers la page des évaluations
-                response.sendRedirect(request.getContextPath() + "/app/etudiant/evaluations");
                 return;
             case "/admin/creer-specialite":
                 if (!Role.estAdmin(request.getSession(false))) {
@@ -243,12 +282,46 @@ public class Controller extends HttpServlet {
                     return;
                 }
                 try {
-                    Utilisateur etudiant = (Utilisateur) request.getSession().getAttribute("user");
+                    Utilisateur etudiant = (Utilisateur) request.getSession().getAttribute("utilisateur");
                     request.setAttribute("evaluations", Evaluation.obtenirEvaluationsDisponibles(etudiant.getId()));
                 } catch (SQLException e) {
                     request.setAttribute("error", "Erreur lors du chargement des évaluations: " + e.getMessage());
                 }
                 view = "/WEB-INF/views/evaluations.jsp";
+                break;
+            case "/etudiant":
+                if (!Role.estEtudiant(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                try {
+                    Utilisateur etudiant = (Utilisateur) request.getSession().getAttribute("utilisateur");
+                    if (etudiant != null) {
+                        java.util.Map<String, Object> stats = model.Note.calculerStatistiquesEtudiant(etudiant.getId());
+                        request.setAttribute("notes", model.Note.trouverParEtudiant(etudiant.getId()));
+                        request.setAttribute("generalAverage", stats.get("moyenneGenerale"));
+                        request.setAttribute("semesterStats", stats.get("statistiquesSemestres"));
+                        request.setAttribute("subjectAverages", stats.get("moyennesMatieres"));
+                        request.setAttribute("meilleureMatiere", stats.get("meilleureMatiere"));
+                        request.setAttribute("meilleureMatiereMoyenne", stats.get("meilleureMoyenne"));
+                        request.setAttribute("pireMatiere", stats.get("pireMatiere"));
+                        request.setAttribute("pireMatiereMoyenne", stats.get("pireMoyenne"));
+                        request.setAttribute("sem1Subjects", stats.get("matieresSem1"));
+                        request.setAttribute("sem2Subjects", stats.get("matieresSem2"));
+                        // Regroupement des examens par matière par semestre
+                        request.setAttribute("sem1Groups", stats.get("groupesSem1"));
+                        request.setAttribute("sem2Groups", stats.get("groupesSem2"));
+                        request.setAttribute("sem1Average", stats.get("moyenneSem1"));
+                        request.setAttribute("sem2Average", stats.get("moyenneSem2"));
+                        request.setAttribute("sem1SubjectAverages", stats.get("moyenneMatieresSem1"));
+                        request.setAttribute("sem2SubjectAverages", stats.get("moyenneMatieresSem2"));
+                        request.setAttribute("classementSpecialite", stats.get("classementDansSpecialite"));
+                        request.setAttribute("totalEtudiantsSpecialite", stats.get("totalEtudiantsDansSpecialite"));
+                    }
+                } catch (SQLException e) {
+                    request.setAttribute("error", "Erreur lors du chargement des notes: " + e.getMessage());
+                }
+                view = "/WEB-INF/views/mesNotes.jsp";
                 break;
             case "/etudiant/repondre-evaluation":
                 if (!Role.estEtudiant(request.getSession(false))) {
@@ -301,7 +374,7 @@ public class Controller extends HttpServlet {
 
                     // Choisir l'évaluation courante: celle ouverte, sinon la plus récente
                     Integer currentEvalId = null;
-                    String evalIdParam = request.getParameter("evaluationId");
+                    String evalIdParam = request.getParameter("idEvaluation");
                     if (evalIdParam != null && !evalIdParam.isEmpty()) {
                         try {
                             currentEvalId = Integer.parseInt(evalIdParam);
@@ -466,7 +539,7 @@ public class Controller extends HttpServlet {
                     return;
                 }
                 try {
-                    String evalIdStr = request.getParameter("evaluationId");
+                    String evalIdStr = request.getParameter("idEvaluation");
                     if (evalIdStr != null && !evalIdStr.isEmpty()) {
                         int evalId = Integer.parseInt(evalIdStr);
                         model.Evaluation evaluation = model.Evaluation.trouverParId(evalId);
@@ -559,19 +632,19 @@ public class Controller extends HttpServlet {
                     return;
                 }
                 try {
-                    String userIdStr = request.getParameter("userId");
-                    if (userIdStr == null || userIdStr.isEmpty()) {
-                        util.Json.envoyerJsonError(response, "userId requis", HttpServletResponse.SC_BAD_REQUEST);
+                    String idUtilisateurStr = request.getParameter("idUtilisateur");
+                    if (idUtilisateurStr == null || idUtilisateurStr.isEmpty()) {
+                        util.Json.envoyerJsonError(response, "idUtilisateur requis", HttpServletResponse.SC_BAD_REQUEST);
                         return;
                     }
-                    int userId = Integer.parseInt(userIdStr);
-                    Utilisateur user = Utilisateur.trouverParId(userId);
-                    if (user == null) {
+                    int idUtilisateur = Integer.parseInt(idUtilisateurStr);
+                    Utilisateur utilisateur = Utilisateur.trouverParId(idUtilisateur);
+                    if (utilisateur == null) {
                         util.Json.envoyerJsonError(response, "Utilisateur non trouvé", HttpServletResponse.SC_NOT_FOUND);
                         return;
                     }
                     // Créer un lien de réinitialisation valide pour 7 jours
-                    String resetToken = model.Lien.creerLien(userId, 7);
+                    String resetToken = model.Lien.creerLien(idUtilisateur, 7);
                     String resetUrl = request.getScheme() + "://" + request.getServerName() + 
                                     (request.getServerPort() == 80 || request.getServerPort() == 443 ? "" : ":" + request.getServerPort()) +
                                     request.getContextPath() + "/app/complete-profil?token=" + resetToken;
@@ -582,11 +655,34 @@ public class Controller extends HttpServlet {
                     out.print("{\"success\": true, \"link\": \"" + resetUrl.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}");
                     out.flush();
                 } catch (NumberFormatException e) {
-                    util.Json.envoyerJsonError(response, "userId invalide", HttpServletResponse.SC_BAD_REQUEST);
+                    util.Json.envoyerJsonError(response, "idUtilisateur invalide", HttpServletResponse.SC_BAD_REQUEST);
                 } catch (Exception e) {
                     util.Json.envoyerJsonError(response, "Erreur: " + e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 }
                 return;
+            case "/moncompte":
+                if (!Role.estConnecte(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                // Si idUtilisateur est fourni et que l'utilisateur est admin, afficher le profil de cet utilisateur
+                try {
+                    String idUtilisateurParam = request.getParameter("idUtilisateur");
+                    if (idUtilisateurParam != null && !idUtilisateurParam.isEmpty()) {
+                        // Vérifier que l'utilisateur courant est admin
+                        if (Role.estAdmin(request.getSession(false))) {
+                            int targetidUtilisateur = Integer.parseInt(idUtilisateurParam);
+                            Utilisateur targetUser = Utilisateur.trouverParId(targetidUtilisateur);
+                            if (targetUser != null) {
+                                request.setAttribute("utilisateurVu", targetUser);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // Ignorer et afficher le profil de l'utilisateur courant
+                }
+                view = "/WEB-INF/views/moncompte.jsp";
+                break;
             case "/logout":
                 request.getSession().invalidate();
                 try {
@@ -652,6 +748,9 @@ public class Controller extends HttpServlet {
                     break;
                 case "/complete-profil":
                     Utilisateur.completerProfil(request, response);
+                    break;
+                case "/moncompte":
+                    Utilisateur.modifierMonProfil(request, response);
                     break;
                 case "/admin/supprimer-specialite":
                     Specialite.supprimerSpecialite(request, response);
@@ -723,7 +822,7 @@ public class Controller extends HttpServlet {
 
         Utilisateur utilisateur = Utilisateur.trouverParemailEtMotDePasse(email, motDePasse);
         if (utilisateur != null) {
-            request.getSession().setAttribute("user", utilisateur);
+            request.getSession().setAttribute("utilisateur", utilisateur);
             String role = utilisateur.getRole();
             System.out.println("DEBUG LOGIN: User=" + utilisateur.getemail() + ", Role='" + role + "', Redirecting to: /app/" + role);
             response.sendRedirect(request.getContextPath() + "/app/" + role);
@@ -741,7 +840,7 @@ public class Controller extends HttpServlet {
         }
 
         try {
-            String specIdParam = request.getParameter("specialiteId");
+            String specIdParam = request.getParameter("idspecialite");
             if (specIdParam == null || specIdParam.isEmpty()) {
                 request.setAttribute("error", "Spécialité manquante");
                 request.getRequestDispatcher("/WEB-INF/views/resultatSpecialite.jsp").forward(request, response);
@@ -768,13 +867,13 @@ public class Controller extends HttpServlet {
             java.time.LocalDateTime now = java.time.LocalDateTime.now();
 
             model.Evaluation evalSelectionnee = null;
-            String evalIdParam = request.getParameter("evaluationId");
+            String evalIdParam = request.getParameter("idEvaluation");
             if (evalIdParam != null && !evalIdParam.isEmpty()) {
                 try {
                     int evalParamId = Integer.parseInt(evalIdParam);
                     evalSelectionnee = model.Evaluation.trouverParId(evalParamId);
                 } catch (NumberFormatException ignore) {
-                    // fallback below
+                    
                 }
             }
 
@@ -1014,15 +1113,15 @@ public class Controller extends HttpServlet {
 
     private void annulerProgrammationEvaluation(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
-        Integer evaluationId = null;
+        Integer idEvaluation = null;
         try {
-            evaluationId = Integer.parseInt(request.getParameter("evaluationId"));
-            System.out.println("DEBUG annulerProgrammationEvaluation: evaluationId = " + evaluationId);
+            idEvaluation = Integer.parseInt(request.getParameter("idEvaluation"));
+            System.out.println("DEBUG annulerProgrammationEvaluation: idEvaluation = " + idEvaluation);
         } catch (NumberFormatException e) {
             response.setContentType("text/plain");
             response.setCharacterEncoding("UTF-8");
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("evaluationId invalide");
+            response.getWriter().write("idEvaluation invalide");
             return;
         }
 
@@ -1032,7 +1131,7 @@ public class Controller extends HttpServlet {
         try {
             // Récupérer l'évaluation programmée et la supprimer complètement
             // (pas de données d'étudiants pour une EVE programmée)
-            model.Evaluation eval = model.Evaluation.trouverParId(evaluationId);
+            model.Evaluation eval = model.Evaluation.trouverParId(idEvaluation);
             if (eval == null) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 response.getWriter().write("Evaluation non trouvée");
@@ -1040,7 +1139,7 @@ public class Controller extends HttpServlet {
             }
 
             eval.supprimerAvecRelations();
-            System.out.println("DEBUG: Programmation de l'évaluation " + evaluationId + " annulée (suppression complète)");
+            System.out.println("DEBUG: Programmation de l'évaluation " + idEvaluation + " annulée (suppression complète)");
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().write("OK");
         } catch (Exception e) {
@@ -1053,15 +1152,15 @@ public class Controller extends HttpServlet {
 
     private void supprimerEvaluation(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, IOException {
-        Integer evaluationId = null;
+        Integer idEvaluation = null;
         try {
-            evaluationId = Integer.parseInt(request.getParameter("evaluationId"));
-            System.out.println("DEBUG supprimerEvaluation: evaluationId = " + evaluationId);
+            idEvaluation = Integer.parseInt(request.getParameter("idEvaluation"));
+            System.out.println("DEBUG supprimerEvaluation: idEvaluation = " + idEvaluation);
         } catch (NumberFormatException e) {
             response.setContentType("text/plain");
             response.setCharacterEncoding("UTF-8");
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("evaluationId invalide");
+            response.getWriter().write("idEvaluation invalide");
             return;
         }
 
@@ -1069,7 +1168,7 @@ public class Controller extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         try {
-            model.Evaluation eval = model.Evaluation.trouverParId(evaluationId);
+            model.Evaluation eval = model.Evaluation.trouverParId(idEvaluation);
             if (eval == null) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 response.getWriter().write("Evaluation non trouvée");
@@ -1077,7 +1176,7 @@ public class Controller extends HttpServlet {
             }
 
             eval.supprimerAvecRelations();
-            System.out.println("DEBUG: Evaluation " + evaluationId + " supprimée avec ses relations");
+            System.out.println("DEBUG: Evaluation " + idEvaluation + " supprimée avec ses relations");
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().write("OK");
         } catch (Exception e) {
@@ -1090,26 +1189,26 @@ public class Controller extends HttpServlet {
 
     private void mettreFinEvaluation(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
-        Integer evaluationId = null;
+        Integer idEvaluation = null;
         try {
-            evaluationId = Integer.parseInt(request.getParameter("evaluationId"));
-            System.out.println("DEBUG mettreFinEvaluation: evaluationId = " + evaluationId);
+            idEvaluation = Integer.parseInt(request.getParameter("idEvaluation"));
+            System.out.println("DEBUG mettreFinEvaluation: idEvaluation = " + idEvaluation);
         } catch (NumberFormatException e) {
-            System.out.println("DEBUG mettreFinEvaluation: ERROR parsing evaluationId");
+            System.out.println("DEBUG mettreFinEvaluation: ERROR parsing idEvaluation");
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("evaluationId invalide");
+            response.getWriter().write("idEvaluation invalide");
             return;
         }
 
         try {
             // Récupérer l'évaluation et mettre à jour la date de fin à une date passée (maintenant -1 minute)
-            model.Evaluation eval = model.Evaluation.trouverParId(evaluationId);
+            model.Evaluation eval = model.Evaluation.trouverParId(idEvaluation);
             System.out.println("DEBUG mettreFinEvaluation: eval retrieved = " + (eval != null ? "YES" : "NULL"));
             if (eval != null) {
                 java.time.LocalDateTime endTime = java.time.LocalDateTime.now().minusMinutes(1);
                 eval.setDate_fin(endTime);
                 eval.save();
-                System.out.println("DEBUG: Fin de l'évaluation " + evaluationId + " mise à jour à " + endTime);
+                System.out.println("DEBUG: Fin de l'évaluation " + idEvaluation + " mise à jour à " + endTime);
                 response.setStatus(HttpServletResponse.SC_OK);
                 response.getWriter().write("OK");
             } else {

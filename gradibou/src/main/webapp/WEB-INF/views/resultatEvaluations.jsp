@@ -34,7 +34,7 @@
                         String statusClass = isOngoing ? "in-progress" : "";
                         String selectedClass = isSelected ? "selected" : "";
             %>
-                <a href="<%= request.getContextPath() %>/app/admin/resultats-evaluations?evaluationId=<%= eval.getId() %>" 
+                <a href="<%= request.getContextPath() %>/app/admin/resultats-evaluations?idEvaluation=<%= eval.getId() %>" 
                    class="eva-selector-card <%= statusClass %> <%= selectedClass %>">
                     <div class="eva-selector-date">
                         <%= java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy").format(eval.getDate_debut()) %>
@@ -209,7 +209,7 @@
                     });
                 }
 
-                function mettreFinEvaluation(evaluationId) {
+                function mettreFinEvaluation(idEvaluation) {
                     if (!confirm('Êtes-vous sûr de vouloir mettre fin à cette évaluation ?')) {
                         return;
                     }
@@ -219,7 +219,7 @@
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: 'evaluationId=' + evaluationId
+                        body: 'idEvaluation=' + idEvaluation
                     })
                     .then(response => {
                         if (!response.ok) {
@@ -238,7 +238,7 @@
                     });
                 }
 
-                function annulerProgrammationEvaluation(evaluationId) {
+                function annulerProgrammationEvaluation(idEvaluation) {
                     if (!confirm('Êtes-vous sûr de vouloir annuler la programmation de cette évaluation ?')) {
                         return;
                     }
@@ -248,7 +248,7 @@
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: 'evaluationId=' + evaluationId
+                        body: 'idEvaluation=' + idEvaluation
                     })
                     .then(response => {
                         if (!response.ok) {
@@ -375,7 +375,7 @@
                 <div class="year-badge"><%= spec.get("annee") %>A</div>
                 <div class="eva-specialty-name"><%= spec.get("nom") %></div>
                 <div class="eva-specialty-score"><%= String.format(Locale.FRANCE, "%.1f", moyenneSpec != null ? moyenneSpec : 0.0) %>/5</div>
-                <a href="<%= request.getContextPath() %>/app/admin/resultats-specialite?specialiteId=<%= spec.get("id") %>&evaluationId=<%= currentEvalId %>" class="btn btn-primary eva-specialty-btn">
+                <a href="<%= request.getContextPath() %>/app/admin/resultats-specialite?idspecialite=<%= spec.get("id") %>&idEvaluation=<%= currentEvalId %>" class="btn btn-primary eva-specialty-btn">
                     Voir les résultats
                     <img src="<%= request.getContextPath() %>/static/icons/white/caret-right.svg" alt="">
                 </a>

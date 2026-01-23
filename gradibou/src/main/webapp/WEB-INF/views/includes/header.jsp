@@ -2,7 +2,7 @@
 <%@ page import="model.Utilisateur" %>
 <%
     // Déterminer le statut de l'utilisateur et son rôle
-    Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+    Utilisateur currentUser = (Utilisateur) session.getAttribute("utilisateur");
     String userRole = "non-connecte";
     String displayRole = "Non connecté";
     
@@ -46,17 +46,18 @@
             <nav class="nav-links" aria-label="Navigation principale">
                 <% if ("etudiant".equals(userRole)) { %>
                     <a href="<%= request.getContextPath() %>/app/etudiant/evaluations">Evaluation des enseignements</a>
-                    <a href="#">Mes notes</a>
-                    <a href="#">Mon compte</a>
+
+                    <a href="<%= request.getContextPath() %>/app/etudiant">Mes notes</a>
+                    <a href="<%= request.getContextPath() %>/app/moncompte">Mon compte</a>
                 <% } else if ("professeur".equals(userRole)) { %>
                     <a href="#">Evaluations de mes enseignements</a>
                     <a href="<%= request.getContextPath() %>/app/gestion/specialites">Mes matières</a>
-                    <a href="#">Mon compte</a>
+                    <a href="<%= request.getContextPath() %>/app/moncompte">Mon compte</a>
                 <% } else if ("admin".equals(userRole)) { %>
                     <a href="<%= request.getContextPath() %>/app/admin/resultats-evaluations">Évaluation des enseignements</a>
                     <a href="<%= request.getContextPath() %>/app/gestion/specialites">Spécialités</a>
                     <a href="<%= request.getContextPath() %>/app/admin">Comptes</a>
-                    <a href="#">Mon compte</a>
+                    <a href="<%= request.getContextPath() %>/app/moncompte">Mon compte</a>
                 <% } %>
             </nav>
             <div class="header-cta">

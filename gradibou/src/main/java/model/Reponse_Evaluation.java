@@ -290,7 +290,7 @@ public class Reponse_Evaluation {
     public static int recupererSpecialiteAvecPlusDeCommentaires(int id_evaluation) throws SQLException {
         String sqlSpecialites = "SELECT id FROM specialite";
         
-        int specialiteIdMaxCommentaires = -1;
+        int idspecialiteMaxCommentaires = -1;
         int maxCommentaires = -1;
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
@@ -311,14 +311,14 @@ public class Reponse_Evaluation {
                         int nbCommentaires = commentairesRs.getInt("nb_commentaires");
                         if (nbCommentaires > maxCommentaires) {
                             maxCommentaires = nbCommentaires;
-                            specialiteIdMaxCommentaires = idSpecialite;
+                            idspecialiteMaxCommentaires = idSpecialite;
                         }
                     }
                 }
             }
         }
 
-        return specialiteIdMaxCommentaires;
+        return idspecialiteMaxCommentaires;
     }
 
     // Par specialite
@@ -616,25 +616,25 @@ public class Reponse_Evaluation {
             return;
         }
 
-        Utilisateur etudiant = (Utilisateur) session.getAttribute("user");
+        Utilisateur etudiant = (Utilisateur) session.getAttribute("utilisateur");
         
-        String evaluationIdStr = request.getParameter("evaluationId");
-        String matiereIdStr = request.getParameter("matiereId");
+        String idEvaluationStr = request.getParameter("idEvaluation");
+        String idmatiereStr = request.getParameter("idmatiere");
         String qualiteSupportStr = request.getParameter("qualite_support");
 
         try {
-            if (evaluationIdStr == null || evaluationIdStr.isEmpty() || matiereIdStr == null || matiereIdStr.isEmpty()) {
+            if (idEvaluationStr == null || idEvaluationStr.isEmpty() || idmatiereStr == null || idmatiereStr.isEmpty()) {
                 request.setAttribute("error", "Paramètres manquants");
                 request.getRequestDispatcher("/WEB-INF/views/evaluations.jsp").forward(request, response);
                 return;
             }
 
-            int evaluationId = Integer.parseInt(evaluationIdStr);
-            int matiereId = Integer.parseInt(matiereIdStr);
+            int idEvaluation = Integer.parseInt(idEvaluationStr);
+            int idmatiere = Integer.parseInt(idmatiereStr);
 
             // Charger entités
-            model.Evaluation evaluation = model.Evaluation.trouverParId(evaluationId);
-            model.Matiere matiere = model.Matiere.trouverParId(matiereId);
+            model.Evaluation evaluation = model.Evaluation.trouverParId(idEvaluation);
+            model.Matiere matiere = model.Matiere.trouverParId(idmatiere);
             if (evaluation == null || matiere == null) {
                 request.setAttribute("error", "Évaluation ou matière introuvable");
                 request.getRequestDispatcher("/WEB-INF/views/evaluations.jsp").forward(request, response);
@@ -659,7 +659,7 @@ public class Reponse_Evaluation {
             }
 
             // 3) Vérifier que l'étudiant n'a pas déjà répondu
-            boolean dejaRepondu = model.A_Repondu_Evaluation.aRepondu(etudiant.getId(), matiereId, evaluationId);
+            boolean dejaRepondu = model.A_Repondu_Evaluation.aRepondu(etudiant.getId(), idmatiere, idEvaluation);
             if (dejaRepondu) {
                 request.setAttribute("error", "Vous avez déjà répondu à cette évaluation pour cette matière.");
                 request.getRequestDispatcher("/WEB-INF/views/evaluations.jsp").forward(request, response);
@@ -671,8 +671,8 @@ public class Reponse_Evaluation {
                 // GET - Afficher le formulaire
                 request.setAttribute("evaluation", evaluation);
                 request.setAttribute("matiere", matiere);
-                request.setAttribute("evaluationId", evaluationId);
-                request.setAttribute("matiereId", matiereId);
+                request.setAttribute("idEvaluation", idEvaluation);
+                request.setAttribute("idmatiere", idmatiere);
                 request.getRequestDispatcher("/WEB-INF/views/repondreEvaluation.jsp").forward(request, response);
             } else {
                 // POST - Traiter la soumission
@@ -691,10 +691,10 @@ public class Reponse_Evaluation {
                     tempsParSemaineStr == null || tempsParSemaineStr.isEmpty() ||
                     utiliteStr == null || utiliteStr.isEmpty()) {
                     request.setAttribute("error", "Tous les champs obligatoires doivent être remplis");
-                    request.setAttribute("evaluation", model.Evaluation.trouverParId(evaluationId));
-                    request.setAttribute("matiere", model.Matiere.trouverParId(matiereId));
-                    request.setAttribute("evaluationId", evaluationId);
-                    request.setAttribute("matiereId", matiereId);
+                    request.setAttribute("evaluation", model.Evaluation.trouverParId(idEvaluation));
+                    request.setAttribute("matiere", model.Matiere.trouverParId(idmatiere));
+                    request.setAttribute("idEvaluation", idEvaluation);
+                    request.setAttribute("idmatiere", idmatiere);
                     request.getRequestDispatcher("/WEB-INF/views/repondreEvaluation.jsp").forward(request, response);
                     return;
                 }
@@ -708,8 +708,8 @@ public class Reponse_Evaluation {
                     Integer.parseInt(tempsParSemaineStr),
                     Integer.parseInt(utiliteStr),
                     commentaires,
-                    matiereId,
-                    evaluationId
+                    idmatiere,
+                    idEvaluation
                 );
                 
                 reponse.insert();
@@ -717,8 +717,8 @@ public class Reponse_Evaluation {
                 // Marquer que l'étudiant a répondu
                 model.A_Repondu_Evaluation aRepondu = new model.A_Repondu_Evaluation(
                     etudiant.getId(),
-                    matiereId,
-                    evaluationId
+                    idmatiere,
+                    idEvaluation
                 );
                 aRepondu.insert();
 
@@ -727,18 +727,18 @@ public class Reponse_Evaluation {
             }
         } catch (NumberFormatException e) {
             request.setAttribute("error", "Format numérique invalide. Veuillez vérifier vos réponses.");
-            request.setAttribute("evaluation", model.Evaluation.trouverParId(Integer.parseInt(evaluationIdStr)));
-            request.setAttribute("matiere", model.Matiere.trouverParId(Integer.parseInt(matiereIdStr)));
-            request.setAttribute("evaluationId", evaluationIdStr);
-            request.setAttribute("matiereId", matiereIdStr);
+            request.setAttribute("evaluation", model.Evaluation.trouverParId(Integer.parseInt(idEvaluationStr)));
+            request.setAttribute("matiere", model.Matiere.trouverParId(Integer.parseInt(idmatiereStr)));
+            request.setAttribute("idEvaluation", idEvaluationStr);
+            request.setAttribute("idmatiere", idmatiereStr);
             request.getRequestDispatcher("/WEB-INF/views/repondreEvaluation.jsp").forward(request, response);
         } catch (SQLException e) {
             request.setAttribute("error", "Erreur lors de l'enregistrement: " + e.getMessage());
             try {
-                request.setAttribute("evaluation", model.Evaluation.trouverParId(Integer.parseInt(evaluationIdStr)));
-                request.setAttribute("matiere", model.Matiere.trouverParId(Integer.parseInt(matiereIdStr)));
-                request.setAttribute("evaluationId", evaluationIdStr);
-                request.setAttribute("matiereId", matiereIdStr);
+                request.setAttribute("evaluation", model.Evaluation.trouverParId(Integer.parseInt(idEvaluationStr)));
+                request.setAttribute("matiere", model.Matiere.trouverParId(Integer.parseInt(idmatiereStr)));
+                request.setAttribute("idEvaluation", idEvaluationStr);
+                request.setAttribute("idmatiere", idmatiereStr);
             } catch (Exception ex) {
                 // Si on ne peut pas recharger les données, on redirige vers la liste
             }

@@ -215,7 +215,7 @@ public class Examen {
     public static void creationExamenParAdmin(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
+        if (session == null || session.getAttribute("utilisateur") == null) {
             response.sendRedirect(request.getContextPath() + "/app/login");
             return;
         }
@@ -227,23 +227,23 @@ public class Examen {
 
         String nom = request.getParameter("nom");
         String coefficientStr = request.getParameter("coefficient");
-        String matiereIdStr = request.getParameter("matiereId");
+        String idmatiereStr = request.getParameter("idmatiere");
         int matiereId = -1;
 
         try {
-            if (matiereIdStr != null && !matiereIdStr.isEmpty()) {
-                matiereId = Integer.parseInt(matiereIdStr);
+            if (idmatiereStr != null && !idmatiereStr.isEmpty()) {
+                matiereId = Integer.parseInt(idmatiereStr);
             }
             
-            if (nom == null || nom.isEmpty() || coefficientStr == null || coefficientStr.isEmpty() || 
-                matiereId == -1) {
+            if (nom == null || nom.isEmpty() || coefficientStr == null || coefficientStr.isEmpty() || matiereId == -1) {
                 response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matiereId + "&error=" + java.net.URLEncoder.encode("Tous les champs sont requis.", "UTF-8"));
                 return;
             }
 
             int coefficient = Integer.parseInt(coefficientStr);
+            int idmatiere = Integer.parseInt(idmatiereStr);
 
-            model.Examen examen = new model.Examen(nom, coefficient, matiereId);
+            model.Examen examen = new model.Examen(nom, coefficient, idmatiere);
             
             if (examen.save()) {
                 response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matiereId + "&success=" + java.net.URLEncoder.encode("Examen créé avec succès", "UTF-8"));
@@ -269,7 +269,7 @@ public class Examen {
                 
                 // Vérifier que le professeur a accès à cette matière
                 if (isProfesseur && !isAdmin) {
-                    Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                    Utilisateur currentUser = (Utilisateur) session.getAttribute("utilisateur");
                     if (currentUser != null) {
                         Matiere matiere = model.Matiere.trouverParId(idMat);
                         if (matiere == null || matiere.getProfId() != currentUser.getId()) {
@@ -320,7 +320,7 @@ public class Examen {
                 
                 // Vérifier que le professeur a accès à cette matière
                 if (isProfesseur && !isAdmin) {
-                    Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                    Utilisateur currentUser = (Utilisateur) session.getAttribute("utilisateur");
                     if (currentUser != null) {
                         Matiere matiere = model.Matiere.trouverParId(matId);
                         if (matiere == null || matiere.getProfId() != currentUser.getId()) {
@@ -369,7 +369,7 @@ public class Examen {
                 
                 // Vérifier que le professeur a accès à cette matière
                 if (isProfesseur && !isAdmin) {
-                    Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                    Utilisateur currentUser = (Utilisateur) session.getAttribute("utilisateur");
                     if (currentUser != null) {
                         Matiere matiere = model.Matiere.trouverParId(matId);
                         if (matiere == null || matiere.getProfId() != currentUser.getId()) {

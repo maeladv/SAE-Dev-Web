@@ -40,7 +40,7 @@
             <input type="number" id="coefficient" name="coefficient" min="1" placeholder="Coefficient" required>
             
             <label for="matiere">Matière</label>
-            <select id="matiere" name="matiereId" required>
+            <select id="matiere" name="idmatiere" required>
                 <option value="">-- Choisir une matière --</option>
                 <% 
                 List<Matiere> matieres = (List<Matiere>) request.getAttribute("matieres");

@@ -1,0 +1,567 @@
+/* ==================== MES NOTES - PAGE LAYOUT ==================== */
+
+.notes-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 10px 40px;
+}
+
+.notes-main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    padding: 0 40px 60px;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ==================== HEADER SECTION ==================== */
+
+.notes-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    background: transparent;
+}
+
+.header-content {
+    width: 100%;
+}
+
+.title-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+}
+
+.header-subtitle {
+    font-size: 24px;
+    font-weight: 400;
+    color: rgb(131, 131, 131);
+    text-transform: uppercase;
+    margin: 0 0 8px 0;
+    letter-spacing: 0.5px;
+}
+
+.header-title {
+    font-size: 48px;
+    font-weight: 700;
+    color: rgb(30, 30, 30);
+    margin: 0 0 16px 0;
+}
+
+/* Badges */
+.badges-container {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding-top: 16px;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 40px;
+    text-transform: uppercase;
+}
+
+.badge-specialite {
+    background-color: rgba(139, 57, 190, 0.2);
+    color: rgb(139, 57, 190);
+}
+
+.badge-specialite[data-specialite="gcb"] {
+    background-color: rgba(23, 119, 117, 0.2);
+    color: rgb(23, 119, 117);
+}
+
+.badge-specialite[data-specialite="iia"] {
+    background-color: rgba(33, 112, 36, 0.2);
+    color: rgb(33, 112, 36);
+}
+
+.badge-specialite[data-specialite="me"] {
+    background-color: rgba(52, 91, 163, 0.2);
+    color: rgb(52, 91, 163);
+}
+
+.badge-specialite[data-specialite="mt"] {
+    background-color: rgba(155, 32, 32, 0.2);
+    color: rgb(155, 32, 32);
+}
+
+.badge-year {
+    background-color: var(--color-gris-contour);
+    color: rgb(131, 131, 131);
+}
+
+.badge-specialite-small {
+    padding: 4px 8px;
+    font-size: 14px;
+}
+
+/* ==================== STATS CONTAINER ==================== */
+
+.stats-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 20px 16px;
+    background-color: var(--color-blanc);
+    border-radius: 16px;
+    border: 1px solid var(--color-gris-contour);
+}
+
+/* Stat Cards */
+.stat-card {
+    background: var(--color-blanc);
+    border: 1px solid var(--color-gris-contour);
+    border-radius: 16px;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    flex: 1 0 0;
+}
+
+.stat-general-average {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.stat-average {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+}
+
+.grade-large {
+    font-size: 96px;
+    font-weight: 900;
+    color: rgb(30, 30, 30);
+}
+
+.grade-max {
+    font-size: 16px;
+    font-weight: 600;
+    color: rgb(131, 131, 131);
+}
+
+.stat-label {
+    font-size: 16px;
+    font-weight: 700;
+    color: rgb(30, 30, 30);
+    text-align: center;
+}
+
+/* Semester Stats */
+.semesters-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1 0 0;
+}
+
+.semester-stat {
+    background: var(--color-blanc);
+    border: 1px solid var(--color-gris-contour);
+    border-radius: 16px;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.stat-label-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.stat-semester-label {
+    font-size: 20px;
+    font-weight: 500;
+    color: rgb(131, 131, 131);
+    text-transform: uppercase;
+    margin: 0;
+    margin-bottom: 8px;
+}
+
+.grade-display {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 4px;
+    width: 100%;
+}
+
+.grade-display .grade-large {
+    font-size: 40px;
+}
+
+/* Chart placeholder */
+.stat-chart {
+    flex: 1 0 0;
+    height: 100%;
+}
+
+.chart-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 8px;
+    text-align: center;
+}
+
+.chart-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: rgb(30, 30, 30);
+    margin: 0;
+}
+
+.chart-subtitle {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgb(110, 110, 110);
+    margin: 0;
+}
+
+.chart-comparison {
+    font-size: 16px;
+    font-weight: 700;
+    color: rgb(254, 50, 50);
+    margin: 0;
+}
+
+/* Best/Worst Subject Stats */
+.best-worst-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1 0 0;
+}
+
+.best-subject-stat,
+.worst-subject-stat {
+    background: var(--color-blanc);
+    border: 1px solid var(--color-gris-contour);
+    border-radius: 16px;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stat-subject-name {
+    font-size: 20px;
+    font-weight: 500;
+    color: rgb(131, 131, 131);
+    text-transform: uppercase;
+    margin: 0 0 8px 0;
+}
+
+/* Ranking */
+.ranking-stat {
+    background: var(--color-blanc);
+    border: 1px solid var(--color-gris-contour);
+    border-radius: 16px;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+    justify-content: center;
+    flex: 1 0 0;
+    height: 100%;
+}
+
+/* ==================== NOTES TABLE SECTION ==================== */
+
+.notes-table-section {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notes-table-wrapper {
+    background: var(--color-blanc);
+    border-radius: 32px;
+    padding: 24px;
+    width: 100%;
+}
+
+.table-header {
+    background-color: rgb(110, 110, 110);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.table-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.table-col-label {
+    flex: 1 0 0;
+    font-size: 12px;
+    font-weight: 900;
+    color: var(--color-blanc);
+    text-transform: uppercase;
+    text-align: right;
+    padding: 20px;
+}
+
+.table-col-label:first-child {
+    text-align: left;
+}
+
+/* Semester Section */
+.semester-section {
+    margin-bottom: 10px;
+}
+
+.semester-header {
+    background-color: var(--color-gris-fond);
+    border-radius: 10px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.semester-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: rgb(131, 131, 131);
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.semester-total {
+    background-color: rgb(70, 121, 209);
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.semester-total .grade-large {
+    font-size: 20px;
+    color: var(--color-blanc);
+}
+
+/* Subject Row */
+.subject-row {
+    background: var(--color-blanc);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 0;
+}
+
+.subject-row:hover {
+    background-color: var(--color-gris-fond);
+}
+
+/* Separate rows with border */
+.subject-row + .subject-row {
+    border-top: 1px solid var(--color-gris-contour);
+}
+
+.subject-row.best-grade {
+    background-color: transparent;
+}
+
+/* Subject group header: emphasized for "matière" */
+.subject-group-header {
+    background-color: var(--color-gris-fond);
+    border-left: 4px solid rgb(250, 70, 126);
+    padding-left: 12px;
+}
+
+.subject-group-header .col-subject {
+    font-size: 18px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Exam rows: lighter, finer and slightly indented */
+.exam-row {
+    background: transparent;
+    border-radius: 12px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.exam-row .col-exam-name {
+    padding-left: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-gris-texte);
+}
+
+.exam-row .col-grade {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-gris-texte);
+}
+
+.exam-row .col-grade-etudiant {
+    font-size: 14px;
+    font-weight: 700;
+    background-color: transparent;
+    color: rgb(30, 30, 30);
+    border: 1px solid var(--color-gris-contour);
+    border-radius: 6px;
+    padding: 4px 8px;
+}
+
+.col-subject {
+    flex: 1 0 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: rgb(30, 30, 30);
+    text-transform: uppercase;
+}
+
+.col-grade {
+    flex: 1 0 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: rgb(30, 30, 30);
+    text-align: right;
+}
+
+.col-grade-etudiant {
+    flex: 1 0 0;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: 700;
+    color: rgb(255, 255, 255);
+    background-color: rgb(250, 70, 126);
+    text-align: center;
+}
+
+.col-grade-etudiant.best-badge {
+    background-color: rgb(250, 70, 126);
+}
+
+/* Alternative row styling: only alternate exam rows, not subject headers */
+.exam-row:nth-child(even) {
+    background-color: transparent;
+}
+
+/* Ensure subject headers always keep grey background */
+.subject-row.subject-group-header {
+    background-color: var(--color-gris-fond);
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 1200px) {
+    .stats-container {
+        flex-wrap: wrap;
+    }
+
+    .stat-card {
+        min-width: calc(33.333% - 10px);
+    }
+}
+
+@media (max-width: 768px) {
+    .notes-main {
+        padding: 0 20px 40px;
+    }
+
+    .header-title {
+        font-size: 36px;
+    }
+
+    .grade-large {
+        font-size: 48px;
+    }
+
+    .stats-container {
+        flex-direction: column;
+    }
+
+    .stat-card {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .table-header-row,
+    .subject-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .table-col-label,
+    .col-grade {
+        text-align: left;
+    }
+}
+
+@media (max-width: 480px) {
+    .badges-container {
+        gap: 8px;
+    }
+
+    .badge {
+        font-size: 24px;
+        padding: 6px 12px;
+    }
+
+    .header-subtitle {
+        font-size: 18px;
+    }
+
+    .header-title {
+        font-size: 28px;
+    }
+
+    .grade-large {
+        font-size: 36px;
+    }
+
+    .semester-stat {
+        padding: 12px 16px;
+    }
+}

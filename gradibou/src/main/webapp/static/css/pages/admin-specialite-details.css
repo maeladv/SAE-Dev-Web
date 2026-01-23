@@ -157,7 +157,7 @@
 }
 
 /* === STUDENTS SECTION === */
-.students-container {
+.etudiants-container {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
@@ -168,16 +168,16 @@
 }
 
 /* Hide scrollbars but keep scrollable */
-.students-container::-webkit-scrollbar {
+.etudiants-container::-webkit-scrollbar {
     width: 0;
 }
 
-.students-container {
+.etudiants-container {
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
 
-.student-item {
+.etudiant-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -187,21 +187,21 @@
     gap: 1rem;
 }
 
-.student-info {
+.etudiant-info {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
 }
 
-.student-name {
+.etudiant-name {
     margin: 0;
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--gradibou-noir);
 }
 
-.student-email {
+.etudiant-email {
     font-size: 0.85rem;
     color: var(--color-gris-texte);
     white-space: nowrap;
@@ -209,7 +209,7 @@
     text-overflow: ellipsis;
 }
 
-.student-actions {
+.etudiant-actions {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -415,13 +415,13 @@
     }
 
     .matiere-item,
-    .student-item {
+    .etudiant-item {
         flex-direction: column;
         align-items: flex-start;
     }
 
     .matiere-actions,
-    .student-actions {
+    .etudiant-actions {
         width: 100%;
         justify-content: space-between;
     }
@@ -521,13 +521,13 @@ select.input-field {
     }
 
     .matiere-item,
-    .student-item {
+    .etudiant-item {
         flex-direction: column;
         align-items: flex-start;
     }
 
     .matiere-actions,
-    .student-actions {
+    .etudiant-actions {
         width: 100%;
         justify-content: flex-start;
     }

@@ -41,7 +41,7 @@
             <input type="number" id="semestre" name="semestre" min="1" max="10" placeholder="Semestre" required>
             
             <label for="specialite">Spécialité</label>
-            <select id="specialite" name="specialiteId" required>
+            <select id="specialite" name="idspecialite" required>
                 <option value="">-- Choisir une spécialité --</option>
                 <% 
                 List<Specialite> specialites = (List<Specialite>) request.getAttribute("specialites");

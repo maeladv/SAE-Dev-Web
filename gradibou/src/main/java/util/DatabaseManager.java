@@ -38,7 +38,6 @@ public class DatabaseManager {
     public static void init() throws SQLException, ClassNotFoundException {
         Class.forName("org.postgresql.Driver");
         connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-        System.out.println("Base de données PostgreSQL initialisée");
     }
 
     // Obtenir la connexion

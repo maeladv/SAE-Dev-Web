@@ -70,8 +70,8 @@
                 <div class="eva-title"><%= ((String)eval.get("matiere_nom")).toUpperCase() %></div>
                 <div class="eva-actions">
                     <form method="get" action="<%= request.getContextPath() %>/app/etudiant/repondre-evaluation" style="margin:0;">
-                        <input type="hidden" name="evaluationId" value="<%= eval.get("evaluation_id") %>">
-                        <input type="hidden" name="matiereId" value="<%= eval.get("matiere_id") %>">
+                        <input type="hidden" name="idEvaluation" value="<%= eval.get("evaluation_id") %>">
+                        <input type="hidden" name="idmatiere" value="<%= eval.get("matiere_id") %>">
                         <button type="submit" class="btn btn-primary">Évaluer →</button>
                     </form>
                 </div>

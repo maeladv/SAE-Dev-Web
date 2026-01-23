@@ -8,7 +8,7 @@ public class Role {
         if (session == null) {
             return false;
         }
-        Object userObj = session.getAttribute("user");
+        Object userObj = session.getAttribute("utilisateur");
         if (userObj instanceof Utilisateur) {
             Utilisateur utilisateur = (Utilisateur) userObj;
             return "admin".equalsIgnoreCase(utilisateur.getRole());
@@ -20,7 +20,7 @@ public class Role {
         if (session == null) {
             return false;
         }
-        Object userObj = session.getAttribute("user");
+        Object userObj = session.getAttribute("utilisateur");
         if (userObj instanceof Utilisateur) {
             Utilisateur utilisateur = (Utilisateur) userObj;
             return "etudiant".equalsIgnoreCase(utilisateur.getRole());
@@ -32,11 +32,19 @@ public class Role {
         if (session == null) {
             return false;
         }
-        Object userObj = session.getAttribute("user");
+        Object userObj = session.getAttribute("utilisateur");
         if (userObj instanceof Utilisateur) {
             Utilisateur utilisateur = (Utilisateur) userObj;
             return "professeur".equalsIgnoreCase(utilisateur.getRole());
         }
         return false;
+    }
+
+    public static boolean estConnecte(HttpSession session) {
+        if (session == null) {
+            return false;
+        }
+        Object userObj = session.getAttribute("utilisateur");
+        return userObj instanceof Utilisateur;
     }
 }

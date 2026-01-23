@@ -32,7 +32,7 @@
                 <% if (isAdmin) { %>
                 <button class="btn btn-primary btn-with-icon" onclick="openModal('createSpecialiteModal')">
                     Ajouter une spécialité
-                    <img src="<%= request.getContextPath() %>/static/icons/white/user-plus.svg" alt="Ajouter">
+                    <img src="<%= request.getContextPath() %>/static/icons/white/circle-plus.svg" alt="Ajouter">
                 </button>
                 <% } %>
             </div>
