@@ -664,6 +664,9 @@ public class Controller extends HttpServlet {
                 case "/admin/resultats-evaluations/cancel-program":
                     annulerProgrammationEvaluation(request, response);
                     break;
+                case "/admin/resultats-evaluations/delete-evaluation":
+                    supprimerEvaluation(request, response);
+                    break;
                 case "/admin/resultats-evaluations/end-evaluation":
                     mettreFinEvaluation(request, response);
                     break;
@@ -755,30 +758,75 @@ public class Controller extends HttpServlet {
         Integer evaluationId = null;
         try {
             evaluationId = Integer.parseInt(request.getParameter("evaluationId"));
+            System.out.println("DEBUG annulerProgrammationEvaluation: evaluationId = " + evaluationId);
         } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "evaluationId invalide");
+            response.setContentType("text/plain");
+            response.setCharacterEncoding("UTF-8");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("evaluationId invalide");
             return;
         }
 
+        response.setContentType("text/plain");
+        response.setCharacterEncoding("UTF-8");
+
         try {
-            // Récupérer l'évaluation et réinitialiser les dates
+            // Récupérer l'évaluation programmée et la supprimer complètement
+            // (pas de données d'étudiants pour une EVE programmée)
             model.Evaluation eval = model.Evaluation.trouverParId(evaluationId);
-            if (eval != null) {
-                // Réinitialiser à des valeurs par défaut (fin du monde)
-                java.time.LocalDateTime defaultDate = java.time.LocalDateTime.of(
-                    java.time.LocalDate.of(2099, 12, 31),
-                    java.time.LocalTime.of(23, 59)
-                );
-                eval.setDate_debut(defaultDate);
-                eval.setDate_fin(defaultDate);
-                eval.save();
-                System.out.println("DEBUG: Programmation de l'évaluation " + evaluationId + " annulée");
+            if (eval == null) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                response.getWriter().write("Evaluation non trouvée");
+                return;
             }
+
+            eval.supprimerAvecRelations();
+            System.out.println("DEBUG: Programmation de l'évaluation " + evaluationId + " annulée (suppression complète)");
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().write("OK");
         } catch (Exception e) {
+            System.out.println("DEBUG annulerProgrammationEvaluation: EXCEPTION " + e.getMessage());
             e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Erreur serveur: " + e.getMessage());
+        }
+    }
+
+    private void supprimerEvaluation(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, IOException {
+        Integer evaluationId = null;
+        try {
+            evaluationId = Integer.parseInt(request.getParameter("evaluationId"));
+            System.out.println("DEBUG supprimerEvaluation: evaluationId = " + evaluationId);
+        } catch (NumberFormatException e) {
+            response.setContentType("text/plain");
+            response.setCharacterEncoding("UTF-8");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("evaluationId invalide");
+            return;
         }
 
-        response.sendRedirect(request.getContextPath() + "/app/admin/resultats-evaluations?evaluationId=" + evaluationId);
+        response.setContentType("text/plain");
+        response.setCharacterEncoding("UTF-8");
+
+        try {
+            model.Evaluation eval = model.Evaluation.trouverParId(evaluationId);
+            if (eval == null) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                response.getWriter().write("Evaluation non trouvée");
+                return;
+            }
+
+            eval.supprimerAvecRelations();
+            System.out.println("DEBUG: Evaluation " + evaluationId + " supprimée avec ses relations");
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().write("OK");
+        } catch (Exception e) {
+            System.out.println("DEBUG supprimerEvaluation: EXCEPTION " + e.getMessage());
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Erreur serveur: " + e.getMessage());
+        }
     }
 
     private void mettreFinEvaluation(HttpServletRequest request, HttpServletResponse response) 

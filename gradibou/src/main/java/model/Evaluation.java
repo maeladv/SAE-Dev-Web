@@ -105,6 +105,55 @@ public class Evaluation {
     }
 
     /**
+     * Supprimer l'évaluation et toutes ses relations (réponses, a_repondu)
+     */
+    public void supprimerAvecRelations() throws SQLException {
+        if (!persisted) {
+            throw new SQLException("Impossible de supprimer une évaluation qui n'existe pas en base");
+        }
+
+        String deleteAReponduSql = "DELETE FROM a_repondu_evaluation WHERE id_evaluation = ?";
+        String deleteReponsesSql = "DELETE FROM reponse_evaluation WHERE id_evaluation = ?";
+        String deleteEvalSql = "DELETE FROM evaluation WHERE id = ?";
+
+        Connection conn = null;
+        boolean previousAutoCommit = true;
+
+        try {
+            conn = DatabaseManager.obtenirConnexion();
+            previousAutoCommit = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement stmtA = conn.prepareStatement(deleteAReponduSql)) {
+                stmtA.setInt(1, id);
+                stmtA.executeUpdate();
+            }
+
+            try (PreparedStatement stmtR = conn.prepareStatement(deleteReponsesSql)) {
+                stmtR.setInt(1, id);
+                stmtR.executeUpdate();
+            }
+
+            try (PreparedStatement stmtE = conn.prepareStatement(deleteEvalSql)) {
+                stmtE.setInt(1, id);
+                stmtE.executeUpdate();
+            }
+
+            conn.commit();
+            this.persisted = false;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException ignore) {}
+            }
+            throw e;
+        } finally {
+            if (conn != null) {
+                try { conn.setAutoCommit(previousAutoCommit); } catch (SQLException ignore) {}
+            }
+        }
+    }
+
+    /**
      * Trouver une évaluation par ID
      */
     public static Evaluation trouverParId(int id) throws SQLException {

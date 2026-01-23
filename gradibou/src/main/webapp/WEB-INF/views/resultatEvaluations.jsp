@@ -160,13 +160,14 @@
 
                 <div style="display: flex; justify-content: center; gap: 12px;">
                     <% if (displayedEvaStatus != null && displayedEvaStatus.equals("scheduled") && displayedEval != null) { %>
-                        <form method="POST" action="<%= request.getContextPath() %>/app/admin/resultats-evaluations/cancel-program" style="display: inline;">
-                            <input type="hidden" name="evaluationId" value="<%= displayedEval.getId() %>">
-                            <button type="submit" class="btn btn-primary btn-with-icon">
-                                <img src="<%= request.getContextPath() %>/static/icons/white/trash.svg" alt="">
-                                Annuler la programmation
-                            </button>
-                        </form>
+                        <button type="button" class="btn btn-primary btn-with-icon" onclick="annulerProgrammationEvaluation(<%= displayedEval.getId() %>)">
+                            <img src="<%= request.getContextPath() %>/static/icons/white/trash.svg" alt="">
+                            Annuler la programmation
+                        </button>
+                        <button type="button" class="btn btn-danger btn-with-icon" onclick="supprimerEvaluation(<%= displayedEval.getId() %>)">
+                            <img src="<%= request.getContextPath() %>/static/icons/white/trash.svg" alt="">
+                            Supprimer l'évaluation
+                        </button>
                     <% } else if (displayedEvaStatus != null && displayedEvaStatus.equals("ongoing") && displayedEval != null) { %>
                         <button type="button" class="btn btn-primary btn-with-icon" onclick="mettreFinEvaluation(<%= displayedEval.getId() %>)">
                             <img src="<%= request.getContextPath() %>/static/icons/white/pause.svg" alt="">
@@ -216,6 +217,64 @@
                     })
                     .catch(error => {
                         alert('Erreur lors de la mise à jour: ' + error.message);
+                        console.error('Erreur:', error);
+                    });
+                }
+
+                function annulerProgrammationEvaluation(evaluationId) {
+                    if (!confirm('Êtes-vous sûr de vouloir annuler la programmation de cette évaluation ?')) {
+                        return;
+                    }
+
+                    fetch('<%= request.getContextPath() %>/app/admin/resultats-evaluations/cancel-program', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'evaluationId=' + evaluationId
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                throw new Error('Erreur ' + response.status + ': ' + text);
+                            });
+                        }
+                        return response.text();
+                    })
+                    .then(() => {
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        alert('Erreur lors de l\'annulation: ' + error.message);
+                        console.error('Erreur:', error);
+                    });
+                }
+
+                function supprimerEvaluation(evaluationId) {
+                    if (!confirm('ATTENTION : Êtes-vous sûr de vouloir SUPPRIMER définitivement cette évaluation et toutes ses données ? Cette action est irréversible.')) {
+                        return;
+                    }
+
+                    fetch('<%= request.getContextPath() %>/app/admin/resultats-evaluations/delete-evaluation', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'evaluationId=' + evaluationId
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                throw new Error('Erreur ' + response.status + ': ' + text);
+                            });
+                        }
+                        return response.text();
+                    })
+                    .then(() => {
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        alert('Erreur lors de la suppression: ' + error.message);
                         console.error('Erreur:', error);
                     });
                 }
