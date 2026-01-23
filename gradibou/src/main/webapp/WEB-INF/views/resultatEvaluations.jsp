@@ -59,21 +59,12 @@
         <section class="eva-program-section">
             <div class="eva-program-header">
                 <h1 class="eva-program-title">Evaluation des enseignements</h1>
-                <!-- DEBUG -->
-                <div style="font-size: 12px; color: #999;">
-                    currentEvalId: <%= request.getAttribute("currentEvalId") %>
-                </div>
-                <!-- /DEBUG -->
                 <%
                     // Déclaration des variables pour l'affichage du formulaire
                     String displayedEvaStatus = (String) request.getAttribute("displayedEvaStatus");
                     model.Evaluation displayedEval = (model.Evaluation) request.getAttribute("displayedEval");
                 %>
                 <div class="eva-actions-row">
-                    <button class="btn btn-tertiary btn-with-icon">
-                        <img src="<%= request.getContextPath() %>/static/icons/black/trash.svg" alt="">
-                        Supprimer les données
-                    </button>
                     <button class="btn btn-tertiary btn-with-icon">
                         <img src="<%= request.getContextPath() %>/static/icons/black/file-export.svg" alt="">
                         Exporter tout
@@ -104,15 +95,6 @@
                     %>
                 </div>
             </div>
-
-            <form class="eva-form" id="programForm" method="POST" action="<%= request.getContextPath() %>/app/admin/resultats-evaluations/program" style="display: none;">
-                <input type="hidden" name="evaluationId" value="<%= displayedEval != null ? displayedEval.getId() : "" %>">
-                <input type="hidden" name="date_debut" id="hidden_date_debut" value="">
-                <input type="hidden" name="time_debut" id="hidden_time_debut" value="">
-                <input type="hidden" name="date_fin" id="hidden_date_fin" value="">
-                <input type="hidden" name="time_fin" id="hidden_time_fin" value="">
-                <input type="hidden" name="semestre" id="hidden_semestre" value="">
-            </form>
 
             <form class="eva-form" id="mainForm">
                 <%
@@ -164,10 +146,6 @@
                             <img src="<%= request.getContextPath() %>/static/icons/white/trash.svg" alt="">
                             Annuler la programmation
                         </button>
-                        <button type="button" class="btn btn-danger btn-with-icon" onclick="supprimerEvaluation(<%= displayedEval.getId() %>)">
-                            <img src="<%= request.getContextPath() %>/static/icons/white/trash.svg" alt="">
-                            Supprimer l'évaluation
-                        </button>
                     <% } else if (displayedEvaStatus != null && displayedEvaStatus.equals("ongoing") && displayedEval != null) { %>
                         <button type="button" class="btn btn-primary btn-with-icon" onclick="mettreFinEvaluation(<%= displayedEval.getId() %>)">
                             <img src="<%= request.getContextPath() %>/static/icons/white/pause.svg" alt="">
@@ -184,12 +162,51 @@
 
             <script>
                 function submitProgramForm() {
-                    document.getElementById('hidden_date_debut').value = document.getElementById('input_date_debut').value;
-                    document.getElementById('hidden_time_debut').value = document.getElementById('input_time_debut').value;
-                    document.getElementById('hidden_date_fin').value = document.getElementById('input_date_fin').value;
-                    document.getElementById('hidden_time_fin').value = document.getElementById('input_time_fin').value;
-                    document.getElementById('hidden_semestre').value = document.getElementById('input_semestre').value;
-                    document.getElementById('programForm').submit();
+                    const dateDebut = document.getElementById('input_date_debut').value;
+                    const timeDebut = document.getElementById('input_time_debut').value;
+                    const dateFin = document.getElementById('input_date_fin').value;
+                    const timeFin = document.getElementById('input_time_fin').value;
+                    const semestre = document.getElementById('input_semestre').value;
+                    
+                    // Validation côté client
+                    if (!dateDebut || !timeDebut || !dateFin || !timeFin) {
+                        alert('Veuillez remplir tous les champs de date et heure');
+                        return;
+                    }
+                    
+                    if (!confirm('Êtes-vous sûr de vouloir programmer cette nouvelle évaluation ?')) {
+                        return;
+                    }
+                    
+                    const params = new URLSearchParams();
+                    params.append('date_debut', dateDebut);
+                    params.append('time_debut', timeDebut);
+                    params.append('date_fin', dateFin);
+                    params.append('time_fin', timeFin);
+                    params.append('semestre', semestre);
+
+                    fetch('<%= request.getContextPath() %>/app/admin/resultats-evaluations/program', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: params.toString()
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                throw new Error('Erreur ' + response.status + ': ' + text);
+                            });
+                        }
+                        return response.text();
+                    })
+                    .then(() => {
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        alert('Erreur lors de la programmation: ' + error.message);
+                        console.error('Erreur:', error);
+                    });
                 }
 
                 function mettreFinEvaluation(evaluationId) {
@@ -246,35 +263,6 @@
                     })
                     .catch(error => {
                         alert('Erreur lors de l\'annulation: ' + error.message);
-                        console.error('Erreur:', error);
-                    });
-                }
-
-                function supprimerEvaluation(evaluationId) {
-                    if (!confirm('ATTENTION : Êtes-vous sûr de vouloir SUPPRIMER définitivement cette évaluation et toutes ses données ? Cette action est irréversible.')) {
-                        return;
-                    }
-
-                    fetch('<%= request.getContextPath() %>/app/admin/resultats-evaluations/delete-evaluation', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: 'evaluationId=' + evaluationId
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.text().then(text => {
-                                throw new Error('Erreur ' + response.status + ': ' + text);
-                            });
-                        }
-                        return response.text();
-                    })
-                    .then(() => {
-                        window.location.reload();
-                    })
-                    .catch(error => {
-                        alert('Erreur lors de la suppression: ' + error.message);
                         console.error('Erreur:', error);
                     });
                 }

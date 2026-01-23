@@ -53,7 +53,7 @@
                     <a href="<%= request.getContextPath() %>/app/gestion/specialites">Mes matières</a>
                     <a href="#">Mon compte</a>
                 <% } else if ("admin".equals(userRole)) { %>
-                    <a href="#">Évaluation des enseignements</a>
+                    <a href="<%= request.getContextPath() %>/app/admin/resultats-evaluations">Évaluation des enseignements</a>
                     <a href="<%= request.getContextPath() %>/app/gestion/specialites">Spécialités</a>
                     <a href="<%= request.getContextPath() %>/app/admin">Comptes</a>
                     <a href="#">Mon compte</a>

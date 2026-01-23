@@ -704,13 +704,8 @@ public class Controller extends HttpServlet {
 
     private void programmerEvaluation(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
-        Integer evaluationId = null;
-        try {
-            evaluationId = Integer.parseInt(request.getParameter("evaluationId"));
-        } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "evaluationId invalide");
-            return;
-        }
+        response.setContentType("text/plain");
+        response.setCharacterEncoding("UTF-8");
 
         String dateDebut = request.getParameter("date_debut");
         String timeDebut = request.getParameter("time_debut");
@@ -721,7 +716,8 @@ public class Controller extends HttpServlet {
         if (dateDebut == null || dateDebut.isEmpty() || timeDebut == null || timeDebut.isEmpty() ||
             dateFin == null || dateFin.isEmpty() || timeFin == null || timeFin.isEmpty() ||
             semestreStr == null || semestreStr.isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/app/admin/resultats-evaluations?evaluationId=" + evaluationId);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("Tous les champs sont requis");
             return;
         }
 
@@ -736,21 +732,41 @@ public class Controller extends HttpServlet {
             java.time.LocalDateTime dateTimeFin = java.time.LocalDateTime.of(localDateFin, localTimeFin);
 
             int semestre = Integer.parseInt(semestreStr);
-
-            // Récupérer l'évaluation et la mettre à jour
-            model.Evaluation eval = model.Evaluation.trouverParId(evaluationId);
-            if (eval != null) {
-                eval.setDate_debut(dateTimeDebut);
-                eval.setDate_fin(dateTimeFin);
-                eval.setSemestre(semestre);
-                eval.save();
-                System.out.println("DEBUG: Evaluation " + evaluationId + " programmée pour " + dateTimeDebut + " - " + dateTimeFin);
+            
+            // Validation: date de fin doit être après date de début
+            if (dateTimeFin.isBefore(dateTimeDebut) || dateTimeFin.isEqual(dateTimeDebut)) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("La date de fin doit être après la date de début");
+                return;
             }
+            
+            // Validation: date de début doit être dans le futur
+            if (dateTimeDebut.isBefore(java.time.LocalDateTime.now())) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("La date de début doit être dans le futur");
+                return;
+            }
+
+            // CRÉER une nouvelle évaluation
+            model.Evaluation nouvelleEval = new model.Evaluation();
+            nouvelleEval.setDate_debut(dateTimeDebut);
+            nouvelleEval.setDate_fin(dateTimeFin);
+            nouvelleEval.setSemestre(semestre);
+            nouvelleEval.save();
+            
+            System.out.println("DEBUG: Nouvelle évaluation créée et programmée pour " + dateTimeDebut + " - " + dateTimeFin);
+            
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().write("OK");
+            
+        } catch (java.time.format.DateTimeParseException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("Format de date ou heure invalide");
         } catch (Exception e) {
             e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Erreur serveur: " + e.getMessage());
         }
-
-        response.sendRedirect(request.getContextPath() + "/app/admin/resultats-evaluations?evaluationId=" + evaluationId);
     }
 
     private void annulerProgrammationEvaluation(HttpServletRequest request, HttpServletResponse response) 
