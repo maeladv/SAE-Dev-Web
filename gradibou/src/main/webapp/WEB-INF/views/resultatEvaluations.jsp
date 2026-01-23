@@ -19,9 +19,48 @@
     <%@ include file="includes/header.jsp" %>
 
     <main class="re-admin-main">
+        <!-- Sélecteur d'évaluation -->
+        <div class="eva-selector-container">
+            <%
+                java.util.List<java.util.Map<String, Object>> evalStatusList = (java.util.List<java.util.Map<String, Object>>) request.getAttribute("evalStatusList");
+                Integer currentEvalId = (Integer) request.getAttribute("currentEvalId");
+                
+                if (evalStatusList != null && !evalStatusList.isEmpty()) {
+                    for (java.util.Map<String, Object> statusMap : evalStatusList) {
+                        model.Evaluation eval = (model.Evaluation) statusMap.get("eval");
+                        boolean isOngoing = (Boolean) statusMap.get("isOngoing");
+                        boolean isSelected = currentEvalId != null && currentEvalId == eval.getId();
+                        String statusClass = isOngoing ? "in-progress" : "";
+                        String selectedClass = isSelected ? "selected" : "";
+            %>
+                <a href="<%= request.getContextPath() %>/app/admin/resultats-evaluations?evaluationId=<%= eval.getId() %>" 
+                   class="eva-selector-card <%= statusClass %> <%= selectedClass %>">
+                    <div class="eva-selector-date">
+                        <%= java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy").format(eval.getDate_debut()) %>
+                    </div>
+                    <div class="eva-selector-status">
+                        <% if (isOngoing) { %>
+                            <span class="eva-status-badge-small ongoing">En cours</span>
+                        <% } else { %>
+                            <span class="eva-status-badge-small finished">Terminée</span>
+                        <% } %>
+                    </div>
+                    <div class="eva-selector-semester">Sem. <%= eval.getSemestre() %></div>
+                </a>
+            <%
+                    }
+                }
+            %>
+        </div>
+
         <section class="eva-program-section">
             <div class="eva-program-header">
                 <h1 class="eva-program-title">Evaluation des enseignements</h1>
+                <!-- DEBUG -->
+                <div style="font-size: 12px; color: #999;">
+                    currentEvalId: <%= request.getAttribute("currentEvalId") %>
+                </div>
+                <!-- /DEBUG -->
                 <div class="eva-actions-row">
                     <button class="btn btn-tertiary btn-with-icon">
                         <img src="<%= request.getContextPath() %>/static/icons/black/trash.svg" alt="">

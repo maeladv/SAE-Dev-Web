@@ -275,20 +275,43 @@ public class Controller extends HttpServlet {
                 try {
                     // Liste des évaluations
                     java.util.List<model.Evaluation> evaluations = model.Evaluation.trouverToutes();
+                    
+                    // Déterminer le statut de chaque évaluation (en cours vs terminée)
+                    java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                    java.util.List<java.util.Map<String, Object>> evalStatusList = new java.util.ArrayList<>();
+                    for (model.Evaluation e : evaluations) {
+                        java.util.Map<String, Object> evalStatus = new java.util.HashMap<>();
+                        evalStatus.put("eval", e);
+                        boolean isOngoing = e != null && now.isAfter(e.getDate_debut()) && now.isBefore(e.getDate_fin());
+                        evalStatus.put("isOngoing", isOngoing);
+                        evalStatusList.add(evalStatus);
+                    }
                     request.setAttribute("evaluations", evaluations);
+                    request.setAttribute("evalStatusList", evalStatusList);
 
                     // Choisir l'évaluation courante: celle ouverte, sinon la plus récente
                     Integer currentEvalId = null;
-                    java.time.LocalDateTime now = java.time.LocalDateTime.now();
-                    for (model.Evaluation e : evaluations) {
-                        if (e != null && now.isAfter(e.getDate_debut()) && now.isBefore(e.getDate_fin())) {
-                            currentEvalId = e.getId();
-                            break;
+                    String evalIdParam = request.getParameter("evaluationId");
+                    if (evalIdParam != null && !evalIdParam.isEmpty()) {
+                        try {
+                            currentEvalId = Integer.parseInt(evalIdParam);
+                        } catch (NumberFormatException e) {
+                            // fallback à la logique par défaut
+                        }
+                    }
+                    if (currentEvalId == null) {
+                        for (model.Evaluation e : evaluations) {
+                            if (e != null && now.isAfter(e.getDate_debut()) && now.isBefore(e.getDate_fin())) {
+                                currentEvalId = e.getId();
+                                break;
+                            }
                         }
                     }
                     if (currentEvalId == null && !evaluations.isEmpty()) {
                         currentEvalId = evaluations.get(0).getId();
                     }
+                    
+                    request.setAttribute("currentEvalId", currentEvalId);
 
                     if (currentEvalId != null) {
                         // Taux de réponse global

@@ -8,6 +8,111 @@
   align-items: center;
 }
 
+/* Sélecteur d'évaluation */
+.eva-selector-container {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.eva-selector-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  min-width: 140px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--gradibou-blanc);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  text-decoration: none;
+  color: var(--gradibou-noir);
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.25);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.eva-selector-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.3);
+}
+
+.eva-selector-card:active {
+  transform: translateY(0px);
+}
+
+.eva-selector-card.selected {
+  background: var(--gradibou-rose);
+  color: var(--gradibou-blanc);
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.25);
+}
+
+.eva-selector-card.selected:hover {
+  filter: brightness(1.05);
+  box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.3);
+}
+
+.eva-selector-card.in-progress {
+  background: var(--gradibou-blanc);
+  border: 2px solid var(--gradibou-status-waiting);
+}
+
+.eva-selector-card.in-progress.selected {
+  background: var(--gradibou-status-waiting);
+  color: var(--gradibou-blanc);
+  border: 2px solid var(--gradibou-status-waiting);
+}
+
+.eva-selector-date {
+  font-weight: 700;
+  font-size: 14px;
+  color: inherit;
+}
+
+.eva-selector-status {
+  display: flex;
+  gap: 8px;
+}
+
+.eva-status-badge-small {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gradibou-blanc);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.eva-status-badge-small.finished {
+  background: var(--color-gris-texte);
+}
+
+.eva-status-badge-small.ongoing {
+  background: var(--gradibou-status-waiting);
+}
+
+.eva-selector-card.selected .eva-status-badge-small {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.eva-selector-semester {
+  font-size: 12px;
+  color: var(--color-gris-texte);
+  opacity: 0.8;
+}
+
+.eva-selector-card.selected .eva-selector-semester {
+  color: var(--gradibou-blanc);
+  opacity: 1;
+}
+
 /* Section programmation */
 .eva-program-section {
   background: var(--gradibou-blanc);
