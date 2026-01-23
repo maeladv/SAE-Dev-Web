@@ -165,7 +165,7 @@
                                                 <img src="<%= request.getContextPath() %>/static/icons/black/link.svg"
                                                     alt="Copier le lien de réinitialisation icone">
                                             </button>
-                                            <button class="btn-primary" title="Voir le profil">
+                                            <button class="btn-primary" title="Voir le profil" onclick="VoirProfilUtilisateur(<%= user.getId() %>)">
                                                 <img src="<%= request.getContextPath() %>/static/icons/white/eye.svg" alt="Voir le profil icone">
                                             </button>
                                         </div>

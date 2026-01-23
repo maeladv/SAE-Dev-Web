@@ -2,17 +2,26 @@
 <%@ page import="model.Utilisateur" %>
 <%@ page import="java.time.LocalDate" %>
 <%
-    Utilisateur user = (Utilisateur) session.getAttribute("user");
-    if (user == null) {
+    Utilisateur sessionUser = (Utilisateur) session.getAttribute("user");
+    if (sessionUser == null) {
         response.sendRedirect(request.getContextPath() + "/app/login");
         return;
+    }
+    
+    // Déterminer quel utilisateur afficher
+    Utilisateur displayUser = sessionUser;
+    Utilisateur viewedUser = (Utilisateur) request.getAttribute("viewedUser");
+    boolean isViewingOther = false;
+    if (viewedUser != null) {
+        displayUser = viewedUser;
+        isViewingOther = true;
     }
     
     String specialiteTag = "";
     String ine = "";
     try {
-        specialiteTag = user.getSpecialiteTag();
-        ine = user.getIne();
+        specialiteTag = displayUser.getSpecialiteTag();
+        ine = displayUser.getIne();
     } catch (Exception e) {
         // Silencieusement ignorer les erreurs pour les non-étudiants
     }
@@ -42,7 +51,11 @@
 
         <form class="profile-container" id="profileForm" method="post" action="<%= request.getContextPath() %>/app/moncompte">
             <!-- Champ caché pour la date de naissance (non modifiable dans ce formulaire) -->
-            <input type="hidden" name="dateNaissance" value="<%= user.getDateNaissance() %>">
+            <input type="hidden" name="dateNaissance" value="<%= displayUser.getDateNaissance() %>">
+            <% if (isViewingOther) { %>
+            <!-- Champ caché pour indiquer quel utilisateur on modifie -->
+            <input type="hidden" name="userId" value="<%= displayUser.getId() %>">
+            <% } %>
             
             <!-- Colonne Gauche: Votre GradiCompte -->
             <section class="profile-sidebar">
@@ -58,22 +71,22 @@
                             </svg>
                         </div>
                         <div class="profile-info">
-                            <p class="profile-name"><%= user.getPrenom() %> <%= user.getNom() %></p>
-                            <span class="role-badge role-<%= user.getRole().toLowerCase() %>">
-                                <%= user.getRole().toUpperCase() %>
+                            <p class="profile-name"><%= displayUser.getPrenom() %> <%= displayUser.getNom() %></p>
+                            <span class="role-badge role-<%= displayUser.getRole().toLowerCase() %>">
+                                <%= displayUser.getRole().toUpperCase() %>
                             </span>
                         </div>
                     </div>
 
                     <div class="profile-actions">
-                        <% if ("etudiant".equalsIgnoreCase(user.getRole())) { %>
+                        <% if ("etudiant".equalsIgnoreCase(displayUser.getRole())) { %>
                             <a href="<%= request.getContextPath() %>/app/etudiant/evaluations" class="action-btn">
                                 Notes
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M7 10H13M13 10L10 7M13 10L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </a>
-                        <% } else if ("professeur".equalsIgnoreCase(user.getRole())) { %>
+                        <% } else if ("professeur".equalsIgnoreCase(displayUser.getRole())) { %>
                             <a href="<%= request.getContextPath() %>/app/gestion/specialites" class="action-btn">
                                 Mes matières
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -104,19 +117,19 @@
                 <div class="form-group">
                     <label class="field-label" for="nom">Nom de famille</label>
                     <input class="input-field" id="nom" type="text" name="nom" 
-                           value="<%= user.getNom() %>" required>
+                           value="<%= displayUser.getNom() %>" required>
                 </div>
 
                 <div class="form-group">
                     <label class="field-label" for="prenom">Prénom</label>
                     <input class="input-field" id="prenom" type="text" name="prenom" 
-                           value="<%= user.getPrenom() %>" required>
+                           value="<%= displayUser.getPrenom() %>" required>
                 </div>
 
                 <div class="form-group">
                     <label class="field-label" for="email">Adresse mail</label>
                     <input class="input-field" id="email" type="email" name="email" 
-                           value="<%= user.getemail() %>" required>
+                           value="<%= displayUser.getemail() %>" required>
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-icon-right" id="savePersonalBtn">
@@ -129,29 +142,38 @@
             <section class="profile-section security">
                 <h2 class="section-title">Sécurité de votre compte</h2>
                 
-                <div class="form-group">
-                    <label class="field-label" for="motDePasse">Nouveau Mot de Passe</label>
-                    <input class="input-field" id="motDePasse" type="password" name="motDePasse" 
-                           placeholder="Rentrez un nouveau mot de passe">
-                </div>
+                <% if (isViewingOther) { %>
+                    <!-- Admin ne peut pas changer le mdp, mais peut copier le lien de réinitialisation -->
+                    <p style="margin-bottom: 1rem; color: #666;">En tant qu'administrateur, vous ne pouvez pas modifier le mot de passe d'un autre utilisateur. Vous pouvez cependant générer un lien de réinitialisation.</p>
+                    <button type="button" class="btn btn-secondary btn-icon-right" onclick="copyResetLinkForUser(<%= displayUser.getId() %>)">
+                        Copier le lien de réinitialisation
+                        <img src="<%= request.getContextPath() %>/static/icons/black/link.svg" width="20" height="20" alt="">
+                    </button>
+                <% } else { %>
+                    <div class="form-group">
+                        <label class="field-label" for="motDePasse">Nouveau Mot de Passe</label>
+                        <input class="input-field" id="motDePasse" type="password" name="motDePasse" 
+                               placeholder="Rentrez un nouveau mot de passe">
+                    </div>
 
-                <div class="form-group" id="confirmPasswordGroup">
-                    <label class="field-label" for="confirmPassword">Confirmez votre nouveau Mot de Passe</label>
-                    <input class="input-field" id="confirmPassword" type="password" name="confirmPassword" 
-                           placeholder="Rentrez à nouveau votre nouveau mot de passe">
-                </div>
+                    <div class="form-group" id="confirmPasswordGroup">
+                        <label class="field-label" for="confirmPassword">Confirmez votre nouveau Mot de Passe</label>
+                        <input class="input-field" id="confirmPassword" type="password" name="confirmPassword" 
+                               placeholder="Rentrez à nouveau votre nouveau mot de passe">
+                    </div>
 
-                <button type="submit" class="btn btn-primary btn-icon-right" id="savePasswordBtn">
-                    Changer le mot de passe
-                    <img src="<%= request.getContextPath() %>/static/icons/white/floppy-disk.svg" width="20" height="20" alt="">
-                </button>
+                    <button type="submit" class="btn btn-primary btn-icon-right" id="savePasswordBtn">
+                        Changer le mot de passe
+                        <img src="<%= request.getContextPath() %>/static/icons/white/floppy-disk.svg" width="20" height="20" alt="">
+                    </button>
+                <% } %>
             </section>
 
             <!-- Colonne Bas: Champs spécifiques -->
             <section class="profile-section specific-fields">
                 <h2 class="section-title">Champs spécifiques</h2>
                 
-                <% if ("etudiant".equalsIgnoreCase(user.getRole())) { %>
+                <% if ("etudiant".equalsIgnoreCase(displayUser.getRole())) { %>
                     <div class="form-group">
                         <label class="field-label" for="ine">INE</label>
                         <input class="input-field readonly-field" id="ine" type="text" name="ine" 
@@ -178,9 +200,9 @@
                             }
                         %>
                     </div>
-                <% } else if ("professeur".equalsIgnoreCase(user.getRole())) { %>
+                <% } else if ("professeur".equalsIgnoreCase(displayUser.getRole())) { %>
                     <p class="no-specific-fields">Aucun champ spécifique pour les professeurs</p>
-                <% } else if ("admin".equalsIgnoreCase(user.getRole())) { %>
+                <% } else if ("admin".equalsIgnoreCase(displayUser.getRole())) { %>
                     <p class="no-specific-fields">Aucun champ spécifique pour les administrateurs</p>
                 <% } %>
             </section>
@@ -188,6 +210,99 @@
     </main>
 </div>
 
+<script>
+const contextPath = '<%= request.getContextPath() %>';
+
+function copyResetLinkForUser(userId) {
+    fetch(contextPath + '/app/admin/get-reset-link?userId=' + encodeURIComponent(userId))
+    .then(response => response.text())
+    .then(text => {
+        try {
+            const data = JSON.parse(text);
+            if (data.success && data.link) {
+                const link = data.link;
+                
+                navigator.clipboard.writeText(link).then(() => {
+                    showNotification('Lien de réinitialisation copié dans le presse-papiers', 'success');
+                }).catch(() => {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = link;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showNotification('Lien de réinitialisation copié', 'success');
+                });
+            } else {
+                showNotification(data.message || 'Impossible de générer le lien', 'error');
+            }
+        } catch (parseError) {
+            showNotification('Erreur: réponse invalide du serveur', 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Erreur réseau: ' + error.message, 'error');
+    });
+}
+
+function showNotification(message, type = 'info') {
+    let notificationContainer = document.getElementById('notification-container');
+    if (!notificationContainer) {
+        notificationContainer = document.createElement('div');
+        notificationContainer.id = 'notification-container';
+        notificationContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 10000;';
+        document.body.appendChild(notificationContainer);
+    }
+
+    const notification = document.createElement('div');
+    notification.className = 'notification notification-' + type;
+    
+    const backgroundColor = type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3';
+    notification.style.cssText = `
+        background: ${backgroundColor};
+        color: white;
+        padding: 16px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        min-width: 300px;
+        animation: slideIn 0.3s ease-in-out;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    `;
+    notification.textContent = message;
+    notificationContainer.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
 <script src="<%= request.getContextPath() %>/static/js/moncompte.js"></script>
 </body>
 </html>

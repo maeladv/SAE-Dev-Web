@@ -678,6 +678,25 @@ public class Utilisateur {
             return;
         }
 
+        // Déterminer quel utilisateur modifier
+        Utilisateur targetUser = currentUser;
+        String userIdParam = request.getParameter("userId");
+        boolean isAdminModifyingOther = false;
+        
+        if (userIdParam != null && !userIdParam.isEmpty()) {
+            // Vérifier que l'utilisateur courant est admin
+            if (util.Role.estAdmin(request.getSession(false))) {
+                int targetUserId = Integer.parseInt(userIdParam);
+                targetUser = Utilisateur.trouverParId(targetUserId);
+                if (targetUser == null) {
+                    request.setAttribute("error", "Utilisateur introuvable");
+                    request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+                    return;
+                }
+                isAdminModifyingOther = true;
+            }
+        }
+
         String nom = request.getParameter("nom");
         String prenom = request.getParameter("prenom");
         String email = request.getParameter("email");
@@ -709,42 +728,59 @@ public class Utilisateur {
                 }
             }
 
-            // Vérifier que l'email n'existe pas ailleurs (sauf pour l'utilisateur actuel)
+            // Vérifier que l'email n'existe pas ailleurs (sauf pour l'utilisateur cible)
             Utilisateur userWithEmail = Utilisateur.trouverParemail(email);
-            if (userWithEmail != null && userWithEmail.getId() != currentUser.getId()) {
+            if (userWithEmail != null && userWithEmail.getId() != targetUser.getId()) {
                 request.setAttribute("error", "Cet email est déjà utilisé");
+                if (isAdminModifyingOther) {
+                    request.setAttribute("viewedUser", targetUser);
+                }
                 request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
                 return;
             }
 
             // Mettre à jour les informations
-            currentUser.setNom(nom.trim());
-            currentUser.setPrenom(prenom.trim());
-            currentUser.setemail(email.trim());
-            currentUser.setDateNaissance(java.time.LocalDate.parse(dateNaissanceStr));
+            targetUser.setNom(nom.trim());
+            targetUser.setPrenom(prenom.trim());
+            targetUser.setemail(email.trim());
+            targetUser.setDateNaissance(java.time.LocalDate.parse(dateNaissanceStr));
             
-            // Mettre à jour le mot de passe si fourni
-            if (motDePasse != null && !motDePasse.trim().isEmpty()) {
-                currentUser.mettreAJourMotDePasse(motDePasse);
+            // Mettre à jour le mot de passe si fourni et si on modifie son propre profil
+            if (!isAdminModifyingOther && motDePasse != null && !motDePasse.trim().isEmpty()) {
+                targetUser.mettreAJourMotDePasse(motDePasse);
             }
             
             // Sauvegarder
-            currentUser.save();
+            targetUser.save();
             
-            // Mettre à jour la session
-            request.getSession().setAttribute("user", currentUser);
+            // Mettre à jour la session si on modifie son propre profil
+            if (!isAdminModifyingOther) {
+                request.getSession().setAttribute("user", targetUser);
+            }
             
             request.setAttribute("success", "Profil mis à jour avec succès !");
+            if (isAdminModifyingOther) {
+                request.setAttribute("viewedUser", targetUser);
+            }
             request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
             
         } catch (java.time.format.DateTimeParseException e) {
             request.setAttribute("error", "Format de date invalide");
+            if (isAdminModifyingOther) {
+                request.setAttribute("viewedUser", targetUser);
+            }
             request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
         } catch (SQLException e) {
             request.setAttribute("error", "Erreur base de données: " + e.getMessage());
+            if (isAdminModifyingOther) {
+                request.setAttribute("viewedUser", targetUser);
+            }
             request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
         } catch (Exception e) {
             request.setAttribute("error", "Erreur: " + e.getMessage());
+            if (isAdminModifyingOther) {
+                request.setAttribute("viewedUser", targetUser);
+            }
             request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
         }
     }
@@ -780,8 +816,7 @@ public class Utilisateur {
     }
 
     public String getIne() throws SQLException {
-        return trouverIneEtudiantParId(this.id)
-            .orElse("");
+        return trouverIneEtudiantParId(this.id).orElse("");
     }
 
     public String getSpecialiteTag() throws SQLException {

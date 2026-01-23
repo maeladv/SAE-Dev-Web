@@ -495,3 +495,8 @@ function copyResetLink(userId) {
         showNotification('Erreur réseau: ' + error.message, 'error');
     });
 }
+
+function VoirProfilUtilisateur(userId) {
+    // Rediriger vers la page de profil de l'utilisateur
+    window.location.href = contextPath + '/app/moncompte?userId=' + encodeURIComponent(userId);
+}

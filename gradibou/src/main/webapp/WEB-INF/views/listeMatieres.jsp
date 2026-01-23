@@ -326,7 +326,7 @@
         });
 
         let currentDeleteMatiereId = null;
-        let currentRemoveStudentId = null;
+        let currentRemoveidUtilisateur = null;
         let currentRemoveStudentEmail = null;
 
         function editMatiere(id, nom, semestre, profEmail) {
@@ -551,8 +551,8 @@
             window.location.href = contextPath + '/app/admin/examens?matId=' + matiereId;
         }
 
-        function viewStudentGrades(studentId) {
-            window.location.href = contextPath + '/app/admin/notes?studentId=' + studentId;
+        function viewStudentGrades(idUtilisateur) {
+            window.location.href = contextPath + '/app/admin/notes?idUtilisateur=' + idUtilisateur;
         }
 
         // Close modal when clicking overlay

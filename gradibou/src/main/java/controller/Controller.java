@@ -126,21 +126,21 @@ public class Controller extends HttpServlet {
                     return;
                 }
 
-                // Si un studentId est fourni, afficher la page des notes de cet étudiant
+                // Si un idUtilisateur est fourni, afficher la page des notes de cet étudiant
                 try {
-                    String studentIdParam = request.getParameter("studentId");
-                    if (studentIdParam != null && !studentIdParam.isEmpty()) {
-                        int studentId = Integer.parseInt(studentIdParam);
+                    String idUtilisateurParam = request.getParameter("idUtilisateur");
+                    if (idUtilisateurParam != null && !idUtilisateurParam.isEmpty()) {
+                        int idUtilisateur = Integer.parseInt(idUtilisateurParam);
                         // Charger l'étudiant visualisé et ses statistiques
-                        Utilisateur viewed = Utilisateur.trouverParId(studentId);
+                        Utilisateur viewed = Utilisateur.trouverParId(idUtilisateur);
                         if (viewed == null) {
                             request.setAttribute("error", "Étudiant introuvable");
                             view = "/WEB-INF/views/error.jsp";
                             break;
                         }
 
-                        java.util.Map<String, Object> stats = model.Note.calculerStatistiquesEtudiant(studentId);
-                        request.setAttribute("notes", model.Note.trouverParEtudiant(studentId));
+                        java.util.Map<String, Object> stats = model.Note.calculerStatistiquesEtudiant(idUtilisateur);
+                        request.setAttribute("notes", model.Note.trouverParEtudiant(idUtilisateur));
                         request.setAttribute("generalAverage", stats.get("moyenneGenerale"));
                         request.setAttribute("semesterStats", stats.get("statistiquesSemestres"));
                         request.setAttribute("subjectAverages", stats.get("moyennesMatieres"));
@@ -664,6 +664,22 @@ public class Controller extends HttpServlet {
                 if (!Role.estConnecte(request.getSession(false))) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
                     return;
+                }
+                // Si userId est fourni et que l'utilisateur est admin, afficher le profil de cet utilisateur
+                try {
+                    String userIdParam = request.getParameter("userId");
+                    if (userIdParam != null && !userIdParam.isEmpty()) {
+                        // Vérifier que l'utilisateur courant est admin
+                        if (Role.estAdmin(request.getSession(false))) {
+                            int targetUserId = Integer.parseInt(userIdParam);
+                            Utilisateur targetUser = Utilisateur.trouverParId(targetUserId);
+                            if (targetUser != null) {
+                                request.setAttribute("viewedUser", targetUser);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // Ignorer et afficher le profil de l'utilisateur courant
                 }
                 view = "/WEB-INF/views/moncompte.jsp";
                 break;
