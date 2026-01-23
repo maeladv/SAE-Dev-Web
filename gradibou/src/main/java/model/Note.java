@@ -278,13 +278,116 @@ public class Note {
                     }
                 }
                 
+                Examen examen = model.Examen.trouverParId(idExam);
+                request.setAttribute("examen", examen);
                 request.setAttribute("notes", model.Note.trouverParExamen(idExam));
-                request.setAttribute("examen", model.Examen.trouverParId(idExam));
+                
+                // Charger tous les étudiants
+                List<Utilisateur> etudiants = model.Utilisateur.trouverTousLesEtudiants();
+                request.setAttribute("etudiants", etudiants);
             }
-            return "/WEB-INF/views/listeNotes.jsp";
+            return "/WEB-INF/views/creerNote.jsp";
         } catch (Exception e) {
             request.setAttribute("error", "Erreur : " + e.getMessage());
             return "/WEB-INF/views/error.jsp";
+        }
+    }
+
+    public static void sauvegarderNotes(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/app/login");
+            return;
+        }
+
+        boolean isAdmin = Role.estAdmin(session);
+        boolean isProfesseur = Role.estProfesseur(session);
+        
+        if (!isAdmin && !isProfesseur) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("{\"success\": false, \"message\": \"Accès refusé\"}");
+            return;
+        }
+
+        try {
+            String examenIdStr = request.getParameter("examId");
+            if (examenIdStr == null || examenIdStr.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"success\": false, \"message\": \"ID d'examen manquant\"}");
+                return;
+            }
+
+            int examenId = Integer.parseInt(examenIdStr);
+            
+            // Vérifier que le professeur a accès à cet examen
+            if (isProfesseur && !isAdmin) {
+                Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                if (currentUser != null) {
+                    Examen examen = model.Examen.trouverParId(examenId);
+                    if (examen != null) {
+                        int matId = examen.getId_matiere();
+                        Matiere matiere = model.Matiere.trouverParId(matId);
+                        if (matiere == null || matiere.getProfId() != currentUser.getId()) {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.getWriter().write("{\"success\": false, \"message\": \"Accès refusé à cet examen\"}");
+                            return;
+                        }
+                    }
+                }
+            }
+
+            int notesEnregistrees = 0;
+            
+            // Récupérer tous les paramètres qui commencent par "note_"
+            java.util.Map<String, String[]> params = request.getParameterMap();
+            for (String paramName : params.keySet()) {
+                if (paramName.startsWith("note_")) {
+                    String etudiantIdStr = paramName.substring(5); // Extraire l'ID après "note_"
+                    String noteValStr = request.getParameter(paramName);
+                    
+                    if (noteValStr != null && !noteValStr.trim().isEmpty()) {
+                        try {
+                            int etudiantId = Integer.parseInt(etudiantIdStr);
+                            double noteValDouble = Double.parseDouble(noteValStr);
+                            
+                            // Convertir en entier (multiplier par 100 pour garder 2 décimales)
+                            int noteVal = (int) Math.round(noteValDouble * 100);
+                            
+                            // Vérifier si une note existe déjà pour cet étudiant et cet examen
+                            Note noteExistante = Note.trouverParIdEtudiantExamen(etudiantId, examenId);
+                            
+                            if (noteExistante != null) {
+                                // Mettre à jour la note existante
+                                noteExistante.setValeur(noteVal);
+                                if (noteExistante.save()) {
+                                    notesEnregistrees++;
+                                }
+                            } else {
+                                // Créer une nouvelle note
+                                Note nouvelleNote = new Note(noteVal, examenId, etudiantId);
+                                if (nouvelleNote.save()) {
+                                    notesEnregistrees++;
+                                }
+                            }
+                        } catch (NumberFormatException e) {
+                            // Ignorer les valeurs invalides
+                            System.err.println("Valeur de note invalide pour l'étudiant " + etudiantIdStr + ": " + noteValStr);
+                        }
+                    }
+                }
+            }
+
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"success\": true, \"message\": \"" + notesEnregistrees + " note(s) enregistrée(s) avec succès\"}");
+            
+        } catch (NumberFormatException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("{\"success\": false, \"message\": \"Format numérique invalide\"}");
+        } catch (SQLException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"success\": false, \"message\": \"Erreur BD: " + e.getMessage() + "\"}");
         }
     }
 

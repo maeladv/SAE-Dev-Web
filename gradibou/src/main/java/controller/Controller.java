@@ -638,6 +638,9 @@ public class Controller extends HttpServlet {
                 case "/admin/creer-note":
                     Note.creationNoteParAdmin(request, response);
                     break;
+                case "/admin/sauvegarder-notes":
+                    Note.sauvegarderNotes(request, response);
+                    break;
                 case "/admin/creer-evaluation":
                     Evaluation.creationEvaluationParAdmin(request, response);
                     break;
