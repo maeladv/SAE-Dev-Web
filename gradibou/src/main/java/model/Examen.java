@@ -227,7 +227,7 @@ public class Examen {
 
         String nom = request.getParameter("nom");
         String coefficientStr = request.getParameter("coefficient");
-        String idmatiereStr = request.getParameter("idmatiere");
+        String idmatiereStr = request.getParameter("matiereId");
         int matiereId = -1;
 
         try {
