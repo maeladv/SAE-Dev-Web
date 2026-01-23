@@ -369,7 +369,7 @@ public class Matiere {
                 
                 request.setAttribute("matieres", matieres);
                 request.setAttribute("specialite", model.Specialite.trouverParId(idSpec));
-                // Load students for this specialty
+                // charger les étudiants inscrits dans cette spécialité
                 request.setAttribute("students", model.Utilisateur.trouverEtudiantsParSpecialite(idSpec));
             } else {
                 request.setAttribute("matieres", model.Matiere.trouverToutes());

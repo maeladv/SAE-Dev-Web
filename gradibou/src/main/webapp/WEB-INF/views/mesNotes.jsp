@@ -4,6 +4,7 @@
 <%@ page import="model.Examen" %>
 <%@ page import="model.Matiere" %>
 <%@ page import="model.Specialite" %>
+<%@ page import="util.Role" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.Map" %>
@@ -11,14 +12,28 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.LinkedHashMap" %>
 <%
-    Utilisateur user = (Utilisateur) session.getAttribute("user");
-    if (user == null) {
+    Utilisateur sessionUtilisateur = (Utilisateur) session.getAttribute("user");
+    if (sessionUtilisateur == null) {
         response.sendRedirect(request.getContextPath() + "/app/login");
         return;
     }
-    
-    // Vérifier que c'est un étudiant
-    if (user.getRole() != null && !user.getRole().equals("etudiant")) {
+
+    boolean estAdmin = Role.estAdmin(session);
+    boolean estProf = Role.estProfesseur(session);
+    boolean estEtudiant = Role.estEtudiant(session);
+
+    // Par défaut, afficher l'utilisateur en session. Si admin/prof visite une page d'un étudiant,
+    // le contrôleur fournit l'attribut request "utilisateurvu".
+    Utilisateur utilisateur = sessionUtilisateur;
+    if (estAdmin || estProf) {
+        try {
+            Utilisateur utilisateurvu = (Utilisateur) request.getAttribute("utilisateurvu");
+            if (utilisateurvu != null) {
+                utilisateur = utilisateurvu;
+            }
+        } catch (Exception e) { /* ignore */ }
+    } else if (!estEtudiant) {
+        // Si ni admin/prof ni étudiant, rediriger
         response.sendRedirect(request.getContextPath() + "/app/login");
         return;
     }
@@ -44,14 +59,14 @@
             <div class="header-content">
                 <div class="title-section">
                     <p class="header-subtitle">Mes notes</p>
-                    <h1 class="header-title"><%= user.getNom() %> <%= user.getPrenom() %></h1>
+                    <h1 class="header-title"><%= utilisateur.getNom() %> <%= utilisateur.getPrenom() %></h1>
                     
                     <!-- Badges spécialité et année -->
                     <div class="badges-container">
                         <% 
                             String specialiteTag = "";
                             try {
-                                specialiteTag = user.getSpecialiteTag();
+                                specialiteTag = utilisateur.getSpecialiteTag();
                                 if (specialiteTag != null && !specialiteTag.isEmpty()) {
                         %>
                             <div class="badge badge-specialite" data-specialite="<%= specialiteTag.toLowerCase() %>">
@@ -177,7 +192,7 @@
                     <% 
                         String specialiteTagRanking = "";
                         try {
-                            specialiteTagRanking = user.getSpecialiteTag();
+                            specialiteTagRanking = utilisateur.getSpecialiteTag();
                             if (specialiteTagRanking != null && !specialiteTagRanking.isEmpty()) {
                     %>
                         <div class="badge badge-specialite-small" data-specialite="<%= specialiteTagRanking.toLowerCase() %>">

@@ -120,10 +120,57 @@ public class Controller extends HttpServlet {
                 view = Examen.afficherExamens(request);
                 break;
             case "/admin/notes":
-                if (!Role.estAdmin(request.getSession(false))) {
+                // Autoriser admin et professeur
+                if (!Role.estAdmin(request.getSession(false)) && !Role.estProfesseur(request.getSession(false))) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
                     return;
                 }
+
+                // Si un studentId est fourni, afficher la page des notes de cet étudiant
+                try {
+                    String studentIdParam = request.getParameter("studentId");
+                    if (studentIdParam != null && !studentIdParam.isEmpty()) {
+                        int studentId = Integer.parseInt(studentIdParam);
+                        // Charger l'étudiant visualisé et ses statistiques
+                        Utilisateur viewed = Utilisateur.trouverParId(studentId);
+                        if (viewed == null) {
+                            request.setAttribute("error", "Étudiant introuvable");
+                            view = "/WEB-INF/views/error.jsp";
+                            break;
+                        }
+
+                        java.util.Map<String, Object> stats = model.Note.calculerStatistiquesEtudiant(studentId);
+                        request.setAttribute("notes", model.Note.trouverParEtudiant(studentId));
+                        request.setAttribute("generalAverage", stats.get("moyenneGenerale"));
+                        request.setAttribute("semesterStats", stats.get("statistiquesSemestres"));
+                        request.setAttribute("subjectAverages", stats.get("moyennesMatieres"));
+                        request.setAttribute("bestSubject", stats.get("meilleureMatiere"));
+                        request.setAttribute("bestSubjectGrade", stats.get("meilleureMoyenne"));
+                        request.setAttribute("worstSubject", stats.get("pireMatiere"));
+                        request.setAttribute("worstSubjectGrade", stats.get("pireMoyenne"));
+                        request.setAttribute("sem1Subjects", stats.get("matieresSem1"));
+                        request.setAttribute("sem2Subjects", stats.get("matieresSem2"));
+                        request.setAttribute("sem1Groups", stats.get("groupesSem1"));
+                        request.setAttribute("sem2Groups", stats.get("groupesSem2"));
+                        request.setAttribute("sem1Average", stats.get("moyenneSem1"));
+                        request.setAttribute("sem2Average", stats.get("moyenneSem2"));
+                        request.setAttribute("sem1SubjectAverages", stats.get("moyenneMatieresSem1"));
+                        request.setAttribute("sem2SubjectAverages", stats.get("moyenneMatieresSem2"));
+                        request.setAttribute("rankingInSpeciality", stats.get("classementDansSpecialite"));
+                        request.setAttribute("totalStudentsInSpeciality", stats.get("totalEtudiantsDansSpecialite"));
+
+                        // Indiquer à la vue quel utilisateur afficher
+                        request.setAttribute("utilisateurvu", viewed);
+                        view = "/WEB-INF/views/mesNotes.jsp";
+                        break;
+                    }
+                } catch (Exception e) {
+                    request.setAttribute("error", "Erreur lors du chargement des notes : " + e.getMessage());
+                    view = "/WEB-INF/views/error.jsp";
+                    break;
+                }
+
+                // Sinon, fallback sur l'affichage des notes par examen
                 view = Note.afficherNotes(request);
                 break;
             case "/complete-profil":
@@ -807,7 +854,7 @@ public class Controller extends HttpServlet {
                     int evalParamId = Integer.parseInt(evalIdParam);
                     evalSelectionnee = model.Evaluation.trouverParId(evalParamId);
                 } catch (NumberFormatException ignore) {
-                    // fallback below
+                    
                 }
             }
 
