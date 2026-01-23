@@ -14,7 +14,7 @@
   description: "SAE Développement D'applications Web Interactives - Spécialité Informatique et Cybersécurité - 3ème année - INSA Hauts-de-France", // description du document
   date: datetime(day: 10, month: 3, year: 2025), // date du document, sous format datetime
   subject: "Matière", // matière du document ou texte en bas
-  bib-yaml: bibliography("sources.yaml"),  // référence vers une bibliographie
+  //bib-yaml: bibliography("sources.yaml"),  // référence vers une bibliographie
   logo: image("assets/insa-hdf.png", width: 33%),
   doc
 )
@@ -51,12 +51,12 @@ L'objectif de cette application est de dématérialiser la gestion des notes, le
 === Gestion de version et collaboration :
 - Git (Flow avec protection des branches)
 
-- Hébergement : GitHub
+- Hébergement : #link("https://github.com/maeladv/SAE-Dev-Web")[GitHub]
 
 === Outils de conception 
 - Figma (UI)
 - Draw.io (UML)
-- Notion (Gestion de projet).
+- #link("https://www.notion.so/louisonbdz/SAE-ICY-Developpement-Web-2e6e2a1195f3802a9f77c8be503265d9?source=copy_link")[Notion] (Gestion de projet).
 
 == Cibles
 
@@ -280,6 +280,12 @@ Possède des droits globaux sur l'application (gestion des utilisateurs, lance E
 
 - Gère les fonctions DoPost et DoGet permettant la redirection des pages.
 
+=== Modèle
+
+==== JavaBeans
+
+- Chaque classe est mis sous la forme JavaBeans et contient les fonctions pour suivre le design pattern : design record, de plus elles contiennent les fonctions de recherche dans la db.
+
 === Sécurité
 
 - Protection de toutes les routes en fonction du rôle de l'utilisateur.
@@ -356,20 +362,70 @@ Date : 23/01
 == Schéma de la base de données
 
 #figure(
-  caption: [Schéma de la BDD.], 
+  caption: [Schéma de la BDD version 1.], 
   image("/rapports/assets/diagrammes/version_png/Diagramme_db.png", width: 100%)
+)<db>
+
+#linebreak()
+
+Après avoir travaillé sur l'application, il est devenu évident que certains changements étaient nécessaires pour faire fonctionner correctement et efficacement l'application.
+#figure(
+  caption: [Schéma de la BDD version 2.], 
+  image("/rapports/assets/diagrammes/version_png/Diagramme_db_v2.png", width: 100%)
 )<db>
 
 = Interface UI/UX
 
 === Maquette de l'application
 
+Ce qui démarque véritablement notre projet, c'est le niveau d'aboutissement de notre maquette Figma. Nous ne nous sommes pas contentés d'illustrer l'application : nous avons réalisé le design complet de chacune des pages, transformant nos idées en un prototype fidèle, immersif et prêt pour le développement.
+
+Notre démarche s'appuie sur trois axes qui témoignent de la maturité technique de notre travail :
+
+- Exhaustivité du design : L'intégralité de l'application a été maquettée, page par page. De plus pour assurer une cohérence parfaite et gagner en efficacité, nous avons développé une bibliothèque de composants réutilisables. Celle-ci inclut l'ensemble des éléments d'interface : headers, boutons, bibliothèques d'icônes, champs de saisie (inputs), et fenêtres modales (pop-ups).
+#figure(
+  caption: [ensemble des composants réutilisables sur figma.], 
+  image("/rapports/assets/composant_figma.png", width: 100%)
+)<figma>
+
+- Maîtrise des Flux Utilisateurs : Nous avons défini et géré l'ensemble des chemins logiques entre les pages. La navigation n'est pas laissée au hasard ; chaque clic a été pensé pour guider l'utilisateur naturellement d'un écran à un autre, sans rupture dans son parcours.
+#figure(
+  caption: [Intéractions entre les pages], 
+  image("/rapports/assets/interaction_figma.png", width: 75%)
+)<figma>
+
+- Une interactivité poussée au maximum : Notre maquette est entièrement cliquable et interactive. Nous avons simulé le comportement réel de l'application, incluant non seulement les transitions entre les pages, mais aussi le déclenchement des interactions complexes comme l'ouverture et la fermeture des pop-ups.
+#figure(
+  caption: [page intéractive sur figma.], 
+  image("/rapports/assets/page_interactive_figma.png", width: 100%)
+)<figma>
+
+Nous invitons formetement les lecteurs de ce rapports à jeter un coup d'oeil à #link("https://www.figma.com/design/QpvqlQgX5KHlphDzAcWdPm/Maquette-SAE?node-id=20-123&t=ANUNhfVW9MvuBUDI-0")[notre maquette sur figma] et à #link("https://www.figma.com/proto/QpvqlQgX5KHlphDzAcWdPm/Maquette-SAE?node-id=46-440&p=f&t=LEVjaKnMcMwqyAvx-8&scaling=contain&content-scaling=responsive&page-id=0%3A1&starting-point-node-id=26%3A317&show-proto-sidebar=1&hide-ui=1")[notre maquette intéractive sur figma], elles représentent une bonne part de notre travail de réflexion sur la conception de notre application.
 ===
 
 = Amélioration prévue
 
 - Envoie des liens de validation de compte et de réinitialisation de mot de passe par mail.
 - Barre de recherche dans la page d'EVE admin.
+- Aide à la saisie d'un étudiant et des profs (ajout à une matière, assignation, etc..) qui se fait actuellement en donnant le mail
+- Boutons de retour pour rendre la navigation plus intuitive
+- Intégration d’IA générative pour résumer synthétiquement les retours textuels des EVE de chaque matière et faire un commentaire global sur la spécialité
+- sauvegarder les stats des EVE pour ne pas faire des requêtes a la db et recalculer a chaque fois que quelqu’un veut consulter les stats
+- Ajouter une page de mentions légales. Important pour un site en production mais pas prioritaire pour notre projet
+- Ajouter les matières d’un prof dans la section `Champs Spécifiques` de la page `moncompte`
+- Liste d’appel pour les professeur
+
+= bibliographie
+
+- #link("https://koor.fr/Java/SupportStruts2/slide15.wp")[Le framework struts 2]
+
+- #link("https://www.conventionalcommits.org/en/v1.0.0/")[Conventional commits]
+
+- #link("https://youtu.be/jevdND1NBVs?si=Qq4JyL0pw7eBoP7A")[Développer avec Java EE]
+
+- #link("https://www.nubios.be/cahier-des-charges-application-mobile-guide-complet")[Créer un cahier des charges : Le guide complet]
+
+- #link("https://www.nubios.be/cahier-des-charges-application-mobile-guide-complet")[Comment faire un cahier des charges]
 
 
 
