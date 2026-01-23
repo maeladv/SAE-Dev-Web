@@ -364,16 +364,32 @@
         </div>
 
         <div class="eva-specialty-list">
+            <%
+                java.util.List<java.util.Map<String, Object>> specialitesAvecRetours = (java.util.List<java.util.Map<String, Object>>) request.getAttribute("specialitesAvecRetours");
+                if (specialitesAvecRetours != null && !specialitesAvecRetours.isEmpty()) {
+                    for (java.util.Map<String, Object> spec : specialitesAvecRetours) {
+                        Double moyenneSpec = (Double) spec.get("moyenne");
+            %>
             <div class="eva-specialty-item">
-                <div class="spe-badge icy">ICY</div>
-                <div class="year-badge">3A</div>
-                <div class="eva-specialty-name">Informatique et Cybersécurité</div>
-                <div class="eva-specialty-score">1,8/5</div>
-                <a href="<%= request.getContextPath() %>/app/admin/resultats-evaluation?evaluationId=1" class="btn btn-primary eva-specialty-btn">
+                <div class="spe-badge icy"><%= spec.get("tag") %></div>
+                <div class="year-badge"><%= spec.get("annee") %>A</div>
+                <div class="eva-specialty-name"><%= spec.get("nom") %></div>
+                <div class="eva-specialty-score"><%= String.format(Locale.FRANCE, "%.1f", moyenneSpec != null ? moyenneSpec : 0.0) %>/5</div>
+                <a href="<%= request.getContextPath() %>/app/admin/resultats-evaluation?evaluationId=<%= currentEvalId %>" class="btn btn-primary eva-specialty-btn">
                     Voir les résultats
                     <img src="<%= request.getContextPath() %>/static/icons/white/caret-right.svg" alt="">
                 </a>
             </div>
+            <%
+                    }
+                } else {
+            %>
+            <div class="eva-specialty-item" style="justify-content: center;">
+                Aucune spécialité n'a encore de retours pour cette évaluation.
+            </div>
+            <%
+                }
+            %>
         </div>
     </main>
 </div>

@@ -425,6 +425,24 @@ public class Controller extends HttpServlet {
                             model.Specialite specMC = model.Specialite.trouverParId(specMostCommentsId);
                             request.setAttribute("mostTextResponsesTag", specMC != null ? specMC.getTag() : "-");
                         }
+
+                        // Spécialités ayant des retours pour l'évaluation sélectionnée
+                        java.util.List<java.util.Map<String, Object>> specialitesAvecRetours = new java.util.ArrayList<>();
+                        java.util.List<model.Specialite> toutesSpecs = model.Specialite.trouverToutes();
+                        for (model.Specialite spec : toutesSpecs) {
+                            int taux = model.Reponse_Evaluation.calculerTauxReponseParSpecialite(currentEvalId, spec.getId());
+                            if (taux > 0) { // au moins un retour
+                                double moyenne = model.Reponse_Evaluation.calculerMoyenneGeneraleParSpecialite(currentEvalId, spec.getId());
+                                java.util.Map<String, Object> entry = new java.util.HashMap<>();
+                                entry.put("id", spec.getId());
+                                entry.put("tag", spec.getTag());
+                                entry.put("annee", spec.getAnnee());
+                                entry.put("nom", spec.getNom());
+                                entry.put("moyenne", moyenne);
+                                specialitesAvecRetours.add(entry);
+                            }
+                        }
+                        request.setAttribute("specialitesAvecRetours", specialitesAvecRetours);
                     } else {
                         // Valeurs par défaut si aucune évaluation
                         request.setAttribute("responseRate", 0);
@@ -434,6 +452,7 @@ public class Controller extends HttpServlet {
                         request.setAttribute("positiveReturn", java.util.Collections.emptyMap());
                         request.setAttribute("negativeReturn", java.util.Collections.emptyMap());
                         request.setAttribute("mostTextResponsesTag", "-");
+                        request.setAttribute("specialitesAvecRetours", java.util.Collections.emptyList());
                     }
                 } catch (SQLException e) {
                     request.setAttribute("error", "Erreur lors du chargement des évaluations: " + e.getMessage());
