@@ -170,7 +170,7 @@
 
 .users-table thead th.sortable {
     cursor: pointer;
-    user-select: none;
+    utilisateur-select: none;
     transition: background-color 0.2s, color 0.2s;
     position: relative;
 }

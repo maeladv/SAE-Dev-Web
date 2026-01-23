@@ -269,10 +269,10 @@ public class Evaluation {
             while (rs.next()) {
                 java.util.Map<String, Object> eval = new java.util.HashMap<>();
                 int evalId = rs.getInt("id");
-                int matiereId = rs.getInt("matiere_id");
+                int idmatiere = rs.getInt("matiere_id");
                 
                 eval.put("evaluation_id", evalId);
-                eval.put("matiere_id", matiereId);
+                eval.put("matiere_id", idmatiere);
                 eval.put("matiere_nom", rs.getString("matiere_nom"));
                 eval.put("date_debut", rs.getObject("date_debut"));
                 eval.put("date_fin", rs.getObject("date_fin"));
@@ -280,7 +280,7 @@ public class Evaluation {
                 eval.put("matiere_semestre", rs.getInt("matiere_semestre"));
                 
                 // Vérifier si l'étudiant a déjà répondu
-                boolean aRepondu = model.A_Repondu_Evaluation.aRepondu(idEtudiant, matiereId, evalId);
+                boolean aRepondu = model.A_Repondu_Evaluation.aRepondu(idEtudiant, idmatiere, evalId);
                 
                 // Vérifier si l'évaluation est toujours ouverte
                 java.time.LocalDateTime now = java.time.LocalDateTime.now();
@@ -305,7 +305,7 @@ public class Evaluation {
                 
                 // Calculer le taux de réponse
                 try {
-                    int tauxReponse = model.Reponse_Evaluation.calculerTauxReponseParMatiere(evalId, matiereId);
+                    int tauxReponse = model.Reponse_Evaluation.calculerTauxReponseParMatiere(evalId, idmatiere);
                     eval.put("taux_reponse", tauxReponse);
                 } catch (Exception e) {
                     eval.put("taux_reponse", 0);

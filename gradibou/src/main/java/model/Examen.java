@@ -215,7 +215,7 @@ public class Examen {
     public static void creationExamenParAdmin(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
+        if (session == null || session.getAttribute("utilisateur") == null) {
             response.sendRedirect(request.getContextPath() + "/app/login");
             return;
         }
@@ -234,20 +234,20 @@ public class Examen {
 
         String nom = request.getParameter("nom");
         String coefficientStr = request.getParameter("coefficient");
-        String matiereIdStr = request.getParameter("matiereId");
+        String idmatiereStr = request.getParameter("idmatiere");
 
         try {
             if (nom == null || nom.isEmpty() || coefficientStr == null || coefficientStr.isEmpty() || 
-                matiereIdStr == null || matiereIdStr.isEmpty()) {
+                idmatiereStr == null || idmatiereStr.isEmpty()) {
                 request.setAttribute("error", "Tous les champs sont requis.");
                 request.getRequestDispatcher("/WEB-INF/views/creerExamen.jsp").forward(request, response);
                 return;
             }
 
             int coefficient = Integer.parseInt(coefficientStr);
-            int matiereId = Integer.parseInt(matiereIdStr);
+            int idmatiere = Integer.parseInt(idmatiereStr);
 
-            model.Examen examen = new model.Examen(nom, coefficient, matiereId);
+            model.Examen examen = new model.Examen(nom, coefficient, idmatiere);
             
             if (examen.save()) {
                 request.setAttribute("success", "Examen créé avec succès");
@@ -275,7 +275,7 @@ public class Examen {
                 
                 // Vérifier que le professeur a accès à cette matière
                 if (isProfesseur && !isAdmin) {
-                    Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                    Utilisateur currentUser = (Utilisateur) session.getAttribute("utilisateur");
                     if (currentUser != null) {
                         Matiere matiere = model.Matiere.trouverParId(idMat);
                         if (matiere == null || matiere.getProfId() != currentUser.getId()) {
@@ -317,7 +317,7 @@ public class Examen {
                 
                 // Vérifier que le professeur a accès à cette matière
                 if (isProfesseur && !isAdmin) {
-                    Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                    Utilisateur currentUser = (Utilisateur) session.getAttribute("utilisateur");
                     if (currentUser != null) {
                         Matiere matiere = model.Matiere.trouverParId(matId);
                         if (matiere == null || matiere.getProfId() != currentUser.getId()) {
@@ -363,7 +363,7 @@ public class Examen {
                 
                 // Vérifier que le professeur a accès à cette matière
                 if (isProfesseur && !isAdmin) {
-                    Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                    Utilisateur currentUser = (Utilisateur) session.getAttribute("utilisateur");
                     if (currentUser != null) {
                         Matiere matiere = model.Matiere.trouverParId(matId);
                         if (matiere == null || matiere.getProfId() != currentUser.getId()) {

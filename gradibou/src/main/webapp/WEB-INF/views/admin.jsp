@@ -104,17 +104,17 @@
                                     java.util.List<model.Utilisateur> utilisateurs = (java.util.List<model.Utilisateur>) request.getAttribute("utilisateurs");
                                     if (utilisateurs != null && !utilisateurs.isEmpty()) {
                                         int index = 0;
-                                        for (model.Utilisateur user : utilisateurs) {
+                                        for (model.Utilisateur utilisateur : utilisateurs) {
                                             String rowClass = (index % 2 == 1) ? "table-row-alt" : "";
-                                            String roleClass = "role-" + user.getRole().toLowerCase();
-                                            String roleLabel = user.getRole().substring(0, 1).toUpperCase() + user.getRole().substring(1);
+                                            String roleClass = "role-" + utilisateur.getRole().toLowerCase();
+                                            String roleLabel = utilisateur.getRole().substring(0, 1).toUpperCase() + utilisateur.getRole().substring(1);
                                             String ine = "-";
                                             String specialiteTag = "-";
                                             String specialiteClass = "";
                                             try {
-                                                String valIne = user.getIne();
+                                                String valIne = utilisateur.getIne();
                                                 ine = (valIne != null && !valIne.isEmpty()) ? valIne : "-";
-                                                String tag = user.getSpecialiteTag();
+                                                String tag = utilisateur.getSpecialiteTag();
                                                 if (tag != null && !tag.isEmpty()) {
                                                     specialiteTag = tag.toUpperCase();
                                                     specialiteClass = "specialite-badge spe-" + tag.toLowerCase();
@@ -129,11 +129,11 @@
                                             }
                                 %>
                                 <tr <%= !rowClass.isEmpty() ? "class=\"" + rowClass + "\"" : "" %>>
-                                    <td><%= user.getId() %></td>
-                                    <td><%= user.getNom() %></td>
-                                    <td><%= user.getPrenom() %></td>
+                                    <td><%= utilisateur.getId() %></td>
+                                    <td><%= utilisateur.getNom() %></td>
+                                    <td><%= utilisateur.getPrenom() %></td>
                                     <td><span class="role-badge <%= roleClass %>"><%= roleLabel.toUpperCase() %></span></td>
-                                    <td><%= user.getemail() %></td>
+                                    <td><%= utilisateur.getemail() %></td>
                                     <td><%= ine %></td>
                                     <td>
                                         <%
@@ -151,21 +151,21 @@
                                     <td>
                                         <div class="table-actions">
                                             <button class="btn-tertiary" title="Éditer"
-                                                onclick="editUser(<%= user.getId() %>, '<%= user.getNom() %>', '<%= user.getPrenom() %>', '<%= user.getemail() %>', '<%= user.getRole() %>')">
+                                                onclick="editUser(<%= utilisateur.getId() %>, '<%= utilisateur.getNom() %>', '<%= utilisateur.getPrenom() %>', '<%= utilisateur.getemail() %>', '<%= utilisateur.getRole() %>')">
                                                 <img src="<%= request.getContextPath() %>/static/icons/black/pen.svg"
                                                     alt="Éditer un utilisateur icone">
                                             </button>
                                             <button class="btn-tertiary" title="Supprimer"
-                                                onclick="confirmDelete(<%= user.getId() %>, '<%= user.getPrenom() %> <%= user.getNom() %>')">
+                                                onclick="confirmDelete(<%= utilisateur.getId() %>, '<%= utilisateur.getPrenom() %> <%= utilisateur.getNom() %>')">
                                                 <img src="<%= request.getContextPath() %>/static/icons/black/trash.svg"
                                                     alt="Supprimer un utilisateur icone">
                                             </button>
                                             <button class="btn-tertiary" title="Copier le lien de réinitialisation"
-                                                onclick="copyResetLink(<%= user.getId() %>)">
+                                                onclick="copyResetLink(<%= utilisateur.getId() %>)">
                                                 <img src="<%= request.getContextPath() %>/static/icons/black/link.svg"
                                                     alt="Copier le lien de réinitialisation icone">
                                             </button>
-                                            <button class="btn-primary" title="Voir le profil" onclick="VoirProfilUtilisateur(<%= user.getId() %>)">
+                                            <button class="btn-primary" title="Voir le profil" onclick="VoirProfilUtilisateur(<%= utilisateur.getId() %>)">
                                                 <img src="<%= request.getContextPath() %>/static/icons/white/eye.svg" alt="Voir le profil icone">
                                             </button>
                                         </div>
@@ -265,7 +265,7 @@
                 <h2 class="modal-title">Modifier l'utilisateur</h2>
 
                 <form onsubmit="return submitEditAccount(event)">
-                    <input type="hidden" id="editUserId" name="id">
+                    <input type="hidden" id="editidUtilisateur" name="id">
                     <div class="modal-form-grid">
                         <!-- Colonne gauche -->
                         <div class="form-group">

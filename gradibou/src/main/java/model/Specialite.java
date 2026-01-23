@@ -258,7 +258,7 @@ public class Specialite {
                 request.setAttribute("specialites", model.Specialite.trouverToutes());
                 request.setAttribute("userRole", "admin");
             } else if (isProfesseur) {
-                Utilisateur prof = (Utilisateur) session.getAttribute("user");
+                Utilisateur prof = (Utilisateur) session.getAttribute("utilisateur");
                 if (prof != null) {
                     request.setAttribute("specialites", model.Specialite.trouverParProfesseur(prof.getId()));
                     request.setAttribute("userRole", "professeur");

@@ -2,7 +2,7 @@
 <%@ page import="model.Utilisateur" %>
 <%@ page import="java.time.LocalDate" %>
 <%
-    Utilisateur sessionUser = (Utilisateur) session.getAttribute("user");
+    Utilisateur sessionUser = (Utilisateur) session.getAttribute("utilisateur");
     if (sessionUser == null) {
         response.sendRedirect(request.getContextPath() + "/app/login");
         return;
@@ -10,10 +10,10 @@
     
     // Déterminer quel utilisateur afficher
     Utilisateur displayUser = sessionUser;
-    Utilisateur viewedUser = (Utilisateur) request.getAttribute("viewedUser");
+    Utilisateur utilisateurVu = (Utilisateur) request.getAttribute("utilisateurVu");
     boolean isViewingOther = false;
-    if (viewedUser != null) {
-        displayUser = viewedUser;
+    if (utilisateurVu != null) {
+        displayUser = utilisateurVu;
         isViewingOther = true;
     }
     
@@ -54,7 +54,7 @@
             <input type="hidden" name="dateNaissance" value="<%= displayUser.getDateNaissance() %>">
             <% if (isViewingOther) { %>
             <!-- Champ caché pour indiquer quel utilisateur on modifie -->
-            <input type="hidden" name="userId" value="<%= displayUser.getId() %>">
+            <input type="hidden" name="idUtilisateur" value="<%= displayUser.getId() %>">
             <% } %>
             
             <!-- Colonne Gauche: Votre GradiCompte -->
@@ -213,8 +213,8 @@
 <script>
 const contextPath = '<%= request.getContextPath() %>';
 
-function copyResetLinkForUser(userId) {
-    fetch(contextPath + '/app/admin/get-reset-link?userId=' + encodeURIComponent(userId))
+function copyResetLinkForUser(idUtilisateur) {
+    fetch(contextPath + '/app/admin/get-reset-link?idUtilisateur=' + encodeURIComponent(idUtilisateur))
     .then(response => response.text())
     .then(text => {
         try {

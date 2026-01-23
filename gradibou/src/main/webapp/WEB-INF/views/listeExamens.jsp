@@ -91,7 +91,7 @@
     <div class="card">
         <h3>Créer un examen</h3>
         <form action="<%= request.getContextPath() %>/app/admin/creer-examen" method="post" style="display: flex; gap: 10px; align-items: center;">
-            <input type="hidden" name="matiereId" value="<%= mat != null ? mat.getId() : "" %>">
+            <input type="hidden" name="idmatiere" value="<%= mat != null ? mat.getId() : "" %>">
             
             <label for="coefficient">Coefficient:</label>
             <input type="number" id="coefficient" name="coefficient" required step="1" min="1" value="1">

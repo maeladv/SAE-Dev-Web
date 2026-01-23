@@ -2,7 +2,7 @@
 <%@ page import="model.Utilisateur" %>
 <%
     // Déterminer le statut de l'utilisateur et son rôle
-    Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+    Utilisateur currentUser = (Utilisateur) session.getAttribute("utilisateur");
     String userRole = "non-connecte";
     String displayRole = "Non connecté";
     

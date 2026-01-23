@@ -358,8 +358,8 @@ public class Note {
             List<Double> moyennes = new ArrayList<>();
             double moyenneEtudiantActuel = 0.0;
             
-            for (Utilisateur user : etudiantsSpecialite) {
-                List<Note> notesUtilisateur = trouverParEtudiant(user.getId());
+            for (Utilisateur utilisateur : etudiantsSpecialite) {
+                List<Note> notesUtilisateur = trouverParEtudiant(utilisateur.getId());
                 if (notesUtilisateur == null || notesUtilisateur.isEmpty()) continue;
                 
                 double moy = notesUtilisateur.stream()
@@ -368,7 +368,7 @@ public class Note {
                     .orElse(0.0);
                 
                 moyennes.add(moy);
-                if (user.getId() == idEtudiant) {
+                if (utilisateur.getId() == idEtudiant) {
                     moyenneEtudiantActuel = moy;
                 }
             }
@@ -500,7 +500,7 @@ public class Note {
     public static void creationNoteParAdmin(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
+        if (session == null || session.getAttribute("utilisateur") == null) {
             response.sendRedirect(request.getContextPath() + "/app/login");
             return;
         }
@@ -562,7 +562,7 @@ public class Note {
                 
                 // Vérifier que le professeur a accès à cet examen (via la matière)
                 if (isProfesseur && !isAdmin) {
-                    Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                    Utilisateur currentUser = (Utilisateur) session.getAttribute("utilisateur");
                     if (currentUser != null) {
                         Examen examen = model.Examen.trouverParId(idExam);
                         if (examen != null) {
@@ -602,7 +602,7 @@ public class Note {
             
             // Vérifier que le professeur a accès à cet examen
             if (isProfesseur && !isAdmin) {
-                Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                Utilisateur currentUser = (Utilisateur) session.getAttribute("utilisateur");
                 if (currentUser != null) {
                     Examen examen = model.Examen.trouverParId(examenId);
                     if (examen != null) {
@@ -644,7 +644,7 @@ public class Note {
             
             // Vérifier que le professeur a accès à cet examen
             if (isProfesseur && !isAdmin) {
-                Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                Utilisateur currentUser = (Utilisateur) session.getAttribute("utilisateur");
                 if (currentUser != null) {
                     Examen examen = model.Examen.trouverParId(examenId);
                     if (examen != null) {

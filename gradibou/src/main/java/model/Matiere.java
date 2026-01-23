@@ -19,24 +19,24 @@ public class Matiere {
     private int id;
     private String nom;
     private int semestre;
-    private int specialiteId;
+    private int idspecialite;
     private int profId;
     private boolean persisted = false;
 
     // Constructeurs
     public Matiere() {}
 
-    public Matiere(String nom, int semestre, int specialiteId, int profId) {
+    public Matiere(String nom, int semestre, int idspecialite, int profId) {
         this.nom = nom;
         this.semestre = semestre;
-        this.specialiteId = specialiteId;
+        this.idspecialite = idspecialite;
         this.profId = profId;
     }
 
-    public Matiere(String nom, int semestre, int specialiteId) {
+    public Matiere(String nom, int semestre, int idspecialite) {
         this.nom = nom;
         this.semestre = semestre;
-        this.specialiteId = specialiteId;
+        this.idspecialite = idspecialite;
     }
 
     // ==================== Méthodes de recherche ====================
@@ -79,13 +79,13 @@ public class Matiere {
     /**
      * Trouver les matières d'une spécialité
      */
-    public static List<Matiere> trouverParSpecialite(int specialiteId) throws SQLException {
+    public static List<Matiere> trouverParSpecialite(int idspecialite) throws SQLException {
         List<Matiere> liste = new ArrayList<>();
         String sql = "SELECT id, nom, semestre, id_specialite, id_prof FROM matiere WHERE id_specialite = ? ORDER BY nom";
 
         Connection conn = DatabaseManager.obtenirConnexion();
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, specialiteId);
+            stmt.setInt(1, idspecialite);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     liste.add(creerDepuisResultSet(rs));
@@ -118,7 +118,7 @@ public class Matiere {
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, this.nom);
             stmt.setInt(2, this.semestre);
-            stmt.setInt(3, this.specialiteId);
+            stmt.setInt(3, this.idspecialite);
             stmt.setInt(4, this.profId);
 
             int rowsInserted = stmt.executeUpdate();
@@ -139,7 +139,7 @@ public class Matiere {
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, this.nom);
             stmt.setInt(2, this.semestre);
-            stmt.setInt(3, this.specialiteId);
+            stmt.setInt(3, this.idspecialite);
             stmt.setInt(4, this.profId);
             stmt.setInt(5, this.id);
 
@@ -211,7 +211,7 @@ public class Matiere {
             this.id = fresh.id;
             this.nom = fresh.nom;
             this.semestre = fresh.semestre;
-            this.specialiteId = fresh.specialiteId;
+            this.idspecialite = fresh.idspecialite;
             this.profId = fresh.profId;
             return true;
         }
@@ -229,7 +229,7 @@ public class Matiere {
         matiere.id = rs.getInt("id");
         matiere.nom = rs.getString("nom");
         matiere.semestre = rs.getInt("semestre");
-        matiere.specialiteId = rs.getInt("id_specialite");
+        matiere.idspecialite = rs.getInt("id_specialite");
         matiere.profId = rs.getInt("id_prof");
         matiere.persisted = true;
         return matiere;
@@ -259,13 +259,13 @@ public class Matiere {
         // Traitement du formulaire (POST)
         String nom = request.getParameter("nom");
         String semestreStr = request.getParameter("semestre");
-        String specialiteIdStr = request.getParameter("specialiteId");
+        String idspecialiteStr = request.getParameter("idspecialite");
         String profEmail = request.getParameter("profEmail");
 
         try {
             // Check if all fields (including profId) are present
             if (nom == null || nom.isEmpty() || semestreStr == null || semestreStr.isEmpty() || 
-                specialiteIdStr == null || specialiteIdStr.isEmpty() ||
+                idspecialiteStr == null || idspecialiteStr.isEmpty() ||
                 profEmail == null || profEmail.isEmpty()) {
                 if (isAjax) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -280,7 +280,7 @@ public class Matiere {
             }
 
             int semestre = Integer.parseInt(semestreStr);
-            int specialiteId = Integer.parseInt(specialiteIdStr);
+            int idspecialite = Integer.parseInt(idspecialiteStr);
 
             Utilisateur prof = Utilisateur.trouverParemail(profEmail);
             if (prof == null || !"professeur".equalsIgnoreCase(prof.getRole())) {
@@ -297,7 +297,7 @@ public class Matiere {
             }
             int profId = prof.getId();
 
-            model.Matiere matiere = new model.Matiere(nom, semestre, specialiteId, profId);
+            model.Matiere matiere = new model.Matiere(nom, semestre, idspecialite, profId);
             
             if (matiere.save()) {
                 if (isAjax) {
@@ -352,7 +352,7 @@ public class Matiere {
                 
                 // Si professeur, filtrer pour ne garder que ses matières
                 if (isProfesseur && !isAdmin) {
-                    Utilisateur currentUser = (Utilisateur) session.getAttribute("user");
+                    Utilisateur currentUser = (Utilisateur) session.getAttribute("utilisateur");
                     if (currentUser != null) {
                         int profId = currentUser.getId();
                         matieres = matieres.stream()
@@ -370,11 +370,11 @@ public class Matiere {
                 request.setAttribute("matieres", matieres);
                 request.setAttribute("specialite", model.Specialite.trouverParId(idSpec));
                 // charger les étudiants inscrits dans cette spécialité
-                request.setAttribute("students", model.Utilisateur.trouverEtudiantsParSpecialite(idSpec));
+                request.setAttribute("etudiants", model.Utilisateur.trouverEtudiantsParSpecialite(idSpec));
             } else {
                 request.setAttribute("matieres", model.Matiere.trouverToutes());
                 request.setAttribute("specialite", null);
-                request.setAttribute("students", new java.util.ArrayList<>());
+                request.setAttribute("etudiants", new java.util.ArrayList<>());
             }
             
             // Passer le rôle à la JSP pour affichage conditionnel
@@ -513,10 +513,10 @@ public class Matiere {
         this.semestre = semestre;
     }
     public int getSpecialiteId() {
-        return specialiteId;
+        return idspecialite;
     }
-    public void setSpecialiteId(int specialiteId) {
-        this.specialiteId = specialiteId;
+    public void setSpecialiteId(int idspecialite) {
+        this.idspecialite = idspecialite;
     }
     public int getProfId() {
         return profId;

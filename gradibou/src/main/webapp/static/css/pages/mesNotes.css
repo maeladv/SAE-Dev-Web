@@ -442,7 +442,7 @@
     color: var(--color-gris-texte);
 }
 
-.exam-row .col-grade-student {
+.exam-row .col-grade-etudiant {
     font-size: 14px;
     font-weight: 700;
     background-color: transparent;
@@ -468,7 +468,7 @@
     text-align: right;
 }
 
-.col-grade-student {
+.col-grade-etudiant {
     flex: 1 0 0;
     padding: 8px;
     border-radius: 8px;
@@ -479,7 +479,7 @@
     text-align: center;
 }
 
-.col-grade-student.best-badge {
+.col-grade-etudiant.best-badge {
     background-color: rgb(250, 70, 126);
 }
 

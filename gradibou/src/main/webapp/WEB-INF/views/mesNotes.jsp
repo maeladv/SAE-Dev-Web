@@ -12,7 +12,7 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.LinkedHashMap" %>
 <%
-    Utilisateur sessionUtilisateur = (Utilisateur) session.getAttribute("user");
+    Utilisateur sessionUtilisateur = (Utilisateur) session.getAttribute("utilisateur");
     if (sessionUtilisateur == null) {
         response.sendRedirect(request.getContextPath() + "/app/login");
         return;
@@ -89,12 +89,12 @@
                 Map<Integer, Map<String, Object>> semesters = (Map<Integer, Map<String, Object>>) request.getAttribute("semesterStats");
                 Map<String, Double> subjectAverages = (Map<String, Double>) request.getAttribute("subjectAverages");
                 Double generalAverage = (Double) request.getAttribute("generalAverage");
-                String bestSubject = (String) request.getAttribute("bestSubject");
-                Double bestSubjectGrade = (Double) request.getAttribute("bestSubjectGrade");
-                String worstSubject = (String) request.getAttribute("worstSubject");
-                Double worstSubjectGrade = (Double) request.getAttribute("worstSubjectGrade");
-                Integer rankingInSpeciality = (Integer) request.getAttribute("rankingInSpeciality");
-                Integer totalStudentsInSpeciality = (Integer) request.getAttribute("totalStudentsInSpeciality");
+                String meilleureMatiere = (String) request.getAttribute("meilleureMatiere");
+                Double meilleureMatiereMoyenne = (Double) request.getAttribute("meilleureMatiereMoyenne");
+                String pireMatiere = (String) request.getAttribute("pireMatiere");
+                Double pireMatiereMoyenne = (Double) request.getAttribute("pireMatiereMoyenne");
+                Integer classementSpecialite = (Integer) request.getAttribute("classementSpecialite");
+                Integer totalEtudiantsSpecialite = (Integer) request.getAttribute("totalEtudiantsSpecialite");
                 
                 // Valeurs par défaut si données non disponibles
                 if (generalAverage == null) generalAverage = 0.0;
@@ -164,10 +164,10 @@
                         <span class="stat-label">Meilleure matière</span>
                     </div>
                     <p class="stat-subject-name">
-                        <%= bestSubject != null ? bestSubject : "N/A" %>
+                        <%= meilleureMatiere != null ? meilleureMatiere : "N/A" %>
                     </p>
                     <div class="grade-display">
-                        <span class="grade-large"><%= bestSubjectGrade != null ? String.format("%.1f", bestSubjectGrade) : "N/A" %></span>
+                        <span class="grade-large"><%= meilleureMatiereMoyenne != null ? String.format("%.1f", meilleureMatiereMoyenne) : "N/A" %></span>
                         <span class="grade-max">/20</span>
                     </div>
                 </div>
@@ -177,10 +177,10 @@
                         <span class="stat-label">Pire matière</span>
                     </div>
                     <p class="stat-subject-name">
-                        <%= worstSubject != null ? worstSubject : "N/A" %>
+                        <%= pireMatiere != null ? pireMatiere : "N/A" %>
                     </p>
                     <div class="grade-display">
-                        <span class="grade-large"><%= worstSubjectGrade != null ? String.format("%.1f", worstSubjectGrade) : "N/A" %></span>
+                        <span class="grade-large"><%= pireMatiereMoyenne != null ? String.format("%.1f", pireMatiereMoyenne) : "N/A" %></span>
                         <span class="grade-max">/20</span>
                     </div>
                 </div>
@@ -205,10 +205,10 @@
                 </div>
                 <div class="grade-display">
                     <span class="grade-large">
-                        <%= rankingInSpeciality != null ? rankingInSpeciality : "N/A" %>
+                        <%= classementSpecialite != null ? classementSpecialite : "N/A" %>
                     </span>
                     <span class="grade-max">
-                        <%= totalStudentsInSpeciality != null ? "/" + totalStudentsInSpeciality : "" %>
+                        <%= totalEtudiantsSpecialite != null ? "/" + totalEtudiantsSpecialite : "" %>
                     </span>
                 </div>
             </div>
@@ -249,7 +249,7 @@
                         for (Map.Entry<String, List<Map<String, Object>>> entry : sem2Groups.entrySet()) {
                             String subjectName = entry.getKey();
                             List<Map<String, Object>> exams = entry.getValue();
-                            boolean isBest = (bestSubject != null && bestSubject.equals(subjectName));
+                            boolean isBest = (meilleureMatiere != null && meilleureMatiere.equals(subjectName));
                     %>
                     <!-- Subject header row -->
                     <div class="subject-row subject-group-header <%= isBest ? "best-grade" : "" %>">
@@ -257,7 +257,7 @@
                         <span class="col-grade">-</span>
                         <span class="col-grade">-</span>
                         <span class="col-grade">-</span>
-                        <span class="col-grade-student <%= isBest ? "best-badge" : "" %>">
+                        <span class="col-grade-etudiant <%= isBest ? "best-badge" : "" %>">
                             <%= String.format("%.1f", sem2SubjectAverages.getOrDefault(subjectName, 0.0)) %>/20
                         </span>
                     </div>
@@ -268,18 +268,18 @@
                                     Double minGrade = (Double) examRow.get("minimum");
                                     Double maxGrade = (Double) examRow.get("maximum");
                                     Double groupAverage = (Double) examRow.get("moyenneGroupe");
-                                    Double studentGrade = (Double) examRow.get("note");
+                                    Double noteEtudiant = (Double) examRow.get("note");
                                     if (minGrade == null) minGrade = 0.0;
                                     if (maxGrade == null) maxGrade = 0.0;
                                     if (groupAverage == null) groupAverage = 0.0;
-                                    if (studentGrade == null) studentGrade = 0.0;
+                                    if (noteEtudiant == null) noteEtudiant = 0.0;
                     %>
                     <div class="exam-row">
                         <span class="col-exam-name"><%= examName %></span>
                         <span class="col-grade"><%= String.format("%.1f", minGrade) %></span>
                         <span class="col-grade"><%= String.format("%.1f", maxGrade) %></span>
                         <span class="col-grade"><%= String.format("%.1f", groupAverage) %></span>
-                        <span class="col-grade-student"><%= String.format("%.1f", studentGrade) %>/20</span>
+                        <span class="col-grade-etudiant"><%= String.format("%.1f", noteEtudiant) %>/20</span>
                     </div>
                     <%          }
                             }
@@ -308,7 +308,7 @@
                         for (Map.Entry<String, List<Map<String, Object>>> entry : sem1Groups.entrySet()) {
                             String subjectName = entry.getKey();
                             List<Map<String, Object>> exams = entry.getValue();
-                            boolean isBest = (bestSubject != null && bestSubject.equals(subjectName));
+                            boolean isBest = (meilleureMatiere != null && meilleureMatiere.equals(subjectName));
                     %>
                     <!-- Subject header row -->
                     <div class="subject-row subject-group-header <%= isBest ? "best-grade" : "" %>">
@@ -316,7 +316,7 @@
                         <span class="col-grade">-</span>
                         <span class="col-grade">-</span>
                         <span class="col-grade">-</span>
-                        <span class="col-grade-student <%= isBest ? "best-badge" : "" %>">
+                        <span class="col-grade-etudiant <%= isBest ? "best-badge" : "" %>">
                             <%= String.format("%.1f", sem1SubjectAverages.getOrDefault(subjectName, 0.0)) %>/20
                         </span>
                     </div>
@@ -327,18 +327,18 @@
                                     Double minGrade = (Double) examRow.get("minimum");
                                     Double maxGrade = (Double) examRow.get("maximum");
                                     Double groupAverage = (Double) examRow.get("moyenneGroupe");
-                                    Double studentGrade = (Double) examRow.get("note");
+                                    Double noteEtudiant = (Double) examRow.get("note");
                                     if (minGrade == null) minGrade = 0.0;
                                     if (maxGrade == null) maxGrade = 0.0;
                                     if (groupAverage == null) groupAverage = 0.0;
-                                    if (studentGrade == null) studentGrade = 0.0;
+                                    if (noteEtudiant == null) noteEtudiant = 0.0;
                     %>
                     <div class="exam-row">
                         <span class="col-exam-name"><%= examName %></span>
                         <span class="col-grade"><%= String.format("%.1f", minGrade) %></span>
                         <span class="col-grade"><%= String.format("%.1f", maxGrade) %></span>
                         <span class="col-grade"><%= String.format("%.1f", groupAverage) %></span>
-                        <span class="col-grade-student"><%= String.format("%.1f", studentGrade) %>/20</span>
+                        <span class="col-grade-etudiant"><%= String.format("%.1f", noteEtudiant) %>/20</span>
                     </div>
                     <%          }
                             }
