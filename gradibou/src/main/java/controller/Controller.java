@@ -177,14 +177,6 @@ public class Controller extends HttpServlet {
                 System.out.println("DEBUG: Redirection vers /gestion/specialites");
                 response.sendRedirect(request.getContextPath() + "/app/gestion/specialites");
                 return;
-            case "/etudiant":
-                if (!Role.estEtudiant(request.getSession(false))) {
-                    response.sendRedirect(request.getContextPath() + "/app/login");
-                    return;
-                }
-                // Rediriger vers la page des évaluations
-                response.sendRedirect(request.getContextPath() + "/app/etudiant/evaluations");
-                return;
             case "/admin/creer-specialite":
                 if (!Role.estAdmin(request.getSession(false))) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
@@ -249,6 +241,40 @@ public class Controller extends HttpServlet {
                     request.setAttribute("error", "Erreur lors du chargement des évaluations: " + e.getMessage());
                 }
                 view = "/WEB-INF/views/evaluations.jsp";
+                break;
+            case "/etudiant":
+                if (!Role.estEtudiant(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                try {
+                    Utilisateur etudiant = (Utilisateur) request.getSession().getAttribute("user");
+                    if (etudiant != null) {
+                        java.util.Map<String, Object> stats = model.Note.calculerStatistiquesEtudiant(etudiant.getId());
+                        request.setAttribute("notes", model.Note.trouverParEtudiant(etudiant.getId()));
+                        request.setAttribute("generalAverage", stats.get("moyenneGenerale"));
+                        request.setAttribute("semesterStats", stats.get("statistiquesSemestres"));
+                        request.setAttribute("subjectAverages", stats.get("moyennesMatieres"));
+                        request.setAttribute("bestSubject", stats.get("meilleureMatiere"));
+                        request.setAttribute("bestSubjectGrade", stats.get("meilleureMoyenne"));
+                        request.setAttribute("worstSubject", stats.get("pireMatiere"));
+                        request.setAttribute("worstSubjectGrade", stats.get("pireMoyenne"));
+                        request.setAttribute("sem1Subjects", stats.get("matieresSem1"));
+                        request.setAttribute("sem2Subjects", stats.get("matieresSem2"));
+                        // Regroupement des examens par matière par semestre
+                        request.setAttribute("sem1Groups", stats.get("groupesSem1"));
+                        request.setAttribute("sem2Groups", stats.get("groupesSem2"));
+                        request.setAttribute("sem1Average", stats.get("moyenneSem1"));
+                        request.setAttribute("sem2Average", stats.get("moyenneSem2"));
+                        request.setAttribute("sem1SubjectAverages", stats.get("moyenneMatieresSem1"));
+                        request.setAttribute("sem2SubjectAverages", stats.get("moyenneMatieresSem2"));
+                        request.setAttribute("rankingInSpeciality", stats.get("classementDansSpecialite"));
+                        request.setAttribute("totalStudentsInSpeciality", stats.get("totalEtudiantsDansSpecialite"));
+                    }
+                } catch (SQLException e) {
+                    request.setAttribute("error", "Erreur lors du chargement des notes: " + e.getMessage());
+                }
+                view = "/WEB-INF/views/mesNotes.jsp";
                 break;
             case "/etudiant/repondre-evaluation":
                 if (!Role.estEtudiant(request.getSession(false))) {
@@ -587,6 +613,13 @@ public class Controller extends HttpServlet {
                     util.Json.envoyerJsonError(response, "Erreur: " + e.getMessage(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 }
                 return;
+            case "/moncompte":
+                if (!Role.estConnecte(request.getSession(false))) {
+                    response.sendRedirect(request.getContextPath() + "/app/login");
+                    return;
+                }
+                view = "/WEB-INF/views/moncompte.jsp";
+                break;
             case "/logout":
                 request.getSession().invalidate();
                 try {
@@ -649,6 +682,9 @@ public class Controller extends HttpServlet {
                     break;
                 case "/complete-profil":
                     Utilisateur.completerProfil(request, response);
+                    break;
+                case "/moncompte":
+                    Utilisateur.modifierMonProfil(request, response);
                     break;
                 case "/admin/supprimer-specialite":
                     Specialite.supprimerSpecialite(request, response);
