@@ -79,7 +79,7 @@
                             <td>
                                 <div class="specialites-table-actions">
                                     <% if (isAdmin) { %>
-                                    <button type="button" title="Modifier" onclick="openEditSpecialiteModal(<%= s.getId() %>, '<%= s.getNom().replace("'", "\\'") %>', '<%= s.getTag().replace("'", "\\'") %>', <%= s.getAnnee() %>)">
+                                    <button type="button" title="Modifier" onclick="openEditSpecialiteModal(<%= s.getId() %>, '<%= s.getNom().replace("'", "\\'") %>', '<%= s.getTag() %>', <%= s.getAnnee() %>)">
                                         <img src="<%= request.getContextPath() %>/static/icons/black/pen.svg" alt="Modifier">
                                     </button>
                                     <button type="button" title="Exporter PDF">
@@ -156,6 +156,21 @@
                     <div class="form-group">
                         <label for="edit-nom">Nom de la spécialité</label>
                         <input type="text" id="edit-nom" name="nom" required>
+                        <span class="error-message">Ce champ est invalide</span>
+                    </div>
+                </div>
+                <input type="hidden" id="edit-id" name="id">
+                <div class="modal-form-grid">
+                    <div class="form-group">
+                        <label for="edit-tag">Tag de la spécialité</label>
+                        <input type="text" id="edit-tag" name="tag" required>
+                        <span class="error-message">Ce champ est invalide</span>
+                    </div>
+                </div>
+                <div class="modal-form-grid">
+                    <div class="form-group">
+                        <label for="edit-annee">Année scolaire des étudiants</label>
+                        <input type="number" id="edit-annee" name="annee" required min="1" max="5">
                         <span class="error-message">Ce champ est invalide</span>
                     </div>
                 </div>

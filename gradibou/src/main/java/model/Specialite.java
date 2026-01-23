@@ -299,16 +299,29 @@ public class Specialite {
         try {
             int id = Integer.parseInt(request.getParameter("id"));
             String nom = request.getParameter("nom");
+            String tag = request.getParameter("tag");
+            int annee = Integer.parseInt(request.getParameter("annee"));
             
             if (nom == null || nom.isEmpty()) {
                 util.Json.envoyerJsonError(response, "Le nom est requis", HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
+
+            if (tag == null || tag.isEmpty()) {
+                util.Json.envoyerJsonError(response, "Le tag est requis", HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
+
+            if (annee < 1 || annee > 5) {
+                util.Json.envoyerJsonError(response, "L'année doit être entre 1 et 5", HttpServletResponse.SC_BAD_REQUEST);
                 return;
             }
             
             model.Specialite s = model.Specialite.trouverParId(id);
             if (s != null) {
                 s.setNom(nom);
-                // Note: Le tag et l'année ne sont pas modifiables
+                s.setTag(tag);
+                s.setAnnee(annee);
                 s.save();
                 util.Json.envoyerJsonSuccess(response, "Spécialité modifiée avec succès", request.getContextPath() + "/app/gestion/specialites");
             } else {
