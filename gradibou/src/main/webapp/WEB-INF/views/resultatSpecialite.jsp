@@ -109,7 +109,7 @@
                         <span class="semester-badge">S1</span>
                         <span class="matiere-name"><%= m.get("nom") %></span>
                         <span class="matiere-score-display"><%= String.format(Locale.FRANCE, "%.1f", (Double) m.get("moyenne")) %>/5</span>
-                        <a class="btn btn-primary btn-sm" href="#">
+                        <a class="btn btn-primary btn-sm" href="<%= request.getContextPath() %>/app/admin/resultats-matiere?id_evaluation=<%= eval.getId() %>&id_matiere=<%= m.get("id") %>">
                             Voir les résultats
                             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                                 <path d="M4 2l4 4-4 4" stroke="white" stroke-width="2"/>

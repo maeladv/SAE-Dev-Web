@@ -549,6 +549,10 @@ public class Controller extends HttpServlet {
                 afficherResultatsSpecialite(request, response);
                 return;
 
+            case "/admin/resultats-matiere":
+                afficherResultatsMatiere(request, response);
+                return;
+
             case "/admin/get-reset-link":
                 if (!Role.estAdmin(request.getSession(false))) {
                     util.Json.envoyerJsonError(response, "Accès refusé", HttpServletResponse.SC_FORBIDDEN);
@@ -867,6 +871,74 @@ public class Controller extends HttpServlet {
         } catch (SQLException e) {
             request.setAttribute("error", "Erreur lors du chargement: " + e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/resultatSpecialite.jsp").forward(request, response);
+        }
+    }
+
+    private void afficherResultatsMatiere(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        try {
+            String evalIdStr = request.getParameter("id_evaluation");
+            String matIdStr = request.getParameter("id_matiere");
+
+            if (evalIdStr == null || matIdStr == null) {
+                request.setAttribute("error", "Paramètres manquants");
+                request.getRequestDispatcher("/WEB-INF/views/resultatMatiere.jsp").forward(request, response);
+                return;
+            }
+
+            int evalId = Integer.parseInt(evalIdStr);
+            int matId = Integer.parseInt(matIdStr);
+
+            model.Evaluation evaluation = model.Evaluation.trouverParId(evalId);
+            model.Matiere matiere = model.Matiere.trouverParId(matId);
+
+            if (evaluation == null || matiere == null) {
+                request.setAttribute("error", "Evaluation ou Matière non trouvée");
+                request.getRequestDispatcher("/WEB-INF/views/resultatMatiere.jsp").forward(request, response);
+                return;
+            }
+
+            // Récupérer la spécialité de la matière
+            model.Specialite specialite = model.Specialite.trouverParId(matiere.getSpecialiteId());
+
+            // Calculer les statistiques
+            int tauxReponse = model.Reponse_Evaluation.calculerTauxReponseParMatiere(evalId, matId);
+            double qualiteSupport = model.Reponse_Evaluation.calculerMoyenneQualiteSupportParMatiere(evalId, matId);
+            double qualiteEquipe = model.Reponse_Evaluation.calculerMoyenneQualiteEquipeParMatiere(evalId, matId);
+            double qualiteMateriel = model.Reponse_Evaluation.calculerMoyenneQualiteMaterielParMatiere(evalId, matId);
+            double pertinenceExamen = model.Reponse_Evaluation.calculerMoyennePertinenceExamenParMatiere(evalId, matId);
+            
+            // Calculer la note générale et la satisfaction basée sur celle-ci
+            double noteGenerale = (qualiteSupport + qualiteEquipe + qualiteMateriel + pertinenceExamen) / 4.0;
+            int satisfactionUtilite = (int) Math.round((noteGenerale / 5.0) * 100);
+
+            // Calculer la répartition OUI/NON pour la satisfaction
+            java.util.Map<String, Integer> repartition = model.Reponse_Evaluation.calculerRepartitionOuiNonUtilitePourFormationParMatiere(evalId, matId);
+            
+            // Récupérer les proportions de temps par tranche
+            double[] proportionsTemps = model.Reponse_Evaluation.calculerProportionTempsParMatiere(evalId, matId);
+
+            // Récupérer tous les commentaires
+            String[] commentaires = model.Reponse_Evaluation.recupererCommentairesParMatiere(evalId, matId);
+
+            request.setAttribute("evaluation", evaluation);
+            request.setAttribute("matiere", matiere);
+            request.setAttribute("specialite", specialite);
+            request.setAttribute("tauxReponse", tauxReponse);
+            request.setAttribute("qualiteSupport", qualiteSupport);
+            request.setAttribute("qualiteEquipe", qualiteEquipe);
+            request.setAttribute("qualiteMateriel", qualiteMateriel);
+            request.setAttribute("pertinenceExamen", pertinenceExamen);
+            request.setAttribute("satisfactionUtilite", satisfactionUtilite);
+            request.setAttribute("repartitionOuiNon", repartition);
+            request.setAttribute("proportionsTemps", proportionsTemps);
+            request.setAttribute("commentaires", commentaires);
+
+            request.getRequestDispatcher("/WEB-INF/views/resultatMatiere.jsp").forward(request, response);
+
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur lors du chargement: " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/resultatMatiere.jsp").forward(request, response);
         }
     }
 

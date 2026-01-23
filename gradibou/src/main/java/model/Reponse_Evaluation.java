@@ -533,6 +533,28 @@ public class Reponse_Evaluation {
         return 0.0;
     }
 
+    public static java.util.Map<String, Integer> calculerRepartitionOuiNonUtilitePourFormationParMatiere(int id_evaluation, int id_matiere) throws SQLException {
+        java.util.Map<String, Integer> repartition = new java.util.HashMap<>();
+        String sql = "SELECT " +
+                    "SUM(CASE WHEN utilite_pour_formation = 1 THEN 1 ELSE 0 END) AS oui, " +
+                    "SUM(CASE WHEN utilite_pour_formation = 0 THEN 1 ELSE 0 END) AS non " +
+                    "FROM reponse_evaluation WHERE id_evaluation = ? AND id_matiere = ?";
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id_evaluation);
+            stmt.setInt(2, id_matiere);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                repartition.put("oui", rs.getInt("oui"));
+                repartition.put("non", rs.getInt("non"));
+            } else {
+                repartition.put("oui", 0);
+                repartition.put("non", 0);
+            }
+        }
+        return repartition;
+    }
+
     public static double[] calculerProportionTempsParMatiere(int id_evaluation, int id_matiere) throws SQLException {
         double[] proportions = new double[5];
         String sqlTotal = "SELECT COUNT(*) AS total FROM reponse_evaluation WHERE id_evaluation = ? AND id_matiere = ?";
