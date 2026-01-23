@@ -287,6 +287,7 @@ public class Note {
             ? 0.0
             : moyenneMatieresSem2.values().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
 
+        // Assembler les résultats dans l'objet "statistiques"
         statistiques.put("moyenneGenerale", moyenneGenerale);
         statistiques.put("statistiquesSemestres", statistiquesSemestres);
         statistiques.put("moyennesMatieres", notesParMatiere);

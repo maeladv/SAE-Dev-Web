@@ -44,7 +44,7 @@
 .header-subtitle {
     font-size: 24px;
     font-weight: 400;
-    color: rgb(131, 131, 131);
+    color: var(--color-gris-clair);
     text-transform: uppercase;
     margin: 0 0 8px 0;
     letter-spacing: 0.5px;
@@ -53,7 +53,7 @@
 .header-title {
     font-size: 48px;
     font-weight: 700;
-    color: rgb(30, 30, 30);
+    color: var(--gradibou-noir);
     margin: 0 0 16px 0;
 }
 
@@ -77,33 +77,33 @@
 }
 
 .badge-specialite {
-    background-color: rgba(139, 57, 190, 0.2);
-    color: rgb(139, 57, 190);
+    background-color: rgba(var(--gradibou-spe-icy), 0.2);
+    color: rgb(var(--gradibou-spe-icy));
 }
 
 .badge-specialite[data-specialite="gcb"] {
-    background-color: rgba(23, 119, 117, 0.2);
-    color: rgb(23, 119, 117);
+    background-color: rgba(var(--gradibou-spe-gcb), 0.2);
+    color: rgb(var(--gradibou-spe-gcb));
 }
 
 .badge-specialite[data-specialite="iia"] {
-    background-color: rgba(33, 112, 36, 0.2);
-    color: rgb(33, 112, 36);
+    background-color: rgba(var(--gradibou-spe-iia), 0.2);
+    color: rgb(var(--gradibou-spe-iia));
 }
 
 .badge-specialite[data-specialite="me"] {
-    background-color: rgba(52, 91, 163, 0.2);
-    color: rgb(52, 91, 163);
+    background-color: rgba(var(--gradibou-spe-me), 0.2);
+    color: rgb(var(--gradibou-spe-me));
 }
 
 .badge-specialite[data-specialite="mt"] {
-    background-color: rgba(155, 32, 32, 0.2);
-    color: rgb(155, 32, 32);
+    background-color: rgba(var(--gradibou-spe-mt), 0.2);
+    color: rgb(var(--gradibou-spe-mt));
 }
 
 .badge-year {
     background-color: var(--color-gris-contour);
-    color: rgb(131, 131, 131);
+    color: var(--color-gris-clair);
 }
 
 .badge-specialite-small {
@@ -156,19 +156,19 @@
 .grade-large {
     font-size: 96px;
     font-weight: 900;
-    color: rgb(30, 30, 30);
+    color: var(--gradibou-noir);
 }
 
 .grade-max {
     font-size: 16px;
     font-weight: 600;
-    color: rgb(131, 131, 131);
+    color: var(--color-gris-clair);
 }
 
 .stat-label {
     font-size: 16px;
     font-weight: 700;
-    color: rgb(30, 30, 30);
+    color: var(--gradibou-noir);
     text-align: center;
 }
 
@@ -202,7 +202,7 @@
 .stat-semester-label {
     font-size: 20px;
     font-weight: 500;
-    color: rgb(131, 131, 131);
+    color: var(--color-gris-clair);
     text-transform: uppercase;
     margin: 0;
     margin-bottom: 8px;
@@ -239,21 +239,21 @@
 .chart-title {
     font-size: 16px;
     font-weight: 700;
-    color: rgb(30, 30, 30);
+    color: var(--gradibou-noir);
     margin: 0;
 }
 
 .chart-subtitle {
     font-size: 14px;
     font-weight: 500;
-    color: rgb(110, 110, 110);
+    color: var(--color-gris-moyen);
     margin: 0;
 }
 
 .chart-comparison {
     font-size: 16px;
     font-weight: 700;
-    color: rgb(254, 50, 50);
+    color: var(--gradibou-status-error);
     margin: 0;
 }
 
@@ -279,7 +279,7 @@
 .stat-subject-name {
     font-size: 20px;
     font-weight: 500;
-    color: rgb(131, 131, 131);
+    color: var(--color-gris-clair);
     text-transform: uppercase;
     margin: 0 0 8px 0;
 }
@@ -316,8 +316,8 @@
 }
 
 .table-header {
-    background-color: rgb(110, 110, 110);
-    border-radius: 10px;
+    background-color: var(--color-gris-moyen);
+    border-radius: var(--radius-sm);
     padding: 10px;
     margin-bottom: 10px;
 }
@@ -350,7 +350,7 @@
 
 .semester-header {
     background-color: var(--color-gris-fond);
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     padding: 10px 20px;
     display: flex;
     align-items: center;
@@ -361,13 +361,13 @@
 .semester-title {
     font-size: 20px;
     font-weight: 900;
-    color: rgb(131, 131, 131);
+    color: var(--color-gris-clair);
     text-transform: uppercase;
     margin: 0;
 }
 
 .semester-total {
-    background-color: rgb(70, 121, 209);
+    background-color: var(--gradibou-status-info);
     border-radius: 8px;
     padding: 8px;
     display: flex;
@@ -408,7 +408,7 @@
 /* Subject group header: emphasized for "matière" */
 .subject-group-header {
     background-color: var(--color-gris-fond);
-    border-left: 4px solid rgb(250, 70, 126);
+    border-left: 4px solid var(--gradibou-rose);
     padding-left: 12px;
 }
 
@@ -446,7 +446,7 @@
     font-size: 14px;
     font-weight: 700;
     background-color: transparent;
-    color: rgb(30, 30, 30);
+    color: var(--gradibou-noir);
     border: 1px solid var(--color-gris-contour);
     border-radius: 6px;
     padding: 4px 8px;
@@ -456,7 +456,7 @@
     flex: 1 0 0;
     font-size: 16px;
     font-weight: 500;
-    color: rgb(30, 30, 30);
+    color: var(--gradibou-noir);
     text-transform: uppercase;
 }
 
@@ -464,7 +464,7 @@
     flex: 1 0 0;
     font-size: 20px;
     font-weight: 700;
-    color: rgb(30, 30, 30);
+    color: var(--gradibou-noir);
     text-align: right;
 }
 
@@ -474,13 +474,13 @@
     border-radius: 8px;
     font-size: 20px;
     font-weight: 700;
-    color: rgb(255, 255, 255);
-    background-color: rgb(250, 70, 126);
+    color: var(--color-blanc);
+    background-color: var(--gradibou-rose);
     text-align: center;
 }
 
 .col-grade-etudiant.best-badge {
-    background-color: rgb(250, 70, 126);
+    background-color: var(--gradibou-rose);
 }
 
 /* Alternative row styling: only alternate exam rows, not subject headers */

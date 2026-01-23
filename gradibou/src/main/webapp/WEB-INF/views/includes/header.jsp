@@ -38,7 +38,8 @@
             </nav>
             <div class="header-cta">
                 <a class="btn btn-primary btn-with-icon" href="<%= request.getContextPath() %>/app/login">
-                    Connexion →
+                    Connexion
+                    <img src="<%= request.getContextPath() %>/static/icons/white/caret-right.svg" alt="">
                 </a>
             </div>
         <% } else { %>
@@ -62,7 +63,8 @@
             </nav>
             <div class="header-cta">
                 <a class="btn btn-primary btn-with-icon" href="<%= request.getContextPath() %>/app/logout">
-                    Déconnexion →
+                    Déconnexion
+                    <img src="<%= request.getContextPath() %>/static/icons/white/caret-right.svg" alt="">
                 </a>
             </div>
         <% } %>

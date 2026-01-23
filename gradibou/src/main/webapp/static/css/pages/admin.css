@@ -22,7 +22,7 @@
 .admin-toolbar h1 {
     font-size: 2rem;
     font-weight: 700;
-    color: var(--noir);
+    color: var(--gradibou-noir);
     margin: 0;
     flex-shrink: 0;
 }
@@ -37,23 +37,23 @@
 /* Filtres dropdown */
 .filter-dropdown {
     padding: 0.75rem 1rem;
-    border: 1px solid #d9d9d9;
+    border: 1px solid var(--color-gris-contour);
     border-radius: var(--radius-sm);
-    background-color: #ffffff;
-    color: var(--noir);
+    background-color: var(--color-blanc);
+    color: var(--gradibou-noir);
     font-size: 0.875rem;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .filter-dropdown:hover {
-    border-color: var(--primary);
+    border-color: var(--gradibou-rose);
 }
 
 .filter-dropdown:focus {
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(252, 165, 59, 0.1);
+    border-color: var(--gradibou-rose);
+    box-shadow: 0 0 0 3px rgba(250, 70, 126, 0.1);
 }
 
 /* Dropdowns personnalisés (rôle et spécialité) */
@@ -70,9 +70,9 @@
     gap: 10px;
     padding: 12px 16px;
     border-radius: 12px;
-    border: 0.5px solid #d9d9d9;
-    background: #ffffff;
-    color: #1e1e1e;
+    border: 0.5px solid var(--color-gris-contour);
+    background: var(--color-blanc);
+    color: var(--gradibou-noir);
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
@@ -80,8 +80,8 @@
 
 .dropdown-toggle:hover,
 .dropdown.open .dropdown-toggle {
-    border-color: #bfbfbf;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+    border-color: var(--color-gris-moyen);
+    box-shadow: var(--shadow-md);
 }
 
 .dropdown-icon {
@@ -99,10 +99,10 @@
     top: calc(100% + 6px);
     left: 0;
     width: 100%;
-    background: #ffffff;
-    border: 0.5px solid #d9d9d9;
+    background: var(--color-blanc);
+    border: 0.5px solid var(--color-gris-contour);
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+    box-shadow: var(--shadow-lg);
     padding: 12px 16px;
     display: none;
     flex-direction: column;
@@ -116,7 +116,7 @@
 
 .dropdown-option {
     font-size: 14px;
-    color: #1e1e1e;
+    color: var(--gradibou-noir);
     cursor: pointer;
     list-style: none;
 }
@@ -140,10 +140,10 @@
 
 /* Conteneur du tableau */
 .users-table-container {
-    background-color: #ffffff;
+    background-color: var(--color-blanc);
     border-radius: var(--radius-md);
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-elev);
 }
 
 /* Tableau des utilisateurs */
@@ -154,7 +154,7 @@
 }
 
 .users-table thead {
-    background-color: #ffffff;
+    background-color: var(--color-blanc);
 }
 
 .users-table thead th {
@@ -163,9 +163,9 @@
     font-weight: 600;
     font-size: 0.75rem;
     text-transform: uppercase;
-    color: #6b6f76;
+    color: var(--color-gris-clair);
     letter-spacing: 0.05em;
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid var(--color-gris-contour);
 }
 
 .users-table thead th.sortable {
@@ -176,7 +176,7 @@
 }
 
 .users-table thead th.sortable:hover {
-    background-color: #f5f5f5;
+    background-color: var(--color-gris-fond);
     color: var(--gradibou-noir);
 }
 
@@ -192,21 +192,21 @@
 }
 
 .users-table tbody tr {
-    background-color: #ffffff;
-    border-bottom: 1px solid #f5f5f5;
+    background-color: var(--color-blanc);
+    border-bottom: 1px solid var(--color-gris-fond);
 }
 
 .users-table tbody tr.table-row-alt {
-    background-color: #f5f5f5;
+    background-color: var(--color-gris-fond);
 }
 
 .users-table tbody tr:hover {
-    background-color: #fef9f3;
+    background-color: var(--color-gris-fond);
 }
 
 .users-table tbody td {
     padding: 1rem;
-    color: var(--noir);
+    color: var(--gradibou-noir);
     vertical-align: middle;
 }
 
@@ -252,22 +252,22 @@
 }
 
 .specialite-badge.spe-icy {
-    background-color: rgba(var(--gradibou-spe-icy) / 0.2);
+    background-color: rgba(var(--gradibou-spe-icy), 0.2);
     color: rgb(var(--gradibou-spe-icy));
 }
 
 .specialite-badge.spe-iia {
-    background-color: rgba(var(--gradibou-spe-iia) / 0.2);
+    background-color: rgba(var(--gradibou-spe-iia), 0.2);
     color: rgb(var(--gradibou-spe-iia));
 }
 
 .specialite-badge.spe-gcb {
-    background-color: rgba(var(--gradibou-spe-gcb) / 0.2);
+    background-color: rgba(var(--gradibou-spe-gcb), 0.2);
     color: rgb(var(--gradibou-spe-gcb));
 }
 
 .specialite-badge.spe-me {
-    background-color: rgba(var(--gradibou-spe-me) / 0.2);
+    background-color: rgba(var(--gradibou-spe-me), 0.2);
     color: rgb(var(--gradibou-spe-me));
 }
 
@@ -280,10 +280,10 @@
 
 .action-btn {
     padding: 0.5rem;
-    border: 1px solid #d9d9d9;
+    border: 1px solid var(--color-gris-contour);
     border-radius: var(--radius-sm);
-    background-color: #ffffff;
-    color: #6b6f76;
+    background-color: var(--color-blanc);
+    color: var(--color-gris-clair);
     cursor: pointer;
     transition: all 0.2s;
     display: inline-flex;
@@ -292,20 +292,20 @@
 }
 
 .action-btn:hover {
-    background-color: #f5f5f5;
-    border-color: var(--noir);
-    color: var(--noir);
+    background-color: var(--color-gris-fond);
+    border-color: var(--gradibou-noir);
+    color: var(--gradibou-noir);
 }
 
 .action-btn.action-btn-primary {
-    background-color: var(--primary);
-    border-color: var(--primary);
-    color: #ffffff;
+    background-color: var(--gradibou-rose);
+    border-color: var(--gradibou-rose);
+    color: var(--color-blanc);
 }
 
 .action-btn.action-btn-primary:hover {
-    background-color: #e69735;
-    border-color: #e69735;
+    background-color: rgb(225, 45, 95);
+    border-color: rgb(225, 45, 95);
 }
 
 /* Responsive */

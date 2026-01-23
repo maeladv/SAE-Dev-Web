@@ -1,7 +1,7 @@
 /* Boutons */
 button, .btn {
 	border: none;
-	border-radius: 12px;
+	border-radius: var(--radius-lg);
 	padding: 12px 16px;
 	font-weight: 600;
 	font-size: 16px;
@@ -23,59 +23,45 @@ button, .btn {
 	transform: translateY(1px);
 }
 
-/* Bouton Primaire - Design Figma */
 .btn-primary {
 	background: var(--gradibou-rose);
 	color: var(--color-blanc);
-	box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.25);
-	cursor: pointer;
-
-
-	}
+	box-shadow: var(--shadow-elev);
+}
 
 .btn-primary:hover {
 	filter: brightness(1.05);
-	box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.3);
+	box-shadow: var(--shadow-md);
 }
 
-/* Bouton Secondaire - Design Figma */
 .btn-secondary {
-	background: white;
+	background: var(--color-blanc);
 	color: var(--gradibou-noir);
-	box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.25);
-	cursor: pointer;
+	box-shadow: var(--shadow-elev);
 }
 
 .btn-secondary:hover {
-	box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.35);
+	box-shadow: var(--shadow-md);
 }
 
-/* Bouton Tertiaire - Design Figma */
 .btn-tertiary {
 	background: transparent;
 	color: var(--gradibou-noir);
-	box-shadow: none;
-	cursor: pointer;
 }
 
-/* Tailles de boutons */
+.btn-tertiary:hover {
+	text-decoration: underline;
+}
+
 .btn-sm {
 	padding: 8px 16px;
 	font-size: 13px;
-	border-radius: 10px;
+	border-radius: var(--radius-sm);
 }
 
 .btn-lg {
 	padding: 16px 24px;
 	font-size: 18px;
-	border-radius: 14px;
-}
-
-.btn-tertiary:hover {
-	text-decoration: underline;
-		background: transparent;
-	color: var(--gradibou-noir);
-
 }
 
 /* Champs de formulaire */
@@ -90,13 +76,13 @@ button, .btn {
 }
 
 .input-field::placeholder {
-	color: #878787;
+	color: var(--color-gris-clair);
 }
 
 .form-feedback {
 	font-size: 10px;
 	font-weight: 600;
-	color: var(--gradibou-rose);
+	color: var(--gradibou-status-error);
 	margin: 4px 0 0;
 }
 

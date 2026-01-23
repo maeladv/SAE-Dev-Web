@@ -20,7 +20,7 @@
     <main class="home-main">
         <div class="home-hero">
             <div class="hero-logo-container">
-                <img class="hero-logo-image" src="<%= request.getContextPath() %>/static/images/logo/logo-gradibou.svg" alt="Logo Gradibou">
+                <img class="hero-logo-image" src="<%= request.getContextPath() %>/static/images/logo/logo-gradibou-accueil.png" alt="Logo Gradibou">
                 <h1 class="hero-logo-text">
                     <span class="hero-logo-grad">Grad</span><span class="hero-logo-ibou">ibou</span>
                 </h1>
@@ -33,7 +33,8 @@
                 Accéder à l'espace enseignant
             </a>
             <a href="<%= request.getContextPath() %>/app/login" class="btn btn-primary btn-dark btn-with-icon">
-                Connexion →
+                Connexion
+                <img src="<%= request.getContextPath() %>/static/icons/white/caret-right.svg" alt="">
             </a>
         </div>
     </main>

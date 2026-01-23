@@ -38,7 +38,7 @@
 }
 
 .specialites-table thead {
-    background-color: #fafafa;
+    background-color: var(--color-gris-fond);
 }
 
 .specialites-table thead th {
@@ -69,7 +69,7 @@
 }
 
 .specialites-table tbody tr:nth-child(even) {
-    background-color: #f5f5f5;
+    background-color: var(--color-gris-fond);
 }
 
 .specialites-table tbody td {
@@ -93,28 +93,28 @@
 }
 
 .specialite-tag-badge.tag-icy {
-    background-color: rgba(139, 57, 190, 0.2);
-    color: rgb(139, 57, 190);
+    background-color: rgba(var(--gradibou-spe-icy), 0.2);
+    color: rgb(var(--gradibou-spe-icy));
 }
 
 .specialite-tag-badge.tag-iia {
-    background-color: rgba(33, 112, 36, 0.2);
-    color: rgb(33, 112, 36);
+    background-color: rgba(var(--gradibou-spe-iia), 0.2);
+    color: rgb(var(--gradibou-spe-iia));
 }
 
 .specialite-tag-badge.tag-gcb {
-    background-color: rgba(23, 119, 117, 0.2);
-    color: rgb(23, 119, 117);
+    background-color: rgba(var(--gradibou-spe-gcb), 0.2);
+    color: rgb(var(--gradibou-spe-gcb));
 }
 
 .specialite-tag-badge.tag-me {
-    background-color: rgba(52, 91, 163, 0.2);
-    color: rgb(52, 91, 163);
+    background-color: rgba(var(--gradibou-spe-me), 0.2);
+    color: rgb(var(--gradibou-spe-me));
 }
 
 .specialite-tag-badge.tag-mt {
-    background-color: rgba(155, 32, 32, 0.2);
-    color: rgb(155, 32, 32);
+    background-color: rgba(var(--gradibou-spe-mt), 0.2);
+    color: rgb(var(--gradibou-spe-mt));
 }
 
 /* Année Badge */
@@ -156,7 +156,7 @@
 
 .specialites-table-actions button:hover,
 .specialites-table-actions a:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: var(--color-gris-fond);
 }
 
 .specialites-table-actions button.btn-primary,
@@ -167,7 +167,7 @@
 
 .specialites-table-actions button.btn-primary:hover,
 .specialites-table-actions a.btn-primary:hover {
-    background-color: #e03d6f;
+    background-color: rgb(225, 45, 95);
 }
 
 .specialites-table-actions img {
