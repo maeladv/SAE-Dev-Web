@@ -340,12 +340,9 @@
                                             <button class="btn btn-tertiary" title="Modifier" onclick="openEditExamModal('<%= e.getId() %>', '<%= e.getNom().replace("'", "\\'") %>', '<%= e.getCoefficient() %>', '<%= e.getDate() %>')">
                                                 <img src="<%= request.getContextPath() %>/static/icons/black/pen.svg" alt="Modifier">
                                             </button>
-                                            <form action="<%= request.getContextPath() %>/app/admin/supprimer-examen" method="post" style="margin:0; display:inline;">
-                                                <input type="hidden" name="id" value="<%= e.getId() %>">
-                                                <button type="submit" class="btn btn-tertiary" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet examen ?');">
-                                                    <img src="<%= request.getContextPath() %>/static/icons/black/trash.svg" alt="Supprimer">
-                                                </button>
-                                            </form>
+                                            <button type="button" class="btn btn-tertiary" title="Supprimer" onclick="openDeleteExamModal('<%= e.getId() %>', '<%= e.getNom().replace("'", "\\'") %>')">
+                                                <img src="<%= request.getContextPath() %>/static/icons/black/trash.svg" alt="Supprimer">
+                                            </button>
                                             <a class="btn btn-primary" href="<%= request.getContextPath() %>/app/admin/notes?examId=<%= e.getId() %>">
                                                 <img src="<%= request.getContextPath() %>/static/icons/white/pen.svg" alt="">
                                                 Saisir les notes
@@ -420,12 +417,37 @@
         </div>
     </div>
 
+    <!-- Modal: Supprimer un examen -->
+    <div id="deleteExamModal" class="modal-overlay">
+        <div class="modal modal-small">
+            <h2 class="modal-title">Supprimer l'examen ?</h2>
+            <div class="modal-content">
+                <p style="color: #838383; font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+                    Êtes-vous sûr.e de vouloir effectuer cette opération ? Cela entraînera la suppression définitive de l'examen et des notes qui y sont associées
+                </p>
+                <form id="deleteExamForm" action="<%= request.getContextPath() %>/app/admin/supprimer-examen" method="post">
+                    <input type="hidden" id="delete-exam-id" name="id">
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="modal-btn modal-btn-secondary" onclick="closeModal()">Annuler</button>
+                        <button type="submit" class="modal-btn" style="background: #fa467e; color: white;">Supprimer définitivement</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         function openEditExamModal(id, nom, coeff, date) {
             document.getElementById('edit-exam-id').value = id;
             document.getElementById('edit-exam-nom').value = nom || '';
             document.getElementById('edit-exam-coeff').value = coeff || 1;
             openModal('editExamModal');
+        }
+        
+        function openDeleteExamModal(id, nom) {
+            document.getElementById('delete-exam-id').value = id;
+            openModal('deleteExamModal');
         }
     </script>
 </body>
