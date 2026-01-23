@@ -36,6 +36,7 @@
     <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/composants.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/header.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/pages/moncompte.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/modals.css">
 </head>
 <body>
 <div class="page-container moncompte-page">
@@ -100,7 +101,7 @@
                                 <path d="M7 10H13M13 10L10 7M13 10L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
-                        <button type="button" class="action-btn danger">
+                        <button type="button" class="action-btn danger"onclick="confirmDelete(<%= displayUser.getId() %>, '<%= displayUser.getPrenom() %> <%= displayUser.getNom() %>')">
                             Supprimer mon compte
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M3 5H17M8 5V3H12V5M8 9V16H12V9M8 9H12M5 5H15L14 17C14 17.5304 13.7893 18.0391 13.4142 18.4142C13.0391 18.7893 12.5304 19 12 19H8C7.46957 19 6.96086 18.7893 6.58579 18.4142C6.21071 18.0391 6 17.5304 6 17L5 5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
@@ -209,6 +210,23 @@
         </form>
     </main>
 </div>
+
+        <!-- Modal: Confirmation de suppression -->
+        <div id="deleteConfirmModal" class="modal-overlay">
+            <div class="modal modal-small">
+                <h2 class="modal-title">Supprimer l'utilisateur</h2>
+
+                <p class="modal-description">Êtes-vous sûr.e de vouloir effectuer cette opération ?</p>
+
+                <div class="modal-actions">
+                    <button type="button" class="modal-btn modal-btn-secondary" onclick="closeModal()">Annuler</button>
+                    <button type="button" class="modal-btn modal-btn-primary" onclick="executeDelete()">Supprimer
+                        définitivement</button>
+                </div>
+            </div>
+        </div>
+
+<script src="<%= request.getContextPath() %>/static/js/modals.js"></script>
 
 <script>
 const contextPath = '<%= request.getContextPath() %>';
