@@ -22,11 +22,11 @@ import util.Role;
 
 @WebServlet("/app/*")
 public class Controller extends HttpServlet {
+    private static final long serialVersionUID = 1L;
     
     @Override
     public void init() throws ServletException {
         try {
-            DatabaseManager.init();
             DatabaseManager.creerTables();
             System.out.println("Base de données initialisée");
         } catch (SQLException | ClassNotFoundException e) {
@@ -544,6 +544,11 @@ public class Controller extends HttpServlet {
                 }
                 view = "/WEB-INF/views/detailsResultatEvaluation.jsp";
                 break;
+
+            case "/admin/resultats-specialite":
+                afficherResultatsSpecialite(request, response);
+                return;
+
             case "/admin/get-reset-link":
                 if (!Role.estAdmin(request.getSession(false))) {
                     util.Json.envoyerJsonError(response, "Accès refusé", HttpServletResponse.SC_FORBIDDEN);
@@ -718,6 +723,150 @@ public class Controller extends HttpServlet {
         } else {
             request.setAttribute("error", "email ou mot de passe incorrect");
             request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
+        }
+    }
+
+    private void afficherResultatsSpecialite(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (!Role.estAdmin(request.getSession(false))) {
+            response.sendRedirect(request.getContextPath() + "/app/login");
+            return;
+        }
+
+        try {
+            String specIdParam = request.getParameter("specialiteId");
+            if (specIdParam == null || specIdParam.isEmpty()) {
+                request.setAttribute("error", "Spécialité manquante");
+                request.getRequestDispatcher("/WEB-INF/views/resultatSpecialite.jsp").forward(request, response);
+                return;
+            }
+
+            int specId;
+            try {
+                specId = Integer.parseInt(specIdParam);
+            } catch (NumberFormatException e) {
+                request.setAttribute("error", "Spécialité invalide");
+                request.getRequestDispatcher("/WEB-INF/views/resultatSpecialite.jsp").forward(request, response);
+                return;
+            }
+
+            model.Specialite specialite = model.Specialite.trouverParId(specId);
+            if (specialite == null) {
+                request.setAttribute("error", "Spécialité introuvable");
+                request.getRequestDispatcher("/WEB-INF/views/resultatSpecialite.jsp").forward(request, response);
+                return;
+            }
+
+            java.util.List<model.Evaluation> evaluations = model.Evaluation.trouverToutes();
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+            model.Evaluation evalSelectionnee = null;
+            String evalIdParam = request.getParameter("evaluationId");
+            if (evalIdParam != null && !evalIdParam.isEmpty()) {
+                try {
+                    int evalParamId = Integer.parseInt(evalIdParam);
+                    evalSelectionnee = model.Evaluation.trouverParId(evalParamId);
+                } catch (NumberFormatException ignore) {
+                    // fallback below
+                }
+            }
+
+            if (evalSelectionnee == null) {
+                for (model.Evaluation e : evaluations) {
+                    if (e != null && now.isAfter(e.getDate_debut()) && now.isBefore(e.getDate_fin())) {
+                        evalSelectionnee = e;
+                        break;
+                    }
+                }
+            }
+            if (evalSelectionnee == null && !evaluations.isEmpty()) {
+                evalSelectionnee = evaluations.get(0);
+            }
+
+            if (evalSelectionnee == null) {
+                request.setAttribute("specialite", specialite);
+                request.setAttribute("evaluation", null);
+                request.setAttribute("evaStatus", "none");
+                request.setAttribute("tauxReponseSpec", 0);
+                request.setAttribute("satisfactionSpec", 0);
+                request.setAttribute("matiereBest", "-");
+                request.setAttribute("matiereWorst", "-");
+                request.setAttribute("matieresAvecRetours", java.util.Collections.emptyList());
+                request.getRequestDispatcher("/WEB-INF/views/resultatSpecialite.jsp").forward(request, response);
+                return;
+            }
+
+            int evalId = evalSelectionnee.getId();
+            String evaStatus = "finished";
+            if (now.isBefore(evalSelectionnee.getDate_debut())) {
+                evaStatus = "scheduled";
+            } else if (now.isAfter(evalSelectionnee.getDate_debut()) && now.isBefore(evalSelectionnee.getDate_fin())) {
+                evaStatus = "ongoing";
+            }
+
+            int tauxReponseSpec = model.Reponse_Evaluation.calculerTauxReponseParSpecialite(evalId, specId);
+            double moyenneSpec = model.Reponse_Evaluation.calculerMoyenneGeneraleParSpecialite(evalId, specId);
+            int satisfactionSpec = (int) Math.round((moyenneSpec / 5.0) * 100.0);
+
+            // Construire la liste des matières avec retours pour cette évaluation
+            java.util.List<java.util.Map<String, Object>> matieresAvecRetours = new java.util.ArrayList<>();
+            java.util.List<model.Matiere> matieres = model.Matiere.trouverParSpecialite(specId);
+            for (model.Matiere mat : matieres) {
+                int tauxMat = model.Reponse_Evaluation.calculerTauxReponseParMatiere(evalId, mat.getId());
+                if (tauxMat > 0) {
+                    double moyenneMat = model.Reponse_Evaluation.calculerMoyenneGeneraleParMatiere(evalId, mat.getId());
+                    java.util.Map<String, Object> entry = new java.util.HashMap<>();
+                    entry.put("id", mat.getId());
+                    entry.put("nom", mat.getNom());
+                    entry.put("taux", tauxMat);
+                    entry.put("moyenne", moyenneMat);
+                    matieresAvecRetours.add(entry);
+                }
+            }
+
+            // Trouver best/worst parmi les matières avec retours uniquement
+            String matiereBest = "-";
+            String matiereWorst = "-";
+            double moyenneBest = 0.0;
+            double moyenneWorst = 0.0;
+            
+            if (!matieresAvecRetours.isEmpty()) {
+                java.util.Map<String, Object> best = matieresAvecRetours.get(0);
+                java.util.Map<String, Object> worst = matieresAvecRetours.get(0);
+                
+                for (java.util.Map<String, Object> mat : matieresAvecRetours) {
+                    double moy = (Double) mat.get("moyenne");
+                    if (moy > (Double) best.get("moyenne")) {
+                        best = mat;
+                    }
+                    if (moy < (Double) worst.get("moyenne")) {
+                        worst = mat;
+                    }
+                }
+                
+                matiereBest = (String) best.get("nom");
+                moyenneBest = (Double) best.get("moyenne");
+                matiereWorst = (String) worst.get("nom");
+                moyenneWorst = (Double) worst.get("moyenne");
+            }
+
+            request.setAttribute("specialite", specialite);
+            request.setAttribute("evaluation", evalSelectionnee);
+            request.setAttribute("evaStatus", evaStatus);
+            request.setAttribute("tauxReponseSpec", tauxReponseSpec);
+            request.setAttribute("satisfactionSpec", satisfactionSpec);
+            request.setAttribute("moyenneSpec", moyenneSpec);
+            request.setAttribute("matiereBest", matiereBest);
+            request.setAttribute("matiereWorst", matiereWorst);
+            request.setAttribute("moyenneBest", moyenneBest);
+            request.setAttribute("moyenneWorst", moyenneWorst);
+            request.setAttribute("matieresAvecRetours", matieresAvecRetours);
+
+            request.getRequestDispatcher("/WEB-INF/views/resultatSpecialite.jsp").forward(request, response);
+
+        } catch (SQLException e) {
+            request.setAttribute("error", "Erreur lors du chargement: " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/resultatSpecialite.jsp").forward(request, response);
         }
     }
 

@@ -370,8 +370,12 @@ public class Reponse_Evaluation {
             try (ResultSet matieresRs = matieresStmt.executeQuery()) {
                 while (matieresRs.next()) {
                     int idMatiere = matieresRs.getInt("id");
-                    somme += calculerMoyenneGeneraleParMatiere(id_evaluation, idMatiere);
-                    nbMatieres++;
+                    // Ne compter que les matières avec des retours dans cette évaluation
+                    int taux = calculerTauxReponseParMatiere(id_evaluation, idMatiere);
+                    if (taux > 0) {
+                        somme += calculerMoyenneGeneraleParMatiere(id_evaluation, idMatiere);
+                        nbMatieres++;
+                    }
                 }
             }
         }

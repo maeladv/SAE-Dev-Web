@@ -58,6 +58,19 @@ button, .btn {
 	cursor: pointer;
 }
 
+/* Tailles de boutons */
+.btn-sm {
+	padding: 8px 16px;
+	font-size: 13px;
+	border-radius: 10px;
+}
+
+.btn-lg {
+	padding: 16px 24px;
+	font-size: 18px;
+	border-radius: 14px;
+}
+
 .btn-tertiary:hover {
 	text-decoration: underline;
 		background: transparent;

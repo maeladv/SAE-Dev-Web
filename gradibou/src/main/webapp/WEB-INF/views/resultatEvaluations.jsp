@@ -375,7 +375,7 @@
                 <div class="year-badge"><%= spec.get("annee") %>A</div>
                 <div class="eva-specialty-name"><%= spec.get("nom") %></div>
                 <div class="eva-specialty-score"><%= String.format(Locale.FRANCE, "%.1f", moyenneSpec != null ? moyenneSpec : 0.0) %>/5</div>
-                <a href="<%= request.getContextPath() %>/app/admin/resultats-evaluation?evaluationId=<%= currentEvalId %>" class="btn btn-primary eva-specialty-btn">
+                <a href="<%= request.getContextPath() %>/app/admin/resultats-specialite?specialiteId=<%= spec.get("id") %>&evaluationId=<%= currentEvalId %>" class="btn btn-primary eva-specialty-btn">
                     Voir les résultats
                     <img src="<%= request.getContextPath() %>/static/icons/white/caret-right.svg" alt="">
                 </a>

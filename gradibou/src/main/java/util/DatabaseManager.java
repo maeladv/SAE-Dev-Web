@@ -54,7 +54,12 @@ public class DatabaseManager {
     }
 
     // Créer les tables
-    public static void creerTables() throws SQLException {
+    public static void creerTables() throws SQLException, ClassNotFoundException {
+        // Assurer que la connexion est initialisée
+        if (connection == null || connection.isClosed()) {
+            init();
+        }
+        
     String[] sqlStatements = {
         "CREATE TABLE IF NOT EXISTS utilisateur (" +
             "id SERIAL PRIMARY KEY," +
