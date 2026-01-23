@@ -28,6 +28,7 @@
                 if (evalStatusList != null && !evalStatusList.isEmpty()) {
                     for (java.util.Map<String, Object> statusMap : evalStatusList) {
                         model.Evaluation eval = (model.Evaluation) statusMap.get("eval");
+                        String status = (String) statusMap.get("status");
                         boolean isOngoing = (Boolean) statusMap.get("isOngoing");
                         boolean isSelected = currentEvalId != null && currentEvalId == eval.getId();
                         String statusClass = isOngoing ? "in-progress" : "";
@@ -39,8 +40,10 @@
                         <%= java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy").format(eval.getDate_debut()) %>
                     </div>
                     <div class="eva-selector-status">
-                        <% if (isOngoing) { %>
+                        <% if (status.equals("ongoing")) { %>
                             <span class="eva-status-badge-small ongoing">En cours</span>
+                        <% } else if (status.equals("scheduled")) { %>
+                            <span class="eva-status-badge-small scheduled">Programmée</span>
                         <% } else { %>
                             <span class="eva-status-badge-small finished">Terminée</span>
                         <% } %>
@@ -61,6 +64,11 @@
                     currentEvalId: <%= request.getAttribute("currentEvalId") %>
                 </div>
                 <!-- /DEBUG -->
+                <%
+                    // Déclaration des variables pour l'affichage du formulaire
+                    String displayedEvaStatus = (String) request.getAttribute("displayedEvaStatus");
+                    model.Evaluation displayedEval = (model.Evaluation) request.getAttribute("displayedEval");
+                %>
                 <div class="eva-actions-row">
                     <button class="btn btn-tertiary btn-with-icon">
                         <img src="<%= request.getContextPath() %>/static/icons/black/trash.svg" alt="">
@@ -70,51 +78,148 @@
                         <img src="<%= request.getContextPath() %>/static/icons/black/file-export.svg" alt="">
                         Exporter tout
                     </button>
+                    <%
+                        if (displayedEvaStatus != null && displayedEvaStatus.equals("scheduled")) {
+                    %>
+                    <div class="eva-status-badge scheduled">
+                        <img src="<%= request.getContextPath() %>/static/icons/white/calendar-check.svg" alt="">
+                        Programmée
+                    </div>
+                    <%
+                        } else if (displayedEvaStatus != null && displayedEvaStatus.equals("ongoing")) {
+                    %>
+                    <div class="eva-status-badge ongoing">
+                        <img src="<%= request.getContextPath() %>/static/icons/white/pause.svg" alt="">
+                        En cours
+                    </div>
+                    <%
+                        } else {
+                    %>
                     <div class="eva-status-badge stopped">
                         <img src="<%= request.getContextPath() %>/static/icons/white/pause.svg" alt="">
-                        La campagne est à l'arrêt
+                        Terminée
                     </div>
+                    <%
+                        }
+                    %>
                 </div>
             </div>
 
-            <form class="eva-form">
+            <form class="eva-form" id="programForm" method="POST" action="<%= request.getContextPath() %>/app/admin/resultats-evaluations/program" style="display: none;">
+                <input type="hidden" name="evaluationId" value="<%= displayedEval != null ? displayedEval.getId() : "" %>">
+                <input type="hidden" name="date_debut" id="hidden_date_debut" value="">
+                <input type="hidden" name="time_debut" id="hidden_time_debut" value="">
+                <input type="hidden" name="date_fin" id="hidden_date_fin" value="">
+                <input type="hidden" name="time_fin" id="hidden_time_fin" value="">
+                <input type="hidden" name="semestre" id="hidden_semestre" value="">
+            </form>
+
+            <form class="eva-form" id="mainForm">
+                <%
+                    boolean isDisabled = displayedEvaStatus != null && (displayedEvaStatus.equals("scheduled") || displayedEvaStatus.equals("ongoing"));
+                    boolean showFormData = displayedEval != null;
+                %>
+                
                 <div class="eva-form-row">
                     <div class="eva-input-group">
                         <label class="eva-input-label">Date de Début</label>
-                        <input type="date" class="eva-input" placeholder="--/--/----">
+                        <input type="date" class="eva-input" id="input_date_debut" placeholder="--/--/----" 
+                            <% if (isDisabled) { %>disabled<% } %>
+                            <% if (showFormData && displayedEval != null) { %>value="<%= displayedEval.getDate_debut().toLocalDate() %>"<% } %>>
                     </div>
                     <div class="eva-input-group">
                         <label class="eva-input-label">Heure de Début</label>
-                        <input type="time" class="eva-input" placeholder="--:--">
+                        <input type="time" class="eva-input" id="input_time_debut" placeholder="--:--" 
+                            <% if (isDisabled) { %>disabled<% } %>
+                            <% if (showFormData && displayedEval != null) { %>value="<%= displayedEval.getDate_debut().toLocalTime() %>"<% } %>>
                     </div>
                 </div>
 
                 <div class="eva-form-row">
                     <div class="eva-input-group">
                         <label class="eva-input-label">Date de Fin</label>
-                        <input type="date" class="eva-input" placeholder="--/--/----">
+                        <input type="date" class="eva-input" id="input_date_fin" placeholder="--/--/----" 
+                            <% if (isDisabled) { %>disabled<% } %>
+                            <% if (showFormData && displayedEval != null) { %>value="<%= displayedEval.getDate_fin().toLocalDate() %>"<% } %>>
                     </div>
                     <div class="eva-input-group">
                         <label class="eva-input-label">Heure de Fin</label>
-                        <input type="time" class="eva-input" placeholder="--:--">
+                        <input type="time" class="eva-input" id="input_time_fin" placeholder="--:--" 
+                            <% if (isDisabled) { %>disabled<% } %>
+                            <% if (showFormData && displayedEval != null) { %>value="<%= displayedEval.getDate_fin().toLocalTime() %>"<% } %>>
                     </div>
                 </div>
 
                 <div class="eva-input-group">
                     <label class="eva-input-label">Semestre à évaluer</label>
-                    <select class="eva-select">
-                        <option value="1">Semestre 1</option>
-                        <option value="2">Semestre 2</option>
+                    <select class="eva-select" id="input_semestre" <% if (isDisabled) { %>disabled<% } %>>
+                        <option value="1" <% if (showFormData && displayedEval != null && displayedEval.getSemestre() == 1) { %>selected<% } %>>Semestre 1</option>
+                        <option value="2" <% if (showFormData && displayedEval != null && displayedEval.getSemestre() == 2) { %>selected<% } %>>Semestre 2</option>
                     </select>
                 </div>
 
-                <div style="display: flex; justify-content: center;">
-                    <button type="submit" class="btn btn-primary btn-with-icon" style="width: 216px;">
-                        <img src="<%= request.getContextPath() %>/static/icons/white/calendar-check.svg" alt="">
-                        Programmer
-                    </button>
+                <div style="display: flex; justify-content: center; gap: 12px;">
+                    <% if (displayedEvaStatus != null && displayedEvaStatus.equals("scheduled") && displayedEval != null) { %>
+                        <form method="POST" action="<%= request.getContextPath() %>/app/admin/resultats-evaluations/cancel-program" style="display: inline;">
+                            <input type="hidden" name="evaluationId" value="<%= displayedEval.getId() %>">
+                            <button type="submit" class="btn btn-primary btn-with-icon">
+                                <img src="<%= request.getContextPath() %>/static/icons/white/trash.svg" alt="">
+                                Annuler la programmation
+                            </button>
+                        </form>
+                    <% } else if (displayedEvaStatus != null && displayedEvaStatus.equals("ongoing") && displayedEval != null) { %>
+                        <button type="button" class="btn btn-primary btn-with-icon" onclick="mettreFinEvaluation(<%= displayedEval.getId() %>)">
+                            <img src="<%= request.getContextPath() %>/static/icons/white/pause.svg" alt="">
+                            Mettre fin à la période d'évaluation
+                        </button>
+                    <% } else { %>
+                        <button type="button" class="btn btn-primary btn-with-icon" onclick="submitProgramForm()">
+                            <img src="<%= request.getContextPath() %>/static/icons/white/calendar-check.svg" alt="">
+                            Programmer
+                        </button>
+                    <% } %>
                 </div>
             </form>
+
+            <script>
+                function submitProgramForm() {
+                    document.getElementById('hidden_date_debut').value = document.getElementById('input_date_debut').value;
+                    document.getElementById('hidden_time_debut').value = document.getElementById('input_time_debut').value;
+                    document.getElementById('hidden_date_fin').value = document.getElementById('input_date_fin').value;
+                    document.getElementById('hidden_time_fin').value = document.getElementById('input_time_fin').value;
+                    document.getElementById('hidden_semestre').value = document.getElementById('input_semestre').value;
+                    document.getElementById('programForm').submit();
+                }
+
+                function mettreFinEvaluation(evaluationId) {
+                    if (!confirm('Êtes-vous sûr de vouloir mettre fin à cette évaluation ?')) {
+                        return;
+                    }
+
+                    fetch('<%= request.getContextPath() %>/app/admin/resultats-evaluations/end-evaluation', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'evaluationId=' + evaluationId
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                throw new Error('Erreur ' + response.status + ': ' + text);
+                            });
+                        }
+                        return response.text();
+                    })
+                    .then(() => {
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        alert('Erreur lors de la mise à jour: ' + error.message);
+                        console.error('Erreur:', error);
+                    });
+                }
+            </script>
         </section>
 
         <div class="eva-stats-grid">

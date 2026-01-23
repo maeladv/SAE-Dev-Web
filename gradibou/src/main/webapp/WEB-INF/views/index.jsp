@@ -20,7 +20,7 @@
     <main class="home-main">
         <div class="home-hero">
             <div class="hero-logo-container">
-                <img class="hero-logo-image" src="https://www.figma.com/api/mcp/asset/c8d056af-03ce-4c10-a3aa-e08820dc5d06" alt="Logo Gradibou">
+                <img class="hero-logo-image" src="<%= request.getContextPath() %>/static/images/logo/logo-gradibou.svg" alt="Logo Gradibou">
                 <h1 class="hero-logo-text">
                     <span class="hero-logo-grad">Grad</span><span class="hero-logo-ibou">ibou</span>
                 </h1>

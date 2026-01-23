@@ -276,14 +276,24 @@ public class Controller extends HttpServlet {
                     // Liste des évaluations
                     java.util.List<model.Evaluation> evaluations = model.Evaluation.trouverToutes();
                     
-                    // Déterminer le statut de chaque évaluation (en cours vs terminée)
+                    // Déterminer le statut de chaque évaluation (programmée/en cours/terminée)
                     java.time.LocalDateTime now = java.time.LocalDateTime.now();
                     java.util.List<java.util.Map<String, Object>> evalStatusList = new java.util.ArrayList<>();
                     for (model.Evaluation e : evaluations) {
                         java.util.Map<String, Object> evalStatus = new java.util.HashMap<>();
                         evalStatus.put("eval", e);
-                        boolean isOngoing = e != null && now.isAfter(e.getDate_debut()) && now.isBefore(e.getDate_fin());
-                        evalStatus.put("isOngoing", isOngoing);
+                        
+                        String status = "finished";
+                        if (e != null) {
+                            if (now.isBefore(e.getDate_debut())) {
+                                status = "scheduled";
+                            } else if (now.isAfter(e.getDate_debut()) && now.isBefore(e.getDate_fin())) {
+                                status = "ongoing";
+                            }
+                        }
+                        
+                        evalStatus.put("status", status);
+                        evalStatus.put("isOngoing", status.equals("ongoing"));
                         evalStatusList.add(evalStatus);
                     }
                     request.setAttribute("evaluations", evaluations);
@@ -313,7 +323,55 @@ public class Controller extends HttpServlet {
                     
                     request.setAttribute("currentEvalId", currentEvalId);
 
+                    // Déterminer quelle évaluation afficher dans l'encadré de programmation
+                    // Priorité: 1) EVE en cours, 2) EVE programmé (prochain), 3) rien (champs vides)
+                    model.Evaluation displayedEval = null;
+                    String displayedEvaStatus = null;
+                    
+                    // 1. Chercher un EVE en cours
+                    for (model.Evaluation e : evaluations) {
+                        if (e != null && now.isAfter(e.getDate_debut()) && now.isBefore(e.getDate_fin())) {
+                            displayedEval = e;
+                            displayedEvaStatus = "ongoing";
+                            break;
+                        }
+                    }
+                    
+                    // 2. Si pas d'EVE en cours, chercher le prochain EVE programmé
+                    if (displayedEval == null) {
+                        for (model.Evaluation e : evaluations) {
+                            if (e != null && now.isBefore(e.getDate_debut())) {
+                                displayedEval = e;
+                                displayedEvaStatus = "scheduled";
+                                break; // On prend le premier (le plus proche car trié par date_debut ASC)
+                            }
+                        }
+                    }
+                    
+                    // 3. Si ni en cours ni programmé, on laisse displayedEval = null
+                    if (displayedEval == null) {
+                        displayedEvaStatus = "none";
+                    }
+                    
+                    request.setAttribute("displayedEval", displayedEval);
+                    request.setAttribute("displayedEvaStatus", displayedEvaStatus);
+
                     if (currentEvalId != null) {
+                        // Charger l'évaluation courante pour déterminer son statut (pour les stats)
+                        model.Evaluation currentEval = model.Evaluation.trouverParId(currentEvalId);
+                        request.setAttribute("currentEval", currentEval);
+                        
+                        // Déterminer le statut : scheduled (futur), ongoing (en cours), finished (passé)
+                        String evaStatus = "finished"; // par défaut
+                        if (currentEval != null) {
+                            if (now.isBefore(currentEval.getDate_debut())) {
+                                evaStatus = "scheduled";
+                            } else if (now.isAfter(currentEval.getDate_debut()) && now.isBefore(currentEval.getDate_fin())) {
+                                evaStatus = "ongoing";
+                            }
+                        }
+                        request.setAttribute("evaStatus", evaStatus);
+                        
                         // Taux de réponse global
                         int responseRate = model.Reponse_Evaluation.calculerTauxReponseGlobal(currentEvalId);
                         request.setAttribute("responseRate", responseRate);
@@ -600,6 +658,15 @@ public class Controller extends HttpServlet {
                 case "/admin/ajouter-etudiant":
                     Utilisateur.ajouterEtudiantSpecialite(request, response);
                     break;
+                case "/admin/resultats-evaluations/program":
+                    programmerEvaluation(request, response);
+                    break;
+                case "/admin/resultats-evaluations/cancel-program":
+                    annulerProgrammationEvaluation(request, response);
+                    break;
+                case "/admin/resultats-evaluations/end-evaluation":
+                    mettreFinEvaluation(request, response);
+                    break;
                 default:
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
                     break;
@@ -629,6 +696,124 @@ public class Controller extends HttpServlet {
         } else {
             request.setAttribute("error", "email ou mot de passe incorrect");
             request.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(request, response);
+        }
+    }
+
+    private void programmerEvaluation(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        Integer evaluationId = null;
+        try {
+            evaluationId = Integer.parseInt(request.getParameter("evaluationId"));
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "evaluationId invalide");
+            return;
+        }
+
+        String dateDebut = request.getParameter("date_debut");
+        String timeDebut = request.getParameter("time_debut");
+        String dateFin = request.getParameter("date_fin");
+        String timeFin = request.getParameter("time_fin");
+        String semestreStr = request.getParameter("semestre");
+
+        if (dateDebut == null || dateDebut.isEmpty() || timeDebut == null || timeDebut.isEmpty() ||
+            dateFin == null || dateFin.isEmpty() || timeFin == null || timeFin.isEmpty() ||
+            semestreStr == null || semestreStr.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/app/admin/resultats-evaluations?evaluationId=" + evaluationId);
+            return;
+        }
+
+        try {
+            // Construire les LocalDateTime
+            java.time.LocalDate localDateDebut = java.time.LocalDate.parse(dateDebut);
+            java.time.LocalTime localTimeDebut = java.time.LocalTime.parse(timeDebut);
+            java.time.LocalDateTime dateTimeDebut = java.time.LocalDateTime.of(localDateDebut, localTimeDebut);
+
+            java.time.LocalDate localDateFin = java.time.LocalDate.parse(dateFin);
+            java.time.LocalTime localTimeFin = java.time.LocalTime.parse(timeFin);
+            java.time.LocalDateTime dateTimeFin = java.time.LocalDateTime.of(localDateFin, localTimeFin);
+
+            int semestre = Integer.parseInt(semestreStr);
+
+            // Récupérer l'évaluation et la mettre à jour
+            model.Evaluation eval = model.Evaluation.trouverParId(evaluationId);
+            if (eval != null) {
+                eval.setDate_debut(dateTimeDebut);
+                eval.setDate_fin(dateTimeFin);
+                eval.setSemestre(semestre);
+                eval.save();
+                System.out.println("DEBUG: Evaluation " + evaluationId + " programmée pour " + dateTimeDebut + " - " + dateTimeFin);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        response.sendRedirect(request.getContextPath() + "/app/admin/resultats-evaluations?evaluationId=" + evaluationId);
+    }
+
+    private void annulerProgrammationEvaluation(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        Integer evaluationId = null;
+        try {
+            evaluationId = Integer.parseInt(request.getParameter("evaluationId"));
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "evaluationId invalide");
+            return;
+        }
+
+        try {
+            // Récupérer l'évaluation et réinitialiser les dates
+            model.Evaluation eval = model.Evaluation.trouverParId(evaluationId);
+            if (eval != null) {
+                // Réinitialiser à des valeurs par défaut (fin du monde)
+                java.time.LocalDateTime defaultDate = java.time.LocalDateTime.of(
+                    java.time.LocalDate.of(2099, 12, 31),
+                    java.time.LocalTime.of(23, 59)
+                );
+                eval.setDate_debut(defaultDate);
+                eval.setDate_fin(defaultDate);
+                eval.save();
+                System.out.println("DEBUG: Programmation de l'évaluation " + evaluationId + " annulée");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        response.sendRedirect(request.getContextPath() + "/app/admin/resultats-evaluations?evaluationId=" + evaluationId);
+    }
+
+    private void mettreFinEvaluation(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, ServletException, IOException {
+        Integer evaluationId = null;
+        try {
+            evaluationId = Integer.parseInt(request.getParameter("evaluationId"));
+            System.out.println("DEBUG mettreFinEvaluation: evaluationId = " + evaluationId);
+        } catch (NumberFormatException e) {
+            System.out.println("DEBUG mettreFinEvaluation: ERROR parsing evaluationId");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("evaluationId invalide");
+            return;
+        }
+
+        try {
+            // Récupérer l'évaluation et mettre à jour la date de fin à une date passée (maintenant -1 minute)
+            model.Evaluation eval = model.Evaluation.trouverParId(evaluationId);
+            System.out.println("DEBUG mettreFinEvaluation: eval retrieved = " + (eval != null ? "YES" : "NULL"));
+            if (eval != null) {
+                java.time.LocalDateTime endTime = java.time.LocalDateTime.now().minusMinutes(1);
+                eval.setDate_fin(endTime);
+                eval.save();
+                System.out.println("DEBUG: Fin de l'évaluation " + evaluationId + " mise à jour à " + endTime);
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write("OK");
+            } else {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                response.getWriter().write("Evaluation non trouvée");
+            }
+        } catch (Exception e) {
+            System.out.println("DEBUG mettreFinEvaluation: EXCEPTION " + e.getMessage());
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Erreur serveur: " + e.getMessage());
         }
     }
 }

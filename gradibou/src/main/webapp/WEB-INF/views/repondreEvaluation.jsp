@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/composants.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/header.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/pages/repondre-evaluation.css">
-    <%-- IMPORTANT: Design Figma converti pour notre stack JSP + CSS tokens --%>
     <% Evaluation eval = (Evaluation) request.getAttribute("evaluation"); %>
     <% Matiere matiere = (Matiere) request.getAttribute("matiere"); %>
 </head>

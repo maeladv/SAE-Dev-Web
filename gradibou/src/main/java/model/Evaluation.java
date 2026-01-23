@@ -133,7 +133,7 @@ public class Evaluation {
      */
     public static List<Evaluation> trouverToutes() throws SQLException {
         List<Evaluation> liste = new ArrayList<>();
-        String sql = "SELECT id, date_debut, date_fin, semestre FROM evaluation ORDER BY date_fin DESC";
+        String sql = "SELECT id, date_debut, date_fin, semestre FROM evaluation ORDER BY date_debut ASC";
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {

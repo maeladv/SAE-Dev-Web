@@ -16,7 +16,7 @@
 
     <main class="forgot-password-main">
         <div class="forgot-password-logo">
-            <img src="https://www.figma.com/api/mcp/asset/2b35421e-3f8e-46b3-ac0e-dcfb7845a774" alt="Gradibou">
+            <img src="<%= request.getContextPath() %>/static/images/logo/logo-gradibou.svg" alt="Gradibou">
         </div>
 
         <section class="forgot-password-card" aria-labelledby="forgot-password-title">

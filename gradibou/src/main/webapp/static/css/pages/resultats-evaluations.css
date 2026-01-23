@@ -94,8 +94,12 @@
   background: var(--color-gris-texte);
 }
 
-.eva-status-badge-small.ongoing {
+.eva-status-badge-small.scheduled {
   background: var(--gradibou-status-waiting);
+}
+
+.eva-status-badge-small.ongoing {
+  background: var(--gradibou-status-success);
 }
 
 .eva-selector-card.selected .eva-status-badge-small {
@@ -151,10 +155,10 @@
 }
 
 .eva-status-badge.scheduled {
-  background: var(--gradibou-status-warning);
+  background: var(--gradibou-status-waiting);
 }
 
-.eva-status-badge.running {
+.eva-status-badge.ongoing {
   background: var(--gradibou-status-success);
 }
 
@@ -197,6 +201,34 @@
   padding: 12px 16px;
   font-size: 16px;
   color: var(--gradibou-noir);
+  transition: all 0.2s ease;
+}
+
+.eva-input:disabled {
+  background: var(--color-gris-fond);
+  color: var(--color-gris-texte);
+  cursor: not-allowed;
+  opacity: 0.6;
+  border-color: var(--color-gris-contour);
+}
+
+.eva-select {
+  background: var(--gradibou-blanc);
+  border: 0.5px solid var(--color-gris-contour);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 16px;
+  color: var(--gradibou-noir);
+  transition: all 0.2s ease;
+}
+
+.eva-select:disabled {
+  background: var(--color-gris-fond);
+  color: var(--color-gris-texte);
+  cursor: not-allowed;
+  opacity: 0.6;
+  border-color: var(--color-gris-contour);
+  background-image: none;
 }
 
 .eva-input:disabled,

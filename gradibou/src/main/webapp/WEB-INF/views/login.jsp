@@ -16,7 +16,7 @@
 
     <main class="login-main">
         <div class="login-logo-large">
-            <img src="https://www.figma.com/api/mcp/asset/fd9ab368-a25a-4ba0-8893-eeb203a759c4" alt="Gradibou">
+            <img src="<%= request.getContextPath() %>/static/images/logo/logo-gradibou.svg" alt="Gradibou">
         </div>
 
         <section class="login-card" aria-labelledby="login-title">
@@ -42,7 +42,7 @@
                     <a class="btn " href="<%= request.getContextPath() %>/app/forgot-password">Mot de passe oublié</a>
                     <button class="btn btn-primary btn-with-icon" type="submit">
                         Se connecter
-                        <img src="https://www.figma.com/api/mcp/asset/51cfe758-9834-4608-9a3d-2b1e4de9b7be" alt="">
+                        <img src="<%= request.getContextPath() %>/static/images/icons/arrow-right.svg" alt="">
                     </button>
                 </div>
             </form>

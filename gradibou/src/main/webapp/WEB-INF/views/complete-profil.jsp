@@ -16,7 +16,7 @@
     
     <main class="complete-profil-main">
         <div class="complete-profil-logo">
-            <img src="https://www.figma.com/api/mcp/asset/b7a7b4d1-4c38-4044-b903-e50a20589fc2" alt="Gradibou">
+            <img src="<%= request.getContextPath() %>/static/images/logo/logo-gradibou.svg" alt="Gradibou">
         </div>
 
         <section class="complete-profil-card" aria-labelledby="complete-profil-title">
