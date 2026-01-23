@@ -89,6 +89,304 @@ public class Note {
         return liste;
     }
 
+    /**
+     * Trouver les notes d'un étudiant
+     */
+    public static List<Note> trouverParEtudiant(int idEtudiant) throws SQLException {
+        List<Note> liste = new ArrayList<>();
+        String sql = "SELECT id_etudiant, id_examen, note, date FROM note WHERE id_etudiant = ? ORDER BY date";
+
+        try (Connection conn = DatabaseManager.obtenirConnexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idEtudiant);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                liste.add(creerDepuisResultSet(rs));
+            }
+        }
+        return liste;
+    }
+
+    // ==================== Méthodes de calcul de statistiques ====================
+
+    /**
+     * Calculer toutes les statistiques des notes d'un étudiant
+     */
+    public static java.util.Map<String, Object> calculerStatistiquesEtudiant(int idEtudiant) throws SQLException {
+        java.util.Map<String, Object> statistiques = new java.util.HashMap<>();
+        
+        List<Note> toutesLesNotes = trouverParEtudiant(idEtudiant);
+        
+        if (toutesLesNotes == null || toutesLesNotes.isEmpty()) {
+            statistiques.put("moyenneGenerale", 0.0);
+            statistiques.put("statistiquesSemestres", new java.util.TreeMap<Integer, java.util.Map<String, Object>>());
+            statistiques.put("moyennesMatieres", new java.util.HashMap<String, Double>());
+            statistiques.put("meilleureMatiere", null);
+            statistiques.put("meilleureMoyenne", 0.0);
+            statistiques.put("pireMatiere", null);
+            statistiques.put("pireMoyenne", 0.0);
+            statistiques.put("matieresSem1", new ArrayList<java.util.Map<String, Object>>());
+            statistiques.put("matieresSem2", new ArrayList<java.util.Map<String, Object>>());
+            statistiques.put("groupesSem1", new java.util.LinkedHashMap<String, List<java.util.Map<String, Object>>>());
+            statistiques.put("groupesSem2", new java.util.LinkedHashMap<String, List<java.util.Map<String, Object>>>());
+            statistiques.put("moyenneMatieresSem1", new java.util.LinkedHashMap<String, Double>());
+            statistiques.put("moyenneMatieresSem2", new java.util.LinkedHashMap<String, Double>());
+            statistiques.put("moyenneSem1", 0.0);
+            statistiques.put("moyenneSem2", 0.0);
+            return statistiques;
+        }
+        
+        // Calculer les statistiques par semestre et matière
+        java.util.Map<Integer, java.util.Map<String, Object>> statistiquesSemestres = new java.util.TreeMap<>();
+        java.util.Map<String, List<Double>> notesParMatiere = new java.util.HashMap<>();
+        List<java.util.Map<String, Object>> matieresSem1 = new ArrayList<>();
+        List<java.util.Map<String, Object>> matieresSem2 = new ArrayList<>();
+        // Regroupement des examens par matière et semestre
+        java.util.Map<String, List<java.util.Map<String, Object>>> groupesSem1 = new java.util.LinkedHashMap<>();
+        java.util.Map<String, List<java.util.Map<String, Object>>> groupesSem2 = new java.util.LinkedHashMap<>();
+        // Accumulateurs pour moyennes par matière par semestre
+        java.util.Map<String, List<Double>> notesParMatiereSem1 = new java.util.HashMap<>();
+        java.util.Map<String, List<Double>> notesParMatiereSem2 = new java.util.HashMap<>();
+        
+        double sommeTotal = 0;
+        int compteurTotal = 0;
+        
+        for (Note note : toutesLesNotes) {
+            Examen examen = Examen.trouverParId(note.getIdExamen());
+            if (examen == null) continue;
+            
+            Matiere matiere = Matiere.trouverParId(examen.getId_matiere());
+            if (matiere == null) continue;
+            
+            String nomMatiere = matiere.getNom();
+            double noteValeur = note.getValeur();
+            
+            // Déterminer le semestre depuis la matière
+            int semestre = matiere.getSemestre();
+            
+            // Accumuler les notes par matière
+            notesParMatiere.computeIfAbsent(nomMatiere, k -> new ArrayList<>()).add(noteValeur);
+            
+            // Accumuler les données par semestre
+            statistiquesSemestres.computeIfAbsent(semestre, k -> {
+                java.util.Map<String, Object> donneesSem = new java.util.HashMap<>();
+                donneesSem.put("notes", new ArrayList<Double>());
+                donneesSem.put("moyenne", 0.0);
+                return donneesSem;
+            });
+            
+            @SuppressWarnings("unchecked")
+            List<Double> notesSem = (List<Double>) statistiquesSemestres.get(semestre).get("notes");
+            notesSem.add(noteValeur);
+            
+            sommeTotal += noteValeur;
+            compteurTotal++;
+        }
+        
+        // Calculer les moyennes
+        double moyenneGenerale = compteurTotal > 0 ? sommeTotal / compteurTotal : 0.0;
+        
+        for (Integer sem : statistiquesSemestres.keySet()) {
+            java.util.Map<String, Object> donneesSem = statistiquesSemestres.get(sem);
+            @SuppressWarnings("unchecked")
+            List<Double> notes = (List<Double>) donneesSem.get("notes");
+            double moy = notes.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            donneesSem.put("moyenne", moy);
+        }
+        
+        // Trouver meilleure et pire matière
+        String meilleureMatiere = null;
+        double meilleureMoyenne = 0.0;
+        String pireMatiere = null;
+        double pireMoyenne = 20.0;
+        
+        for (java.util.Map.Entry<String, List<Double>> entree : notesParMatiere.entrySet()) {
+            double moy = entree.getValue().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            if (moy > meilleureMoyenne) {
+                meilleureMoyenne = moy;
+                meilleureMatiere = entree.getKey();
+            }
+            if (moy < pireMoyenne) {
+                pireMoyenne = moy;
+                pireMatiere = entree.getKey();
+            }
+        }
+        
+        // Construire les listes de matières par semestre
+        for (Note note : toutesLesNotes) {
+            Examen examen = Examen.trouverParId(note.getIdExamen());
+            if (examen == null) continue;
+            
+            Matiere matiere = Matiere.trouverParId(examen.getId_matiere());
+            if (matiere == null) continue;
+            
+            String nomMatiere = matiere.getNom();
+            int semestre = matiere.getSemestre();
+            java.util.Map<String, Object> matiere_obj = new java.util.LinkedHashMap<>();
+            
+            matiere_obj.put("nom", nomMatiere);
+            matiere_obj.put("note", (double) note.getValeur());
+            matiere_obj.put("minimum", calculerNoteMinimum(examen.getId()));
+            matiere_obj.put("maximum", calculerNoteMaximum(examen.getId()));
+            matiere_obj.put("moyenneGroupe", calculerMoyenneGroupe(examen.getId()));
+            matiere_obj.put("estMeilleure", nomMatiere.equals(meilleureMatiere));
+
+            // Construire l'entrée pour l'examen
+            java.util.Map<String, Object> entreeExamen = new java.util.LinkedHashMap<>();
+            entreeExamen.put("nomExamen", examen.getNom());
+            entreeExamen.put("note", (double) note.getValeur());
+            entreeExamen.put("minimum", calculerNoteMinimum(examen.getId()));
+            entreeExamen.put("maximum", calculerNoteMaximum(examen.getId()));
+            entreeExamen.put("moyenneGroupe", calculerMoyenneGroupe(examen.getId()));
+            
+            if (semestre == 1) {
+                matieresSem1.add(matiere_obj);
+                groupesSem1.computeIfAbsent(nomMatiere, k -> new ArrayList<>()).add(entreeExamen);
+                notesParMatiereSem1.computeIfAbsent(nomMatiere, k -> new ArrayList<>()).add((double) note.getValeur());
+            } else {
+                matieresSem2.add(matiere_obj);
+                groupesSem2.computeIfAbsent(nomMatiere, k -> new ArrayList<>()).add(entreeExamen);
+                notesParMatiereSem2.computeIfAbsent(nomMatiere, k -> new ArrayList<>()).add((double) note.getValeur());
+            }
+        }
+        
+        // Calculer le classement dans la spécialité
+        java.util.Map<String, Object> classement = calculerClassementDansSpecialite(idEtudiant);
+        
+        // Calculer les moyennes par matière par semestre
+        java.util.Map<String, Double> moyenneMatieresSem1 = new java.util.LinkedHashMap<>();
+        for (java.util.Map.Entry<String, List<Double>> e : notesParMatiereSem1.entrySet()) {
+            double moy = e.getValue().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            moyenneMatieresSem1.put(e.getKey(), moy);
+        }
+        java.util.Map<String, Double> moyenneMatieresSem2 = new java.util.LinkedHashMap<>();
+        for (java.util.Map.Entry<String, List<Double>> e : notesParMatiereSem2.entrySet()) {
+            double moy = e.getValue().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            moyenneMatieresSem2.put(e.getKey(), moy);
+        }
+
+        // Moyennes des semestres calculées à partir des moyennes par matière
+        double moyenneSem1DepuisMatieres = moyenneMatieresSem1.isEmpty()
+            ? 0.0
+            : moyenneMatieresSem1.values().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        double moyenneSem2DepuisMatieres = moyenneMatieresSem2.isEmpty()
+            ? 0.0
+            : moyenneMatieresSem2.values().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+
+        statistiques.put("moyenneGenerale", moyenneGenerale);
+        statistiques.put("statistiquesSemestres", statistiquesSemestres);
+        statistiques.put("moyennesMatieres", notesParMatiere);
+        statistiques.put("meilleureMatiere", meilleureMatiere);
+        statistiques.put("meilleureMoyenne", meilleureMoyenne);
+        statistiques.put("pireMatiere", pireMatiere);
+        statistiques.put("pireMoyenne", pireMoyenne);
+        statistiques.put("matieresSem1", matieresSem1);
+        statistiques.put("matieresSem2", matieresSem2);
+        statistiques.put("groupesSem1", groupesSem1);
+        statistiques.put("groupesSem2", groupesSem2);
+        statistiques.put("moyenneMatieresSem1", moyenneMatieresSem1);
+        statistiques.put("moyenneMatieresSem2", moyenneMatieresSem2);
+        statistiques.put("moyenneSem1", moyenneSem1DepuisMatieres);
+        statistiques.put("moyenneSem2", moyenneSem2DepuisMatieres);
+        statistiques.put("classementDansSpecialite", classement.get("classement"));
+        statistiques.put("totalEtudiantsDansSpecialite", classement.get("total"));
+        
+        return statistiques;
+    }
+    
+    /**
+     * Calculer la note minimale pour un examen
+     */
+    private static double calculerNoteMinimum(int idExamen) throws SQLException {
+        List<Note> notes = trouverParExamen(idExamen);
+        if (notes == null || notes.isEmpty()) return 0.0;
+        return notes.stream()
+            .mapToDouble(Note::getValeur)
+            .min()
+            .orElse(0.0);
+    }
+    
+    /**
+     * Calculer la note maximale pour un examen
+     */
+    private static double calculerNoteMaximum(int idExamen) throws SQLException {
+        List<Note> notes = trouverParExamen(idExamen);
+        if (notes == null || notes.isEmpty()) return 0.0;
+        return notes.stream()
+            .mapToDouble(Note::getValeur)
+            .max()
+            .orElse(0.0);
+    }
+    
+    /**
+     * Calculer la moyenne du groupe pour un examen
+     */
+    private static double calculerMoyenneGroupe(int idExamen) throws SQLException {
+        List<Note> notes = trouverParExamen(idExamen);
+        if (notes == null || notes.isEmpty()) return 0.0;
+        return notes.stream()
+            .mapToDouble(Note::getValeur)
+            .average()
+            .orElse(0.0);
+    }
+    
+    /**
+     * Calculer le classement d'un étudiant dans sa spécialité
+     */
+    private static java.util.Map<String, Object> calculerClassementDansSpecialite(int idEtudiant) throws SQLException {
+        java.util.Map<String, Object> classement = new java.util.HashMap<>();
+        
+        try {
+            Utilisateur etudiant = Utilisateur.trouverParId(idEtudiant);
+            if (etudiant == null) {
+                classement.put("classement", 0);
+                classement.put("total", 0);
+                return classement;
+            }
+            
+            int idSpecialite = etudiant.getIdSpecialite();
+            
+            List<Utilisateur> etudiantsSpecialite = Utilisateur.trouverEtudiantsParSpecialite(idSpecialite);
+            if (etudiantsSpecialite == null || etudiantsSpecialite.isEmpty()) {
+                classement.put("classement", 0);
+                classement.put("total", 0);
+                return classement;
+            }
+            
+            // Calculer les moyennes pour tous les étudiants de la spécialité
+            List<Double> moyennes = new ArrayList<>();
+            double moyenneEtudiantActuel = 0.0;
+            
+            for (Utilisateur user : etudiantsSpecialite) {
+                List<Note> notesUtilisateur = trouverParEtudiant(user.getId());
+                if (notesUtilisateur == null || notesUtilisateur.isEmpty()) continue;
+                
+                double moy = notesUtilisateur.stream()
+                    .mapToDouble(Note::getValeur)
+                    .average()
+                    .orElse(0.0);
+                
+                moyennes.add(moy);
+                if (user.getId() == idEtudiant) {
+                    moyenneEtudiantActuel = moy;
+                }
+            }
+            
+            // Trier par ordre décroissant pour obtenir le classement
+            moyennes.sort((a, b) -> Double.compare(b, a));
+            int rang = moyennes.indexOf(moyenneEtudiantActuel) + 1;
+            
+            classement.put("classement", rang);
+            classement.put("total", moyennes.size());
+        } catch (Exception e) {
+            classement.put("classement", 0);
+            classement.put("total", 0);
+        }
+        
+        return classement;
+    }
+
      // ==================== Méthodes de persistence (Active Record) ====================
 
     /**

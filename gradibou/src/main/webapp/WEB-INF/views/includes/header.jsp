@@ -45,8 +45,8 @@
             <!-- Header pour utilisateurs connectés -->
             <nav class="nav-links" aria-label="Navigation principale">
                 <% if ("etudiant".equals(userRole)) { %>
-                    <a href="#">Evaluation des enseignements</a>
-                    <a href="#">Mes notes</a>
+                    <a href="<%= request.getContextPath() %>/app/etudiant/evaluations">Evaluation des enseignements</a>
+                    <a href="<%= request.getContextPath() %>/app/etudiant">Mes notes</a>
                     <a href="<%= request.getContextPath() %>/app/moncompte">Mon compte</a>
                 <% } else if ("professeur".equals(userRole)) { %>
                     <a href="#">Evaluations de mes enseignements</a>
