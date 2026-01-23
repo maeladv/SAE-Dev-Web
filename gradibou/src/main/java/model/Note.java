@@ -138,6 +138,17 @@ public class Note {
         }
         
         // Calculer les statistiques par semestre et matière
+        int specialiteEtudiant = -1;
+        try {
+            Utilisateur etu = Utilisateur.trouverParId(idEtudiant);
+            if (etu != null) {
+                specialiteEtudiant = etu.getIdSpecialite();
+            }
+        } catch (Exception e) {
+            // Si on ne peut pas déterminer la spécialité, on ne filtre pas
+            specialiteEtudiant = -1;
+        }
+
         java.util.Map<Integer, java.util.Map<String, Object>> statistiquesSemestres = new java.util.TreeMap<>();
         java.util.Map<String, List<Double>> notesParMatiere = new java.util.HashMap<>();
         List<java.util.Map<String, Object>> matieresSem1 = new ArrayList<>();
@@ -158,6 +169,7 @@ public class Note {
             
             Matiere matiere = Matiere.trouverParId(examen.getId_matiere());
             if (matiere == null) continue;
+            if (specialiteEtudiant > 0 && matiere.getSpecialiteId() != specialiteEtudiant) continue;
             
             String nomMatiere = matiere.getNom();
             double noteValeur = note.getValeur();
@@ -220,6 +232,7 @@ public class Note {
             
             Matiere matiere = Matiere.trouverParId(examen.getId_matiere());
             if (matiere == null) continue;
+            if (specialiteEtudiant > 0 && matiere.getSpecialiteId() != specialiteEtudiant) continue;
             
             String nomMatiere = matiere.getNom();
             int semestre = matiere.getSemestre();
@@ -246,7 +259,7 @@ public class Note {
                 notesParMatiereSem1.computeIfAbsent(nomMatiere, k -> new ArrayList<>()).add((double) note.getValeur());
             } else {
                 matieresSem2.add(matiere_obj);
-                groupesSem2.computeIfAbsent(nomMatiere, k -> new ArrayList<>()).add(entreeExamen);
+                groupesSem2.computeIfAbsent(nomMatiere, k -> new ArrayList<>()).add(entreeExamen); // computeIfAbsent permet de créer une nouvelle liste si la clé n'existe pas encore
                 notesParMatiereSem2.computeIfAbsent(nomMatiere, k -> new ArrayList<>()).add((double) note.getValeur());
             }
         }
