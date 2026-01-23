@@ -225,42 +225,36 @@ public class Examen {
             return;
         }
 
-        try {
-            request.setAttribute("matieres", model.Matiere.trouverToutes());
-        } catch (SQLException e) {
-             e.printStackTrace();
-             request.setAttribute("error", "Erreur lors du chargement des matières: " + e.getMessage());
-        }
-
         String nom = request.getParameter("nom");
         String coefficientStr = request.getParameter("coefficient");
         String matiereIdStr = request.getParameter("matiereId");
+        int matiereId = -1;
 
         try {
+            if (matiereIdStr != null && !matiereIdStr.isEmpty()) {
+                matiereId = Integer.parseInt(matiereIdStr);
+            }
+            
             if (nom == null || nom.isEmpty() || coefficientStr == null || coefficientStr.isEmpty() || 
-                matiereIdStr == null || matiereIdStr.isEmpty()) {
-                request.setAttribute("error", "Tous les champs sont requis.");
-                request.getRequestDispatcher("/WEB-INF/views/creerExamen.jsp").forward(request, response);
+                matiereId == -1) {
+                response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matiereId + "&error=" + java.net.URLEncoder.encode("Tous les champs sont requis.", "UTF-8"));
                 return;
             }
 
             int coefficient = Integer.parseInt(coefficientStr);
-            int matiereId = Integer.parseInt(matiereIdStr);
 
             model.Examen examen = new model.Examen(nom, coefficient, matiereId);
             
             if (examen.save()) {
-                request.setAttribute("success", "Examen créé avec succès");
+                response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matiereId + "&success=" + java.net.URLEncoder.encode("Examen créé avec succès", "UTF-8"));
             } else {
-                request.setAttribute("error", "Erreur lors de la création de l'examen");
+                response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matiereId + "&error=" + java.net.URLEncoder.encode("Erreur lors de la création de l'examen", "UTF-8"));
             }
         } catch (NumberFormatException e) {
-            request.setAttribute("error", "Format numérique invalide");
+            response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matiereId + "&error=" + java.net.URLEncoder.encode("Format numérique invalide", "UTF-8"));
         } catch (SQLException e) {
-            request.setAttribute("error", "Erreur BD: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matiereId + "&error=" + java.net.URLEncoder.encode("Erreur BD: " + e.getMessage(), "UTF-8"));
         }
-        
-        request.getRequestDispatcher("/WEB-INF/views/creerExamen.jsp").forward(request, response);
     }
 
     public static String afficherExamens(HttpServletRequest request) {
@@ -287,6 +281,15 @@ public class Examen {
                 
                 request.setAttribute("examens", model.Examen.trouverParMatiere(idMat));
                 request.setAttribute("matiere", model.Matiere.trouverParId(idMat));
+                
+                // Charger les informations du professeur
+                Matiere matiere = model.Matiere.trouverParId(idMat);
+                if (matiere != null && matiere.getProfId() > 0) {
+                    Utilisateur professeur = model.Utilisateur.trouverParId(matiere.getProfId());
+                    if (professeur != null) {
+                        request.setAttribute("professeur", professeur);
+                    }
+                }
             } else {
                 request.setAttribute("examens", model.Examen.trouverTous());
             }
@@ -328,16 +331,17 @@ public class Examen {
                 }
                 
                 e.supprimer();
-            }
-            
-            if (matId != -1) {
-                response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matId);
+                
+                if (matId != -1) {
+                    response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matId + "&success=" + java.net.URLEncoder.encode("Examen supprimé avec succès", "UTF-8"));
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/app/gestion/specialites");
+                }
             } else {
-                response.sendRedirect(request.getContextPath() + "/app/gestion/specialites");
+                response.sendRedirect(request.getContextPath() + "/app/admin/examens?error=" + java.net.URLEncoder.encode("Examen introuvable", "UTF-8"));
             }
         } catch (Exception e) {
-            request.setAttribute("error", "Erreur lors de la suppression : " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+            response.sendRedirect(request.getContextPath() + "/app/admin/examens?error=" + java.net.URLEncoder.encode("Erreur lors de la suppression : " + e.getMessage(), "UTF-8"));
         }
     }
 
@@ -358,8 +362,10 @@ public class Examen {
              // Date n'est pas modifiable dans cette version simplifiée ou on garde l'existante
             
             model.Examen e = model.Examen.trouverParId(id);
+            int matId = -1;
+            
             if (e != null) {
-                int matId = e.getId_matiere();
+                matId = e.getId_matiere();
                 
                 // Vérifier que le professeur a accès à cette matière
                 if (isProfesseur && !isAdmin) {
@@ -376,12 +382,13 @@ public class Examen {
                 e.setNom(nom);
                 e.setCoefficient(coefficient);
                 e.save();
+                
+                response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matId + "&success=" + java.net.URLEncoder.encode("Examen modifié avec succès", "UTF-8"));
+            } else {
+                response.sendRedirect(request.getContextPath() + "/app/admin/examens?error=" + java.net.URLEncoder.encode("Examen introuvable", "UTF-8"));
             }
-            int matId = e != null ? e.getId_matiere() : -1;
-            response.sendRedirect(request.getContextPath() + "/app/admin/examens?matId=" + matId);
         } catch (Exception e) {
-            request.setAttribute("error", "Erreur lors de la modification : " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+            response.sendRedirect(request.getContextPath() + "/app/admin/examens?error=" + java.net.URLEncoder.encode("Erreur lors de la modification : " + e.getMessage(), "UTF-8"));
         }
     }
 

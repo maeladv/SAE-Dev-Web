@@ -1,144 +1,431 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ page import="model.Examen" %>
 <%@ page import="model.Matiere" %>
+<%@ page import="model.Specialite" %>
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Administration - Examens</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examens - Admin</title>
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/global.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/composants.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/header.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/modals.css">
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
-        h2 { margin-top: 0; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
-        th { background-color: #f8f9fa; }
-        .card { border: 1px solid #ddd; border-radius: 6px; padding: 20px; margin-bottom: 20px; }
-        .back-link { margin-top: 20px; display: inline-block; color: #6c757d; text-decoration: none; }
-        input[type="number"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 60px; }
-        button { padding: 8px 12px; background-color: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #0b5ed7; }
-        a.action-link { color: #0d6efd; text-decoration: none; }
-        a.action-link:hover { text-decoration: underline; }
+        .examens-main {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 60px 40px;
+            align-items: center;
+        }
         
-        /* Modal styles */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
-        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 5px; }
-        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .close:hover, .close:focus { color: black; text-decoration: none; cursor: pointer; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; }
-        .form-group input { width: 100%; padding: 8px; box-sizing: border-box; }
+        .examens-content {
+            width: 100%;
+            max-width: 1400px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+        
+        /* Header Section */
+        .matiere-header {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        
+        .matiere-header-label {
+            font-size: 24px;
+            font-weight: 400;
+            color: #838383;
+            text-transform: uppercase;
+            margin: 0;
+        }
+        
+        .matiere-header-title {
+            font-size: 48px;
+            font-weight: 700;
+            color: #000;
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        .matiere-header-meta {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-top: 8px;
+        }
+        
+        .matiere-header-meta .specialite-tag-badge {
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 24px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        
+        .matiere-header-meta .tag-icy { background: rgba(139, 57, 190, 0.2); color: #8b39be; }
+        .matiere-header-meta .tag-gcb { background: rgba(23, 119, 117, 0.2); color: #177775; }
+        .matiere-header-meta .tag-iia { background: rgba(33, 112, 36, 0.2); color: #217024; }
+        .matiere-header-meta .tag-me { background: rgba(52, 91, 163, 0.2); color: #345ba3; }
+        .matiere-header-meta .tag-mt { background: rgba(155, 32, 32, 0.2); color: #9b2020; }
+        
+        .matiere-header-meta .annee {
+            font-size: 24px;
+            font-weight: 800;
+            color: #000;
+            text-transform: uppercase;
+        }
+        
+        .matiere-header-meta .semestre {
+            font-size: 24px;
+            font-weight: 800;
+            color: #838383;
+            text-transform: uppercase;
+        }
+        
+        /* Professor Info Box */
+        .prof-info-box {
+            background: #fff;
+            border: 1px solid #d9d9d9;
+            border-radius: 16px;
+            padding: 20px 16px;
+        }
+        
+        .prof-info-box p {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 500;
+            color: #000;
+        }
+        
+        .prof-info-box a {
+            text-decoration: underline;
+            color: #000;
+        }
+        
+        /* Examens Card */
+        .examens-card {
+            background: #fff;
+            border-radius: 32px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .examens-card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding-bottom: 40px;
+        }
+        
+        .examens-card-header h2 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #000;
+            margin: 0;
+        }
+        
+        .examens-card-header .spacer {
+            flex: 1;
+        }
+        
+        /* Table */
+        .examens-table-wrapper {
+            background: #fff;
+            border: 1px solid #d9d9d9;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .examens-table-wrapper thead {
+            background: #fafafa;
+        }
+        
+        .examens-table-wrapper thead tr {
+            border-bottom: 1px solid #d9d9d9;
+        }
+        
+        .examens-table-wrapper thead th {
+            padding: 10px 20px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 900;
+            color: #838383;
+            text-transform: uppercase;
+        }
+        
+        .examens-table-wrapper tbody td {
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #000;
+        }
+        
+        .examens-table-wrapper tbody tr:not(:last-child) {
+            border-bottom: 1px solid #d9d9d9;
+        }
+        
+        .examens-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .examens-table th:nth-child(1),
+        .examens-table td:nth-child(1) { width: 16.66%; }
+        .examens-table th:nth-child(2),
+        .examens-table td:nth-child(2) { width: 16.66%; }
+        .examens-table th:nth-child(3),
+        .examens-table td:nth-child(3) { width: 16.66%; }
+        .examens-table th:nth-child(4),
+        .examens-table td:nth-child(4) { width: 16.66%; }
+        .examens-table th:nth-child(5),
+        .examens-table td:nth-child(5) { width: 16.66%; }
+        .examens-table th:nth-child(6),
+        .examens-table td:nth-child(6) { width: 16.66%; }
+        
+        .examens-table tbody td:last-child {
+            text-align: right;
+        }
+        
+        .table-action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        
+        .table-action-buttons img {
+            width: 20px;
+            height: 20px;
+            max-width: none;
+        }
+        
+        .examens-card-header img {
+            width: 20px;
+            height: 20px;
+            max-width: none;
+        }
+        
+        .btn img {
+            width: 20px;
+            height: 20px;
+            max-width: none;
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #838383;
+            padding: 40px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
-    <% Matiere mat = (Matiere) request.getAttribute("matiere"); %>
-    <h2>Examens de la matière : <%= mat != null ? mat.getNom() : "" %></h2>
-    
-    <% String error = (String) request.getAttribute("error");
-       if (error != null) { %>
-        <p style="color:red;"><%= error %></p>
-    <% } %>
-    <% String success = (String) request.getAttribute("success");
-       if (success != null) { %>
-        <p style="color:green;"><%= success %></p>
-    <% } %>
+    <script src="<%= request.getContextPath() %>/static/js/modals.js"></script>
+    <script>
+        const contextPath = '<%= request.getContextPath() %>';
+    </script>
 
-    <!-- Liste des examens -->
-    <div class="card" style="padding: 0; overflow: hidden;">
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Nom</th>
-                    <th>Coefficient</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
+    <div class="page-container">
+        <%@ include file="includes/header.jsp" %>
+
+        <main class="examens-main">
             <% 
-                List<Examen> examens = (List<Examen>) request.getAttribute("examens");
-                if (examens != null && !examens.isEmpty()) {
-                    for (Examen e : examens) {
+                Matiere mat = (Matiere) request.getAttribute("matiere");
+                Specialite spec = null;
+                String tagClass = "";
+                if (mat != null) {
+                    try {
+                        spec = Specialite.trouverParId(mat.getSpecialiteId());
+                        if (spec != null) {
+                            tagClass = "tag-" + spec.getTag().toLowerCase();
+                        }
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
             %>
-                <tr>
-                    <td><%= e.getDate() %></td>
-                    <td><%= e.getNom() %></td>
-                    <td><%= e.getCoefficient() %></td>
-                    <td>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <a href="<%= request.getContextPath() %>/app/admin/notes?examId=<%= e.getId() %>" class="action-link">
-                                Voir les notes &rarr;
-                            </a>
-                            <button type="button" onclick="openEditModal('<%= e.getId() %>', '<%= e.getNom().replace("'", "\\'") %>', '<%= e.getCoefficient() %>')" style="background-color: #ffc107; color: black; border: 1px solid #ffca2c; padding: 5px 10px; font-size: 0.8em; cursor: pointer; border-radius: 4px;">Modifier</button>
-                            <form action="<%= request.getContextPath() %>/app/admin/supprimer-examen" method="post" style="margin: 0;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet examen ?');">
-                                <input type="hidden" name="id" value="<%= e.getId() %>">
-                                <button type="submit" style="background-color: #dc3545; padding: 5px 10px; font-size: 0.8em;">Supprimer</button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-            <%      }
-                } else {
-            %>
-                <tr><td colspan="4" style="text-align: center; color: #777;">Aucun examen trouvé.</td></tr>
-            <%  } %>
-            </tbody>
-        </table>
+            <div class="examens-content">
+                <!-- Header Section -->
+                <div class="matiere-header">
+                    <p class="matiere-header-label">Matière</p>
+                    <h1 class="matiere-header-title"><%= mat != null ? mat.getNom() : "" %></h1>
+                    <div class="matiere-header-meta">
+                        <% if (spec != null) { %>
+                        <span class="specialite-tag-badge <%= tagClass %>"><%= spec.getTag().toUpperCase() %></span>
+                        <span class="annee"><%= spec.getAnnee() %>A</span>
+                        <% } %>
+                        <% if (mat != null) { %>
+                        <span class="semestre">(Semestre <%= mat.getSemestre() %>)</span>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <!-- Professor Info -->
+                <div class="prof-info-box">
+                    <% 
+                        Utilisateur professeur = (Utilisateur) request.getAttribute("professeur");
+                        if (professeur != null) {
+                    %>
+                        <p>Professeur référent : <a href="mailto:<%= professeur.getemail() %>"><%= professeur.getemail() %></a></p>
+                    <% } else { %>
+                        <p>Professeur référent : Non défini</p>
+                    <% } %>
+                </div>
+                
+                <!-- Examens Card -->
+                <div class="examens-card">
+                    <div class="examens-card-header">
+                        <h2>Examens</h2>
+                        <div class="spacer"></div>
+                        <button class="btn btn-secondary" onclick="openModal('createExamModal')">
+                            <img src="<%= request.getContextPath() %>/static/icons/black/circle-plus.svg" alt="">
+                            Ajouter un examen
+                        </button>
+                    </div>
+                    
+                    <% 
+                        String error = request.getParameter("error");
+                        if (error == null) {
+                            error = (String) request.getAttribute("error");
+                        }
+                        if (error != null) { 
+                    %>
+                        <p style="color:#fe3232; margin:0 0 12px;"><%= error %></p>
+                    <% } %>
+                    <% 
+                        String success = request.getParameter("success");
+                        if (success == null) {
+                            success = (String) request.getAttribute("success");
+                        }
+                        if (success != null) { 
+                    %>
+                        <p style="color:#7fce60; margin:0 0 12px;"><%= success %></p>
+                    <% } %>
+                    
+                    <div class="examens-table-wrapper">
+                        <table class="examens-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Nom de l'épreuve</th>
+                                    <th>Moyenne</th>
+                                    <th>Coeff</th>
+                                    <th>Nombre de notes</th>
+                                    <th>Plus d'options</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            <% 
+                                List<Examen> examens = (List<Examen>) request.getAttribute("examens");
+                                if (examens != null && !examens.isEmpty()) {
+                                    for (Examen e : examens) {
+                            %>
+                                <tr>
+                                    <td><%= e.getDate() %></td>
+                                    <td><%= e.getNom() %></td>
+                                    <td>-/20</td>
+                                    <td><%= e.getCoefficient() %></td>
+                                    <td>-/35</td>
+                                    <td>
+                                        <div class="table-action-buttons">
+                                            <button class="btn btn-tertiary" title="Modifier" onclick="openEditExamModal('<%= e.getId() %>', '<%= e.getNom().replace("'", "\\'") %>', '<%= e.getCoefficient() %>', '<%= e.getDate() %>')">
+                                                <img src="<%= request.getContextPath() %>/static/icons/black/pen.svg" alt="Modifier">
+                                            </button>
+                                            <form action="<%= request.getContextPath() %>/app/admin/supprimer-examen" method="post" style="margin:0; display:inline;">
+                                                <input type="hidden" name="id" value="<%= e.getId() %>">
+                                                <button type="submit" class="btn btn-tertiary" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet examen ?');">
+                                                    <img src="<%= request.getContextPath() %>/static/icons/black/trash.svg" alt="Supprimer">
+                                                </button>
+                                            </form>
+                                            <a class="btn btn-primary" href="<%= request.getContextPath() %>/app/admin/notes?examId=<%= e.getId() %>">
+                                                <img src="<%= request.getContextPath() %>/static/icons/white/pen.svg" alt="">
+                                                Saisir les notes
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <%      }
+                                } else {
+                            %>
+                                <tr><td colspan="6"><div class="empty-state">Aucun examen trouvé.</div></td></tr>
+                            <%  } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <!-- Formulaire d'ajout d'examen -->
-    <div class="card">
-        <h3>Créer un examen</h3>
-        <form action="<%= request.getContextPath() %>/app/admin/creer-examen" method="post" style="display: flex; gap: 10px; align-items: center;">
-            <input type="hidden" name="matiereId" value="<%= mat != null ? mat.getId() : "" %>">
-            
-            <label for="coefficient">Coefficient:</label>
-            <input type="number" id="coefficient" name="coefficient" required step="1" min="1" value="1">
-            
-            <button type="submit">Créer (Date auto)</button>
-        </form>
+    <!-- Modal: Créer un examen -->
+    <div id="createExamModal" class="modal-overlay">
+        <div class="modal modal-small">
+            <h2 class="modal-title">Ajout d'un examen</h2>
+            <div class="modal-content">
+                <form action="<%= request.getContextPath() %>/app/admin/creer-examen" method="post">
+                    <input type="hidden" name="matiereId" value="<%= mat != null ? mat.getId() : "" %>">
+                    
+                    <div class="form-group">
+                        <label for="exam-nom">Nom de l'examen</label>
+                        <input id="exam-nom" name="nom" class="input-field" placeholder="Partiels, TP, etc." required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="exam-coeff">Coefficient</label>
+                        <input id="exam-coeff" name="coefficient" type="number" min="1" step="1" value="1" class="input-field" placeholder="Rentrez un coefficient" required>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="modal-btn modal-btn-secondary" onclick="closeModal()">Annuler</button>
+                        <button type="submit" class="modal-btn modal-btn-primary">Ajouter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    
-    <a href="<%= request.getContextPath() %>/app/gestion/specialite/details?specId=<%= mat != null ? mat.getSpecialiteId() : "" %>" class="back-link">
-        &larr; Retour aux matières
-    </a>
 
-    <!-- Edit Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeEditModal()">&times;</span>
-            <h3 style="margin-top: 0;">Modifier Examen</h3>
-            <form id="editForm" action="<%= request.getContextPath() %>/app/admin/modifier-examen" method="post">
-                <input type="hidden" id="edit-id" name="id">
-                <div class="form-group">
-                    <label for="edit-nom">Nom:</label>
-                    <input type="text" id="edit-nom" name="nom" required>
-                </div>
-                <div class="form-group">
-                    <label for="edit-coefficient">Coefficient:</label>
-                    <input type="number" id="edit-coefficient" name="coefficient" required>
-                </div>
-                <button type="submit" style="background-color: #0d6efd; color: white; width: 100%;">Enregistrer</button>
-            </form>
+    <!-- Modal: Modifier un examen -->
+    <div id="editExamModal" class="modal-overlay">
+        <div class="modal modal-small">
+            <h2 class="modal-title">Modification d'un examen</h2>
+            <div class="modal-content">
+                <form action="<%= request.getContextPath() %>/app/admin/modifier-examen" method="post">
+                    <input type="hidden" id="edit-exam-id" name="id">
+                    
+                    <div class="form-group">
+                        <label for="edit-exam-nom">Nom de l'examen</label>
+                        <input id="edit-exam-nom" name="nom" class="input-field" placeholder="Partiels, TP, etc." required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-exam-coeff">Coefficient</label>
+                        <input id="edit-exam-coeff" name="coefficient" type="number" min="1" step="1" class="input-field" placeholder="Rentrez un coefficient" required>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="modal-btn modal-btn-secondary" onclick="closeModal()">Annuler</button>
+                        <button type="submit" class="modal-btn modal-btn-primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
     <script>
-        var modal = document.getElementById("editModal");
-        function openEditModal(id, nom, coeff) {
-            document.getElementById("edit-id").value = id;
-            document.getElementById("edit-nom").value = nom;
-            document.getElementById("edit-coefficient").value = coeff;
-            modal.style.display = "block";
-        }
-        function closeEditModal() {
-            modal.style.display = "none";
-        }
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                closeEditModal();
-            }
+        function openEditExamModal(id, nom, coeff, date) {
+            document.getElementById('edit-exam-id').value = id;
+            document.getElementById('edit-exam-nom').value = nom || '';
+            document.getElementById('edit-exam-coeff').value = coeff || 1;
+            openModal('editExamModal');
         }
     </script>
 </body>
