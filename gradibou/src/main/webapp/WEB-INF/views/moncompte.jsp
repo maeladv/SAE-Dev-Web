@@ -1,5 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="model.Utilisateur" %>
+<%@ page import="model.Matiere" %>
+<%@ page import="java.util.List" %>
 <%@ page import="java.time.LocalDate" %>
 <%
     Utilisateur sessionUser = (Utilisateur) session.getAttribute("utilisateur");
@@ -202,7 +204,27 @@
                         %>
                     </div>
                 <% } else if ("professeur".equalsIgnoreCase(displayUser.getRole())) { %>
-                    <p class="no-specific-fields">Aucun champ spécifique pour les professeurs</p>
+                    <div class="form-group">
+                        <label class="field-label">Matières Enseignées</label>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                        <%
+                            List<Matiere> matieres = (List<Matiere>) request.getAttribute("matieresEnseignees");
+                            if (matieres != null && !matieres.isEmpty()) {
+                                for (Matiere m : matieres) {
+                        %>
+                                <span class="specialite-badge" style="background-color: #f1f3f5; color: #333; border: 1px solid #dee2e6;">
+                                    <%= m.getNom() %> (S<%= m.getSemestre() %>)
+                                </span>
+                        <%
+                                }
+                            } else {
+                        %>
+                                <span class="no-specialite">Aucune matière assignée</span>
+                        <%
+                            }
+                        %>
+                        </div>
+                    </div>
                 <% } else if ("admin".equalsIgnoreCase(displayUser.getRole())) { %>
                     <p class="no-specific-fields">Aucun champ spécifique pour les administrateurs</p>
                 <% } %>

@@ -95,6 +95,25 @@ public class Matiere {
         return liste;
     }
 
+    /**
+     * Trouver les matières d'un professeur
+     */
+    public static List<Matiere> trouverParProfesseur(int profId) throws SQLException {
+        List<Matiere> liste = new ArrayList<>();
+        String sql = "SELECT id, nom, semestre, id_specialite, id_prof FROM matiere WHERE id_prof = ? ORDER BY nom";
+
+        Connection conn = DatabaseManager.obtenirConnexion();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, profId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    liste.add(creerDepuisResultSet(rs));
+                }
+            }
+        }
+        return liste;
+    }
+
     // ==================== Méthodes de persistence (Active Record) ====================
 
     /**
