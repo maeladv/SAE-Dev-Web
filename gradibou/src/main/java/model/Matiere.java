@@ -263,7 +263,7 @@ public class Matiere {
         String profEmail = request.getParameter("profEmail");
 
         try {
-            // Check if all fields (including profId) are present
+            // Verifier que les champs sont présents
             if (nom == null || nom.isEmpty() || semestreStr == null || semestreStr.isEmpty() || 
                 idspecialiteStr == null || idspecialiteStr.isEmpty() ||
                 profEmail == null || profEmail.isEmpty()) {
@@ -355,9 +355,7 @@ public class Matiere {
                     Utilisateur currentUser = (Utilisateur) session.getAttribute("utilisateur");
                     if (currentUser != null) {
                         int profId = currentUser.getId();
-                        matieres = matieres.stream()
-                            .filter(m -> m.getProfId() == profId)
-                            .collect(java.util.stream.Collectors.toList());
+                        matieres = matieres.stream().filter(m -> m.getProfId() == profId).collect(java.util.stream.Collectors.toList());
                         
                         // Si le professeur n'a aucune matière dans cette spécialité, refuser l'accès
                         if (matieres.isEmpty()) {

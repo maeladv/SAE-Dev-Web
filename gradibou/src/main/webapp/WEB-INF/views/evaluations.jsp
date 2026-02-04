@@ -33,9 +33,9 @@
                 Object st = e.get("status");
                 if (st == null) continue;
                 String s = st.toString();
-                if ("open".equals(s)) {
+                if ("ouvert".equals(s)) {
                     openEvaluations.add(e);
-                } else if ("answered".equals(s)) {
+                } else if ("repondu".equals(s)) {
                     answeredEvaluations.add(e);
                 }
             }

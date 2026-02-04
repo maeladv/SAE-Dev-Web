@@ -294,11 +294,11 @@ public class Evaluation {
                 
                 String status;
                 if (aRepondu) {
-                    status = "answered";
+                    status = "repondu";
                 } else if (semestreMismatch || horsIntervalle) {
-                    status = "closed";
+                    status = "ferme";
                 } else {
-                    status = "open";
+                    status = "ouvert";
                 }
                 
                 eval.put("status", status);

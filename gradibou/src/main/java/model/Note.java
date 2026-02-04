@@ -176,7 +176,6 @@ public class Note {
                 return donneesSem;
             });
             
-            @SuppressWarnings("unchecked")
             List<Double> notesSem = (List<Double>) statistiquesSemestres.get(semestre).get("notes");
             notesSem.add(noteValeur);
             
@@ -267,12 +266,8 @@ public class Note {
         }
 
         // Moyennes des semestres calculées à partir des moyennes par matière
-        double moyenneSem1DepuisMatieres = moyenneMatieresSem1.isEmpty()
-            ? 0.0
-            : moyenneMatieresSem1.values().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-        double moyenneSem2DepuisMatieres = moyenneMatieresSem2.isEmpty()
-            ? 0.0
-            : moyenneMatieresSem2.values().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        double moyenneSem1DepuisMatieres = moyenneMatieresSem1.isEmpty() ? 0.0 : moyenneMatieresSem1.values().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        double moyenneSem2DepuisMatieres = moyenneMatieresSem2.isEmpty() ? 0.0 : moyenneMatieresSem2.values().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
 
         statistiques.put("moyenneGenerale", moyenneGenerale);
         statistiques.put("statistiquesSemestres", statistiquesSemestres);

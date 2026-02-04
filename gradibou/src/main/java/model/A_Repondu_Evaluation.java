@@ -50,7 +50,7 @@ public class A_Repondu_Evaluation {
     }
 
     /**
-     * Supprimer le suivi d'évaluation
+     * Supprimer une evaluation
      */
     public void supprimer() throws SQLException {
         if (!persisted) {
