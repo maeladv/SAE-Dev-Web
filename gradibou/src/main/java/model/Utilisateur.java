@@ -69,7 +69,7 @@ public class Utilisateur {
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, email);
+            stmt.setString(1, email.toLowerCase().trim());
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
@@ -83,7 +83,7 @@ public class Utilisateur {
      * Trouver un utilisateur par email et mot de passe
      */
     public static Utilisateur trouverParemailEtMotDePasse(String email, String motDePasse) throws SQLException {
-        Utilisateur utilisateur = trouverParemail(email);
+        Utilisateur utilisateur = trouverParemail(email.toLowerCase().trim());
         if (utilisateur != null) {
             if (org.mindrot.jbcrypt.BCrypt.checkpw(motDePasse, utilisateur.motDePasse)) {
                 return utilisateur;
@@ -178,7 +178,7 @@ public class Utilisateur {
 
         try (Connection conn = DatabaseManager.obtenirConnexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, email);
+            stmt.setString(1, email.toLowerCase().trim());
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1) > 0;
@@ -192,7 +192,7 @@ public class Utilisateur {
      */
     public static Utilisateur creerEnAttente(String nom, String prenom, String email, 
                                             LocalDate dateNaissance, String role, String ine) throws SQLException {
-        Utilisateur utilisateur = new Utilisateur(nom, prenom, email, dateNaissance, "", role);
+        Utilisateur utilisateur = new Utilisateur(nom, prenom, email.toLowerCase().trim(), dateNaissance, "", role);
         utilisateur.save();
 
         // Si étudiant, créer l'entrée dans la table etudiant avec l'INE
@@ -233,7 +233,7 @@ public class Utilisateur {
             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, this.nom);
             stmt.setString(2, this.prenom);
-            stmt.setString(3, this.email);
+            stmt.setString(3, this.email.toLowerCase().trim());
             stmt.setDate(4, java.sql.Date.valueOf(this.dateNaissance));
             stmt.setString(5, this.motDePasse.isEmpty() ? "" : hacherMotDePasse(this.motDePasse));
             stmt.setString(6, this.role);
@@ -263,7 +263,7 @@ public class Utilisateur {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, this.nom);
             stmt.setString(2, this.prenom);
-            stmt.setString(3, this.email);
+            stmt.setString(3, this.email.toLowerCase().trim());
             stmt.setDate(4, java.sql.Date.valueOf(this.dateNaissance));
             stmt.setString(5, this.role);
             stmt.setInt(6, this.id);
@@ -849,7 +849,7 @@ public class Utilisateur {
             int id = Integer.parseInt(request.getParameter("id"));
             String nom = request.getParameter("nom");
             String prenom = request.getParameter("prenom");
-            String email = request.getParameter("email");
+            String email = request.getParameter("email").toLowerCase().trim();
             String role = request.getParameter("role");
 
             if (nom == null || nom.isEmpty() || prenom == null || prenom.isEmpty() ||

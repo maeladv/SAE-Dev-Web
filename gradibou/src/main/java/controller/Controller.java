@@ -811,7 +811,7 @@ public class Controller extends HttpServlet {
 
     private void gererConnexion(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException, Exception {
-        String email = request.getParameter("email");
+        String email = request.getParameter("email").toLowerCase().trim();
         String motDePasse = request.getParameter("motDePasse");
 
         if (email == null || email.isEmpty() || motDePasse == null || motDePasse.isEmpty()) {
