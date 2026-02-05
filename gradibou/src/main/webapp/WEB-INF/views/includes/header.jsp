@@ -68,3 +68,64 @@
         <% } %>
     </div>
 </header>
+<% if (!"non-connecte".equals(userRole)) {
+     String guidePdf = "guide_etudiant.pdf";
+     if ("professeur".equals(userRole)) {
+         guidePdf = "guide_professeur.pdf";
+     } else if ("admin".equals(userRole)) {
+         guidePdf = "guide_admin.pdf";
+     }
+%>
+<style>
+/* Styles injectés directement pour éviter les problèmes de cache navigateur */
+.help-button-fixed {
+    position: fixed !important;
+    bottom: 30px !important;
+    right: 30px !important;
+    width: 60px !important;
+    height: 60px !important;
+    background-color: #FA467E !important; /* var(--gradibou-rose) */
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    z-index: 99999 !important;
+    transition: transform 0.2s;
+    cursor: pointer;
+    text-decoration: none !important;
+}
+
+.help-button-fixed:hover {
+    transform: scale(1.1);
+}
+
+.help-button-fixed svg {
+    width: 36px !important;
+    height: 36px !important;
+    color: white !important;
+}
+</style>
+
+<a href="<%= request.getContextPath() %>/static/guides/<%= guidePdf %>" target="_blank" class="help-button-fixed" title="Guide Utilisateur" id="gradibouHelpButton">
+    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <circle cx="12" cy="12" r="4"></circle>
+        <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line>
+        <line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line>
+        <line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line>
+        <line x1="14.83" y1="9.17" x2="18.36" y2="5.64"></line>
+        <line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line>
+    </svg>
+</a>
+
+<script>
+    // Déplacer le bouton dans le body pour éviter les conflits de positionnement (transform CSS, etc)
+    document.addEventListener("DOMContentLoaded", function() {
+        var btn = document.getElementById('gradibouHelpButton');
+        if (btn && document.body) {
+            document.body.appendChild(btn);
+        }
+    });
+</script>
+<% } %>
