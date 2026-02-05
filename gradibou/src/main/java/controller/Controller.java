@@ -195,7 +195,7 @@ public class Controller extends HttpServlet {
                 }
                 break;
             case "/forgot-password":
-                view = "/WEB-INF/views/forgot-password.jsp";
+                view = "/WEB-INF/views/mdpOublie.jsp";
                 break;
             case "/professeur":
                 System.out.println("DEBUG: Route /professeur atteinte");
