@@ -203,46 +203,6 @@ public class Evaluation {
 
     // ================ Méthodes pour le controllers ================
 
-    public static void creationEvaluationParAdmin(HttpServletRequest request, HttpServletResponse response) 
-            throws SQLException, ServletException, IOException {
-        if (!Role.estAdmin(request.getSession(false))) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
-            return;
-        }
-
-        String dateDebutStr = request.getParameter("date_debut");
-        String dateFinStr = request.getParameter("date_fin");
-        String semestreStr = request.getParameter("semestre");
-
-        try {
-            if (dateDebutStr == null || dateDebutStr.isEmpty() || dateFinStr == null || dateFinStr.isEmpty() || 
-                semestreStr == null || semestreStr.isEmpty()) {
-                request.setAttribute("error", "Tous les champs sont requis.");
-                request.getRequestDispatcher("/WEB-INF/views/creerEvaluation.jsp").forward(request, response);
-                return;
-            }
-
-            int semestre = Integer.parseInt(semestreStr);
-            
-            // Convertir les dates du format datetime-local
-            java.time.LocalDateTime dateDebut = java.time.LocalDateTime.parse(dateDebutStr);
-            java.time.LocalDateTime dateFin = java.time.LocalDateTime.parse(dateFinStr);
-
-            model.Evaluation evaluation = new model.Evaluation(dateDebut, dateFin, semestre);
-            evaluation.save();
-            
-            request.setAttribute("success", "Évaluation créée avec succès (ID: " + evaluation.getId() + ")");
-        } catch (NumberFormatException e) {
-            request.setAttribute("error", "Format numérique invalide");
-        } catch (java.time.format.DateTimeParseException e) {
-            request.setAttribute("error", "Format de date invalide");
-        } catch (SQLException e) {
-            request.setAttribute("error", "Erreur BD: " + e.getMessage());
-        }
-        
-        request.getRequestDispatcher("/WEB-INF/views/creerEvaluation.jsp").forward(request, response);
-    }
-
     public static java.util.List<java.util.Map<String, Object>> obtenirEvaluationsDisponibles(int idEtudiant) throws SQLException {
         java.util.List<java.util.Map<String, Object>> evaluations = new java.util.ArrayList<>();
         

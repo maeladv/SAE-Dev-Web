@@ -187,7 +187,7 @@ public class Controller extends HttpServlet {
                     } else {
                         request.setAttribute("token", token);
                         request.setAttribute("idUtilisateur", idUtilisateur);
-                        view = "/WEB-INF/views/complete-profil.jsp";
+                        view = "/WEB-INF/views/completerProfil.jsp";
                     }
                 } catch (Exception e) {
                     request.setAttribute("error", "Erreur: " + e.getMessage());
@@ -231,31 +231,6 @@ public class Controller extends HttpServlet {
                 }
                 view = "/WEB-INF/views/creerSpecialite.jsp";
                 break;
-            case "/admin/creer-matiere":
-                if (!Role.estAdmin(request.getSession(false))) {
-                    response.sendRedirect(request.getContextPath() + "/app/login");
-                    return;
-                }
-                try {
-                    request.setAttribute("specialites", model.Specialite.trouverToutes());
-                    request.setAttribute("professeurs", model.Utilisateur.trouverTousLesProfesseurs());
-                } catch (SQLException e) {
-                    request.setAttribute("error", "Erreur lors du chargement des données: " + e.getMessage());
-                }
-                view = "/WEB-INF/views/creerMatiere.jsp";
-                break;
-            case "/admin/creer-examen":
-                if (!Role.estAdmin(request.getSession(false))) {
-                    response.sendRedirect(request.getContextPath() + "/app/login");
-                    return;
-                }
-                try {
-                    request.setAttribute("matieres", model.Matiere.trouverToutes());
-                } catch (SQLException e) {
-                    request.setAttribute("error", "Erreur lors du chargement des matières: " + e.getMessage());
-                }
-                view = "/WEB-INF/views/creerExamen.jsp";
-                break;
             case "/admin/creer-note":
                 if (!Role.estAdmin(request.getSession(false))) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
@@ -268,13 +243,6 @@ public class Controller extends HttpServlet {
                     request.setAttribute("error", "Erreur lors du chargement des données: " + e.getMessage());
                 }
                 view = "/WEB-INF/views/creerNote.jsp";
-                break;
-            case "/admin/creer-evaluation":
-                if (!Role.estAdmin(request.getSession(false))) {
-                    response.sendRedirect(request.getContextPath() + "/app/login");
-                    return;
-                }
-                view = "/WEB-INF/views/creerEvaluation.jsp";
                 break;
             case "/etudiant/evaluations":
                 if (!Role.estEtudiant(request.getSession(false))) {
@@ -681,7 +649,7 @@ public class Controller extends HttpServlet {
                 } catch (Exception e) {
                     // Ignorer et afficher le profil de l'utilisateur courant
                 }
-                view = "/WEB-INF/views/moncompte.jsp";
+                view = "/WEB-INF/views/monCompte.jsp";
                 break;
             case "/logout":
                 request.getSession().invalidate();
@@ -736,9 +704,6 @@ public class Controller extends HttpServlet {
                     break;
                 case "/admin/sauvegarder-notes":
                     Note.sauvegarderNotes(request, response);
-                    break;
-                case "/admin/creer-evaluation":
-                    Evaluation.creationEvaluationParAdmin(request, response);
                     break;
                 case "/etudiant/repondre-evaluation":
                     Reponse_Evaluation.etudiantRepondreEvaluation(request, response);

@@ -635,7 +635,7 @@ public class Utilisateur {
                 request.setAttribute("error", "Le mot de passe est obligatoire");
                 request.setAttribute("token", token);
                 request.setAttribute("idUtilisateur", idUtilisateur);
-                request.getRequestDispatcher("/WEB-INF/views/complete-profil.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/views/completerProfil.jsp").forward(request, response);
                 return;
             }
 
@@ -643,7 +643,7 @@ public class Utilisateur {
                 request.setAttribute("error", "Les mots de passe ne correspondent pas");
                 request.setAttribute("token", token);
                 request.setAttribute("idUtilisateur", idUtilisateur);
-                request.getRequestDispatcher("/WEB-INF/views/complete-profil.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/views/completerProfil.jsp").forward(request, response);
                 return;
             }
 
@@ -657,7 +657,7 @@ public class Utilisateur {
                     request.setAttribute("error", "Erreur lors de la mise à jour du profil");
                     request.setAttribute("token", token);
                     request.setAttribute("idUtilisateur", idUtilisateur);
-                    request.getRequestDispatcher("/WEB-INF/views/complete-profil.jsp").forward(request, response);
+                    request.getRequestDispatcher("/WEB-INF/views/completerProfil.jsp").forward(request, response);
                 }
             }
         } catch (Exception e) {
@@ -690,7 +690,7 @@ public class Utilisateur {
                 targetUser = Utilisateur.trouverParId(targetidUtilisateur);
                 if (targetUser == null) {
                     request.setAttribute("error", "Utilisateur introuvable");
-                    request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+                    request.getRequestDispatcher("/WEB-INF/views/monCompte.jsp").forward(request, response);
                     return;
                 }
                 isAdminModifyingOther = true;
@@ -709,7 +709,7 @@ public class Utilisateur {
             if (nom == null || nom.trim().isEmpty() || prenom == null || prenom.trim().isEmpty() ||
                 email == null || email.trim().isEmpty() || dateNaissanceStr == null || dateNaissanceStr.isEmpty()) {
                 request.setAttribute("error", "Tous les champs requis doivent être remplis");
-                request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/views/monCompte.jsp").forward(request, response);
                 return;
             }
 
@@ -717,13 +717,13 @@ public class Utilisateur {
             if (motDePasse != null && !motDePasse.trim().isEmpty()) {
                 if (motDePasse.length() < 6) {
                     request.setAttribute("error", "Le mot de passe doit contenir au moins 6 caractères");
-                    request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+                    request.getRequestDispatcher("/WEB-INF/views/monCompte.jsp").forward(request, response);
                     return;
                 }
                 
                 if (confirmPassword == null || !motDePasse.equals(confirmPassword)) {
                     request.setAttribute("error", "Les mots de passe ne correspondent pas");
-                    request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+                    request.getRequestDispatcher("/WEB-INF/views/monCompte.jsp").forward(request, response);
                     return;
                 }
             }
@@ -735,7 +735,7 @@ public class Utilisateur {
                 if (isAdminModifyingOther) {
                     request.setAttribute("utilisateurVu", targetUser);
                 }
-                request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/views/monCompte.jsp").forward(request, response);
                 return;
             }
 
@@ -762,26 +762,26 @@ public class Utilisateur {
             if (isAdminModifyingOther) {
                 request.setAttribute("utilisateurVu", targetUser);
             }
-            request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/monCompte.jsp").forward(request, response);
             
         } catch (java.time.format.DateTimeParseException e) {
             request.setAttribute("error", "Format de date invalide");
             if (isAdminModifyingOther) {
                 request.setAttribute("utilisateurVu", targetUser);
             }
-            request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/monCompte.jsp").forward(request, response);
         } catch (SQLException e) {
             request.setAttribute("error", "Erreur base de données: " + e.getMessage());
             if (isAdminModifyingOther) {
                 request.setAttribute("utilisateurVu", targetUser);
             }
-            request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/monCompte.jsp").forward(request, response);
         } catch (Exception e) {
             request.setAttribute("error", "Erreur: " + e.getMessage());
             if (isAdminModifyingOther) {
                 request.setAttribute("utilisateurVu", targetUser);
             }
-            request.getRequestDispatcher("/WEB-INF/views/moncompte.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/monCompte.jsp").forward(request, response);
         }
     }
 

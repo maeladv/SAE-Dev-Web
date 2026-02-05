@@ -159,7 +159,7 @@
                                 </button>
                                 <% } %>
                                 <button class="btn btn-primary" title="Voir les notes" onclick="viewnoteEtudiants(<%= s.getId() %>)">
-                                    <img src="<%= request.getContextPath() %>/static/icons/white/utilisateur-graduate.svg" alt="Voir les notes">
+                                    <img src="<%= request.getContextPath() %>/static/icons/white/user-graduate.svg" alt="Voir les notes">
                                 </button>
                             </div>
                         </div>
