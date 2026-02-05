@@ -574,28 +574,37 @@ public class Note {
             if (idExamStr != null && !idExamStr.isEmpty()) {
                 int idExam = Integer.parseInt(idExamStr);
                 
+                // Récupérer l'examen
+                Examen examen = Examen.trouverParId(idExam);
+                if (examen == null) {
+                    request.setAttribute("error", "Examen non trouvé");
+                    return "/WEB-INF/views/error.jsp";
+                }
+                
+                // Récupérer la matière de l'examen
+                Matiere matiere = Matiere.trouverParId(examen.getId_matiere());
+                if (matiere == null) {
+                    request.setAttribute("error", "Matière non trouvée");
+                    return "/WEB-INF/views/error.jsp";
+                }
+                
                 // Vérifier que le professeur a accès à cet examen (via la matière)
                 if (isProfesseur && !isAdmin) {
                     Utilisateur currentUser = (Utilisateur) session.getAttribute("utilisateur");
                     if (currentUser != null) {
-                        Examen examen = model.Examen.trouverParId(idExam);
-                        if (examen != null) {
-                            int matId = examen.getId_matiere();
-                            Matiere matiere = model.Matiere.trouverParId(matId);
-                            if (matiere == null || matiere.getProfId() != currentUser.getId()) {
-                                request.setAttribute("error", "Accès refusé : vous n'avez pas accès à cet examen");
-                                return "/WEB-INF/views/error.jsp";
-                            }
+                        if (matiere.getProfId() != currentUser.getId()) {
+                            request.setAttribute("error", "Accès refusé : vous n'avez pas accès à cet examen");
+                            return "/WEB-INF/views/error.jsp";
                         }
                     }
                 }
                 
-                Examen examen = model.Examen.trouverParId(idExam);
-                request.setAttribute("examen", examen);
-                request.setAttribute("notes", model.Note.trouverParExamen(idExam));
+                // Récupérer uniquement les étudiants de la spécialité associée à cette matière
+                List<Utilisateur> etudiants = Utilisateur.trouverEtudiantsParSpecialite(matiere.getSpecialiteId());
                 
-                // Charger tous les étudiants
-                List<Utilisateur> etudiants = model.Utilisateur.trouverTousLesEtudiants();
+                request.setAttribute("examen", examen);
+                request.setAttribute("matiere", matiere);
+                request.setAttribute("notes", Note.trouverParExamen(idExam));
                 request.setAttribute("etudiants", etudiants);
             }
             return "/WEB-INF/views/listeNotes.jsp";
