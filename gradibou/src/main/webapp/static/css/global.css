@@ -1,0 +1,108 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+
+:root {
+	/* Couleurs principales */
+	--gradibou-rose: rgb(250, 70, 126);
+	--gradibou-noir: rgb(30, 30, 30);
+	--gradibou-blanc: rgb(255, 255, 255);
+	
+	/* Alias de couleur */
+	--color-blanc: rgb(255, 255, 255);
+	--color-gris-fond: rgb(243, 243, 243);
+	--color-gris-texte: rgb(74, 74, 74);
+	--color-gris-contour: rgb(217, 217, 217);
+	--color-gris-clair: rgb(131, 131, 131);
+	--color-gris-moyen: rgb(110, 110, 110);
+	
+	/* Radius et ombres */
+	--radius-xl: 32px;
+	--radius-lg: 12px;
+	--radius-md: 16px;
+	--radius-sm: 10px;
+	--shadow-elev: 0 2px 4px rgba(0, 0, 0, 0.25);
+	--shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
+	--shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.16);
+	--font-base: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+	/* Rôles */
+	--gradibou-role-admin: rgb(254, 50, 50);
+	--gradibou-role-professeur: rgb(45, 101, 198);
+	--gradibou-role-etudiant: rgb(107, 111, 118);
+
+	/* États */
+	--gradibou-status-error: rgb(254, 50, 50);
+	--gradibou-status-success: rgb(127, 206, 96);
+	--gradibou-status-warning: rgb(198, 160, 45);
+	--gradibou-status-info: rgb(70, 121, 209);
+
+	/* Spécialités */
+	--gradibou-spe-icy: 139 57 190;
+	--gradibou-spe-gcb: 23 119 117;
+	--gradibou-spe-iia: 33 112 36;
+	--gradibou-spe-me: 52 91 163;
+	--gradibou-spe-mt: 155 32 32;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family: var(--font-base);
+	background: var(--color-gris-fond);
+	color: var(--gradibou-noir);
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.help-button {
+	position: fixed;
+	bottom: 30px;
+	right: 30px;
+	width: 64px;
+	height: 64px;
+	background-color: var(--gradibou-rose);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+	transition: transform 0.2s, box-shadow 0.2s;
+	z-index: 9999;
+	cursor: pointer;
+    border: 3px solid white;
+}
+
+.help-button:hover {
+	transform: scale(1.1);
+	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.help-button svg {
+	width: 36px;
+	height: 36px;
+	color: var(--gradibou-blanc);
+}
+
+img {
+	max-width: 100%;
+	display: block;
+}
+
+.page-container {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	gap: 30px;
+	padding: 10px 10px 40px;
+}
+
+.content-centered {
+	width: 100%;
+	display: flex;
+	justify-content: center;
+}

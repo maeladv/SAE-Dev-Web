@@ -38,7 +38,6 @@ public class DatabaseManager {
     public static void init() throws SQLException, ClassNotFoundException {
         Class.forName("org.postgresql.Driver");
         connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-        System.out.println("Base de données PostgreSQL initialisée");
     }
 
     // Obtenir la connexion
@@ -54,13 +53,18 @@ public class DatabaseManager {
     }
 
     // Créer les tables
-    public static void creerTables() throws SQLException {
+    public static void creerTables() throws SQLException, ClassNotFoundException {
+        // Assurer que la connexion est initialisée
+        if (connection == null || connection.isClosed()) {
+            init();
+        }
+        
     String[] sqlStatements = {
         "CREATE TABLE IF NOT EXISTS utilisateur (" +
             "id SERIAL PRIMARY KEY," +
             "nom VARCHAR(50) NOT NULL," +
             "prenom VARCHAR(50) NOT NULL," +
-            "mail VARCHAR(100) NOT NULL UNIQUE," +
+            "email VARCHAR(100) NOT NULL UNIQUE," +
             "date_naissance DATE," +
             "mot_de_passe VARCHAR(255)," +
             "role VARCHAR(50) NOT NULL" +

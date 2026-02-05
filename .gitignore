@@ -1,6 +1,7 @@
 # Maven / build
 /gradibou/target/
 /target/
+shafoin-typst-template/
 
 # IDE
 .idea/

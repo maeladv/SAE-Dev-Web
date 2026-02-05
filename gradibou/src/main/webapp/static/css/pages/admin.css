@@ -1,0 +1,340 @@
+/* Page Admin - Gestion des comptes */
+
+.admin-page {
+    background-color: #ffffff;
+}
+
+.admin-main {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Barre d'outils */
+.admin-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 2rem;
+}
+
+.admin-toolbar h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gradibou-noir);
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.admin-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Filtres dropdown */
+.filter-dropdown {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-gris-contour);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-blanc);
+    color: var(--gradibou-noir);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-dropdown:hover {
+    border-color: var(--gradibou-rose);
+}
+
+.filter-dropdown:focus {
+    outline: none;
+    border-color: var(--gradibou-rose);
+    box-shadow: 0 0 0 3px rgba(250, 70, 126, 0.1);
+}
+
+/* Dropdowns personnalisés (rôle et spécialité) */
+.dropdown {
+    position: relative;
+    min-width: 216px;
+}
+
+.dropdown-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 0.5px solid var(--color-gris-contour);
+    background: var(--color-blanc);
+    color: var(--gradibou-noir);
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dropdown-toggle:hover,
+.dropdown.open .dropdown-toggle {
+    border-color: var(--color-gris-moyen);
+    box-shadow: var(--shadow-md);
+}
+
+.dropdown-icon {
+    font-size: 14px;
+    line-height: 1;
+    transition: transform 0.2s ease;
+}
+
+.dropdown.open .dropdown-icon {
+    transform: rotate(180deg);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 100%;
+    background: var(--color-blanc);
+    border: 0.5px solid var(--color-gris-contour);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    padding: 12px 16px;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 10;
+}
+
+.dropdown.open .dropdown-menu {
+    display: flex;
+}
+
+.dropdown-option {
+    font-size: 14px;
+    color: var(--gradibou-noir);
+    cursor: pointer;
+    list-style: none;
+}
+
+.dropdown-option:hover {
+    text-decoration: underline;
+}
+
+/* Boutons avec icônes */
+.btn-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-with-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+
+/* Conteneur du tableau */
+.users-table-container {
+    background-color: var(--color-blanc);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-elev);
+}
+
+/* Tableau des utilisateurs */
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.users-table thead {
+    background-color: var(--color-blanc);
+}
+
+.users-table thead th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--color-gris-clair);
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--color-gris-contour);
+}
+
+.users-table thead th.sortable {
+    cursor: pointer;
+    utilisateur-select: none;
+    transition: background-color 0.2s, color 0.2s;
+    position: relative;
+}
+
+.users-table thead th.sortable:hover {
+    background-color: var(--color-gris-fond);
+    color: var(--gradibou-noir);
+}
+
+.users-table thead th.sortable .sort-indicator {
+    margin-left: 0.5rem;
+    font-size: 0.7rem;
+    opacity: 0.3;
+    transition: opacity 0.2s;
+}
+
+.users-table thead th.sortable:hover .sort-indicator {
+    opacity: 0.6;
+}
+
+.users-table tbody tr {
+    background-color: var(--color-blanc);
+    border-bottom: 1px solid var(--color-gris-fond);
+}
+
+.users-table tbody tr.table-row-alt {
+    background-color: var(--color-gris-fond);
+}
+
+.users-table tbody tr:hover {
+    background-color: var(--color-gris-fond);
+}
+
+.users-table tbody td {
+    padding: 1rem;
+    color: var(--gradibou-noir);
+    vertical-align: middle;
+}
+
+/* Badges de rôle */
+.role-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+
+    /* defaut */
+    background-color: var(--gradibou-status-waiting);
+    color: var(--gradibou-blanc);
+}
+
+.role-badge.role-admin {
+    color: var(--gradibou-blanc);
+    background-color: var(--gradibou-role-admin);
+}
+
+.role-badge.role-professeur {
+    background-color: var(--gradibou-role-professeur);
+    color: var(--gradibou-blanc);
+}
+
+.role-badge.role-etudiant {
+    background-color: var(--gradibou-role-etudiant);
+    color: var(--gradibou-blanc);
+}
+
+/* Badges de spécialité */
+.specialite-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.specialite-badge.spe-icy {
+    background-color: rgba(var(--gradibou-spe-icy), 0.2);
+    color: rgb(var(--gradibou-spe-icy));
+}
+
+.specialite-badge.spe-iia {
+    background-color: rgba(var(--gradibou-spe-iia), 0.2);
+    color: rgb(var(--gradibou-spe-iia));
+}
+
+.specialite-badge.spe-gcb {
+    background-color: rgba(var(--gradibou-spe-gcb), 0.2);
+    color: rgb(var(--gradibou-spe-gcb));
+}
+
+.specialite-badge.spe-me {
+    background-color: rgba(var(--gradibou-spe-me), 0.2);
+    color: rgb(var(--gradibou-spe-me));
+}
+
+/* Actions du tableau */
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.action-btn {
+    padding: 0.5rem;
+    border: 1px solid var(--color-gris-contour);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-blanc);
+    color: var(--color-gris-clair);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn:hover {
+    background-color: var(--color-gris-fond);
+    border-color: var(--gradibou-noir);
+    color: var(--gradibou-noir);
+}
+
+.action-btn.action-btn-primary {
+    background-color: var(--gradibou-rose);
+    border-color: var(--gradibou-rose);
+    color: var(--color-blanc);
+}
+
+.action-btn.action-btn-primary:hover {
+    background-color: rgb(225, 45, 95);
+    border-color: rgb(225, 45, 95);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .users-table-container {
+        overflow-x: auto;
+    }
+    
+    .users-table {
+        min-width: 1000px;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .admin-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .admin-actions > * {
+        width: 100%;
+    }
+    
+    .admin-main {
+        padding: 1rem;
+    }
+}
