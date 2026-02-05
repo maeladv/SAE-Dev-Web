@@ -224,13 +224,7 @@ public class Controller extends HttpServlet {
                 System.out.println("DEBUG: Redirection vers /gestion/specialites");
                 response.sendRedirect(request.getContextPath() + "/app/gestion/specialites");
                 return;
-            case "/admin/creer-specialite":
-                if (!Role.estAdmin(request.getSession(false))) {
-                    response.sendRedirect(request.getContextPath() + "/app/login");
-                    return;
-                }
-                view = "/WEB-INF/views/creerSpecialite.jsp";
-                break;
+
             case "/etudiant/evaluations":
                 if (!Role.estEtudiant(request.getSession(false))) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
