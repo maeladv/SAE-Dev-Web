@@ -435,7 +435,6 @@ Cette méthodologie s'est articulée autour de trois bonnes pratiques essentiell
 - Intégration d’IA générative pour résumer synthétiquement les retours textuels des évaluations de chaque matière et faire un commentaire global sur la spécialité
 - Sauvegarder les stats des évaluations pour ne pas faire des requêtes a la db et recalculer a chaque fois que quelqu’un veut consulter les stats. Une autre possibilié serait de precharger la page en attandant que les statistiques se chargent
 - Ajouter une page de mentions légales. Important pour un site en production mais pas prioritaire pour notre projet
-- Ajouter les matières d’un prof dans la section `Champs Spécifiques` de la page `moncompte`
 - Liste d’appel pour les professeur
 - Rendre le site responsive
 - Ajouter l'export des notes et des évaluations en CSV pour les professeurs et admin
