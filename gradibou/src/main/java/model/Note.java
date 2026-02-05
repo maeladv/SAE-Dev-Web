@@ -540,7 +540,7 @@ public class Note {
             if (examenIdStr == null || examenIdStr.isEmpty() || etudiantIdStr == null || etudiantIdStr.isEmpty() || 
                 noteStr == null || noteStr.isEmpty()) {
                 request.setAttribute("error", "Tous les champs sont requis.");
-                request.getRequestDispatcher("/WEB-INF/views/creerNote.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/views/listeNotes.jsp").forward(request, response);
                 return;
             }
 
@@ -561,7 +561,7 @@ public class Note {
             request.setAttribute("error", "Erreur BD: " + e.getMessage());
         }
         
-        request.getRequestDispatcher("/WEB-INF/views/creerNote.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/listeNotes.jsp").forward(request, response);
     }
 
     public static String afficherNotes(HttpServletRequest request) {
@@ -598,7 +598,7 @@ public class Note {
                 List<Utilisateur> etudiants = model.Utilisateur.trouverTousLesEtudiants();
                 request.setAttribute("etudiants", etudiants);
             }
-            return "/WEB-INF/views/creerNote.jsp";
+            return "/WEB-INF/views/listeNotes.jsp";
         } catch (Exception e) {
             request.setAttribute("error", "Erreur : " + e.getMessage());
             return "/WEB-INF/views/error.jsp";

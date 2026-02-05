@@ -231,19 +231,6 @@ public class Controller extends HttpServlet {
                 }
                 view = "/WEB-INF/views/creerSpecialite.jsp";
                 break;
-            case "/admin/creer-note":
-                if (!Role.estAdmin(request.getSession(false))) {
-                    response.sendRedirect(request.getContextPath() + "/app/login");
-                    return;
-                }
-                try {
-                    request.setAttribute("examens", model.Examen.trouverTous());
-                    request.setAttribute("etudiants", model.Utilisateur.trouverTousLesEtudiants());
-                } catch (SQLException e) {
-                    request.setAttribute("error", "Erreur lors du chargement des données: " + e.getMessage());
-                }
-                view = "/WEB-INF/views/creerNote.jsp";
-                break;
             case "/etudiant/evaluations":
                 if (!Role.estEtudiant(request.getSession(false))) {
                     response.sendRedirect(request.getContextPath() + "/app/login");
