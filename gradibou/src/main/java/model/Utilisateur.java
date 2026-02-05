@@ -888,11 +888,12 @@ public class Utilisateur {
     }
 
     public static void supprimerUtilisateur(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        if (!util.Role.estAdmin(request.getSession(false))) {
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        Utilisateur currentUser = (session != null) ? (Utilisateur) session.getAttribute("utilisateur") : null;
+        if (util.Role.estAdmin(session) == false) {
             util.Json.envoyerJsonError(response, "Accès refusé", HttpServletResponse.SC_FORBIDDEN);
             return;
         }
-
         try {
             String idStr = request.getParameter("id");
             if (idStr == null || idStr.isEmpty()) {
@@ -901,10 +902,24 @@ public class Utilisateur {
             }
             
             int id = Integer.parseInt(idStr);
+
+            boolean isAdmin = util.Role.estAdmin(session);
+            boolean isSelf = (currentUser != null && currentUser.getId() == id);
+
+            if (!isAdmin && !isSelf) {
+                util.Json.envoyerJsonError(response, "Accès refusé", HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
+
             Utilisateur utilisateur = Utilisateur.trouverParId(id);
             if (utilisateur != null) {
                 utilisateur.supprimer();
-                util.Json.envoyerJsonSuccess(response, "Utilisateur supprimé avec succès", request.getContextPath() + "/app/admin");
+                if (isSelf) {
+                    if (session != null) session.invalidate();
+                    util.Json.envoyerJsonSuccess(response, "Compte supprimé avec succès", request.getContextPath() + "/");
+                } else {
+                    util.Json.envoyerJsonSuccess(response, "Utilisateur supprimé avec succès", request.getContextPath() + "/app/admin");
+                }
             } else {
                 util.Json.envoyerJsonError(response, "Utilisateur non trouvé", HttpServletResponse.SC_NOT_FOUND);
             }

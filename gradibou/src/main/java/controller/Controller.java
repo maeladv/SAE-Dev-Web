@@ -545,6 +545,22 @@ public class Controller extends HttpServlet {
                 } catch (Exception e) {
                     // Ignorer et afficher le profil de l'utilisateur courant
                 }
+
+
+                // Si l'utilisateur visualisé est un professeur, charger ses matières
+                Utilisateur displayUser = (Utilisateur) request.getAttribute("utilisateurVu");
+                if (displayUser == null) {
+                    displayUser = (Utilisateur) request.getSession().getAttribute("utilisateur");
+                }
+                
+                if (displayUser != null && "professeur".equalsIgnoreCase(displayUser.getRole())) {
+                    try {
+                        request.setAttribute("matieresEnseignees", model.Matiere.trouverParProfesseur(displayUser.getId()));
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+
                 view = "/WEB-INF/views/monCompte.jsp";
                 break;
             case "/logout":
