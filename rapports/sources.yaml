@@ -1,14 +1,14 @@
-harry:
-    type: Book
-    title: Harry Potter and the Order of the Phoenix
-    author: Rowling, J. K.
-    volume: 5
-    page-total: 768
-    date: 2003-06-21
-
-electronic:
+commits:
     type: Web
-    title: Ishkur's Guide to Electronic Music
-    serial-number: v2.5
-    author: Ishkur
-    url: http://www.techno.org/electronic-music-guide/
+    title: Conventional Commits
+    url: https://www.conventionalcommits.org/en/v1.0.0/
+
+jee:
+    type: Web
+    title: Développer avec Java EE
+    url: https://youtu.be/jevdND1NBVs?si=Qq4JyL0pw7eBoP7A
+
+cahier_des_charges:
+    type: Web
+    title: 'Créer un cahier des charges : Le guide complet'
+    url: https://www.nubios.be/cahier-des-charges-application-mobile-guide-complet

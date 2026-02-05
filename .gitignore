@@ -1,3 +1,29 @@
 shafoin-typst-template/
-*.env
-target
+# Maven / build
+/gradibou/target/
+/target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+out/
+bin/
+
+# Archives / artefacts
+*.war
+*.ear
+*.jar
+
+# Logs / temporaires
+*.log
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+.env
